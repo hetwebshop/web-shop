@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { HomePage } from '../modal/product';
-import { ProductService } from '../services/product.service';
 import { UtilityService } from '../services/utility.service';
+import { JobService } from '../services/job.service';
+import { UserJobPost } from '../models/userJobPost';
 
 @Component({
   selector: 'app-home',
@@ -10,14 +10,14 @@ import { UtilityService } from '../services/utility.service';
   styleUrls: ['./home.component.css'],
 })
 export class HomeComponent implements OnInit {
-  homePage: HomePage;
-  constructor(private productService: ProductService, utility: UtilityService) {
+  allJobs: UserJobPost[];
+  constructor(private jobService: JobService, utility: UtilityService) {
     utility.setTitle('Home');
   }
 
   ngOnInit(): void {
-    this.productService.getHomePage().subscribe((response) => {
-      this.homePage = response;
+    this.jobService.getAllUserJobs().subscribe((response) => {
+      this.allJobs = response;
     });
   }
 }

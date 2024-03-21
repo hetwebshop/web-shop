@@ -1,4 +1,6 @@
-﻿namespace API.Helpers
+﻿using System.Text.Json.Serialization;
+
+namespace API.Helpers
 {
     public enum RoleType
     {
@@ -12,11 +14,18 @@
         User
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum Gender
     {
         Male,
         Female,
-        Unknown
+        Other
+    }
+
+    public enum JobPostStatus
+    {
+        Active = 1,
+        Closed = 2
     }
 
     public enum LocationType

@@ -1,4 +1,5 @@
 using API.Extensions;
+using API.Middlewares;
 using API.Seed;
 using API.Services;
 using Microsoft.AspNetCore.Builder;
@@ -6,12 +7,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 //Add services to the container.
 builder.Services.AddApplicationService(builder.Configuration);
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
@@ -21,7 +26,15 @@ builder.Services.AddSwaggerGen(c =>
 //middleware
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<TokenMiddleware>();
 app.UseHttpsRedirection();
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+});
+
 app.UseRouting();
 app.UseCors(options =>
 options.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://varunbr.github.io", "http://localhost:4200"));
@@ -30,7 +43,6 @@ app.UseAuthorization();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.MapControllers();
-app.MapFallbackToController("Index", "Fallback");
 
 //Seed
 using var scope = app.Services.CreateScope();

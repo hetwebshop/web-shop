@@ -1,0 +1,23 @@
+﻿[
+  {
+    "Id": 1,
+    "Name": "Sarajevo",
+    "PostalCode": "71000",
+    "CantonId": 9,
+    "CountryId": 1
+  },
+  {
+    "Id":  2,
+    "Name": "Zenica",
+    "PostalCode": "72000",
+    "CantonId": 4,
+    "CountryId": 1
+  },
+  {
+    "Id": 3,
+    "Name": "Tuzla",
+    "PostalCode": "73000",
+    "CantonId": 3,
+    "CountryId": 1
+  }
+]

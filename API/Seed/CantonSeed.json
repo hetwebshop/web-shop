@@ -1,0 +1,52 @@
+﻿[
+  {
+    "Id": 1,
+    "Name": "Unsko-sanski kanton",
+    "CountryId": 1
+  },
+  {
+    "Id": 2,
+    "Name": "Posavski kanton",
+    "CountryId": 1
+  },
+  {
+    "Id": 3,
+    "Name": "Tuzlanski kanton",
+    "CountryId": 1
+  },
+  {
+    "Id": 4,
+    "Name": "Zeničko-dobojski kanton",
+    "CountryId": 1
+  },
+  {
+    "Id": 5,
+    "Name": "Bosansko-podrinjski kanton",
+    "CountryId": 1
+  },
+  {
+    "Id": 6,
+    "Name": "Srednjobosanski kanton",
+    "CountryId": 1
+  },
+  {
+    "Id": 7,
+    "Name": "Hercegovačko-neretvanski kanton",
+    "CountryId": 1
+  },
+  {
+    "Id": 8,
+    "Name": "Zapadnohercegovački kanton",
+    "CountryId": 1
+  },
+  {
+    "Id": 9,
+    "Name": "Sarajevski kanton",
+    "CountryId": 1
+  },
+  {
+    "Id": 10,
+    "Name": "Kanton 10 (Zeničko-dobojski kanton)",
+    "CountryId": 1
+  }
+]

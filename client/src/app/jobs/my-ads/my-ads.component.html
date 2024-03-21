@@ -1,0 +1,30 @@
+<div class="container">
+    <div class="row">
+        <a [routerLink]="['/user-job-details', job.id]" class="col-lg-4 col-md-6 col-sm-12 job-link" *ngFor="let job of allJobs">
+            <mat-card class="job-card" [class.dark-theme]="isDarkTheme">
+                <mat-card-header>
+                    <mat-card-title >{{ job.userFullName }}</mat-card-title>
+                    <mat-card-subtitle>{{ job.title }} - {{ job.subtitle }}</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="job-info">
+                        <h4>Employee Info</h4>
+                        <p>{{ job.streetName }}, {{ job.streetNumber }}, {{ job.city }}, {{ job.country }}</p>
+                    </div>
+                    <div class="job-details">
+                        <h4>Biography</h4>
+                        <p>{{ job.biography }}</p>
+                        <h4>Skills</h4>
+                        <p>{{ job.skills }}</p>
+                        <h4>Job Type</h4>
+                        <p>{{ job.jobType }}</p>
+                        <h4>Job Category</h4>
+                        <p>{{ job.jobCategory }}</p>
+                        <h4>Tags</h4>
+                        <p>{{ job.tags }}</p>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </a>
+    </div>
+</div>

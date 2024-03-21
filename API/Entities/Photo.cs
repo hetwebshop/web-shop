@@ -6,7 +6,5 @@
         public string PublicId { get; set; }
         public string Url { get; set; }
         public User User { get; set; }
-        public Store Store { get; set; }
-        public Category Category { get; set; }
     }
 }

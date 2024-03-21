@@ -38,7 +38,15 @@ export class HttpService {
   }
 
   post<T>(url: string, body = {}, { background = false } = {}) {
+    console.log("http service");
+    console.log(body);
     return this.http.post<T>(url, body, {
+      headers: { Background: background.toString() },
+    });
+  }
+
+  put<T>(url: string, body = {}, { background = false } = {}) {
+    return this.http.put<T>(url, body, {
       headers: { Background: background.toString() },
     });
   }

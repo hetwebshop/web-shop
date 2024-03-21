@@ -1,0 +1,41 @@
+﻿using API.Entities;
+using API.Entities.JobPost;
+using API.Helpers;
+using System;
+using System.Collections.Generic;
+
+namespace API.DTOs
+{
+    public class UserJobPostDto
+    {
+        public int Id { get; set; }
+        public string Position { get; set; }
+        public string Biography { get; set; }
+        public string ApplicantFirstName { get; set; }
+        public string ApplicantLastName { get; set; }
+        public string ApplicantEmail { get; set; }
+        public string ApplicantPhoneNumber { get; set; }
+        public DateTime ApplicantDateOfBirth { get; set; }
+        public Gender ApplicantGender { get; set; }
+        public decimal? Price { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public int JobTypeId { get; set; }
+        public string JobType { get; set; }
+        public int JobCategoryId { get; set; }
+        public string JobCategory { get; set; }
+        public int JobPostStatusId { get; set; }
+        public string JobPostStatus { get; set; }
+        public int AddressId { get; set; }
+        public string StreetName { get; set; }
+        public string StreetNumber { get; set; }
+        public int CityId { get; set; }
+        public string City { get; set; }
+        public int CountryId { get; set; }
+        public string Country { get; set; }
+        public int SubmittingUserId { get; set; }
+        public int AdvertisementTypeId { get; set; }
+
+        public List<ApplicantEducationDto> ApplicantEducations { get; set; }
+        public List<UserJobSubcategoryDto> UserJobSubcategories { get; set; }
+    }
+}

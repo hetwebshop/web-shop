@@ -37,32 +37,23 @@ namespace API.Data
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
-            if (address != null)
-            {
-               address.Locations = await GetLocations(address.AreaId);
-            }
             return address;
         }
 
         public async Task UpdateAddress(int userId, AddressDto addressDto)
         {
-            if (!await DataContext.Locations.AnyAsync(l => l.Id == addressDto.AreaId &&
-                                                           l.Type.Equals(LocationType.Area.ToString())))
-                throw new HttpException("Invalid location Id of Area.");
-
             var user = await DataContext.Users.Include(u => u.Address).SingleAsync(u => u.Id == userId);
-            user.Address = new Address();
+            user.Address = new UserAddress();
             user.Address = Mapper.Map(addressDto, user.Address);
-            user.Address.LocationId = addressDto.AreaId;
         }
 
         public async Task RemoveAddress(int userId)
         {
-            var address = await DataContext.Addresses
+            var address = await DataContext.UserAddresses
                 .Where(a => a.User.Id == userId)
                 .SingleOrDefaultAsync();
             if (address != null)
-                DataContext.Addresses.Remove(address);
+                DataContext.UserAddresses.Remove(address);
         }
 
         public async Task<string> UpdateUserPhoto(IFormFile file, int userId)

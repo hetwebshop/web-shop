@@ -10,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using API.Services.UserOfferServices;
+using API.Data.IUserOfferRepository;
 
 namespace API.Extensions
 {
@@ -34,6 +36,14 @@ namespace API.Extensions
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IPhotoService, PhotoService>();
             services.AddScoped<SeedData, SeedData>();
+
+            //jobPosts
+            services.AddScoped<IUserJobPostService, UserJobPostService>();
+            services.AddScoped<IUserJobPostRepository, UserJobPostRepository>();
+
+            //locations
+            services.AddScoped<ILocationRepository, LocationRepository>();
+            services.AddScoped<ILocationService, LocationService>();
 
             services.AddIdentity<User, Role>(opt => { opt.Password.RequireNonAlphanumeric = false; })
                 .AddEntityFrameworkStores<DataContext>();

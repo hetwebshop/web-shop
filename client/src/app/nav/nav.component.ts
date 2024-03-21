@@ -10,7 +10,6 @@ import { MatSidenav } from '@angular/material/sidenav';
 import { ActivatedRoute, Router } from '@angular/router';
 import { User } from '../modal/user';
 import { AccountService } from '../services/account.service';
-import { CartService } from '../services/cart.service';
 
 @Component({
   selector: 'app-nav',
@@ -21,14 +20,12 @@ export class NavComponent implements OnInit {
   value: string;
   @Input() isDark = false;
   @Output() changeTheme = new EventEmitter<boolean>();
-  cartCount: number;
   user: User;
 
   constructor(
     public accountService: AccountService,
     private router: Router,
     private route: ActivatedRoute,
-    private cartService: CartService
   ) {
     this.accountService.user$.subscribe((u) => (this.user = u));
   }
@@ -42,14 +39,6 @@ export class NavComponent implements OnInit {
 
     this.router.events.subscribe((event) => {
       this.sidenav?.close();
-    });
-
-    this.cartService.cartStore$.subscribe((response) => {
-      let count = 0;
-      for (let item of response) {
-        count += item.cartItems.length;
-      }
-      this.cartCount = count;
     });
   }
 

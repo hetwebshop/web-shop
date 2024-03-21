@@ -6,29 +6,29 @@
         public const string String = "String";
     }
 
-    public class PayType
-    {
-        public const string Wallet = "Wallet";
-        public const string InternetBanking = "Internet Banking";
-        public const string DebitCard = "Debit Card";
-        public const string Upi = "UPI";
-    }
+    //public class PayType
+    //{
+    //    public const string Wallet = "Wallet";
+    //    public const string InternetBanking = "Internet Banking";
+    //    public const string DebitCard = "Debit Card";
+    //    public const string Upi = "UPI";
+    //}
 
-    public class TransactionType
-    {
-        public const string Order = "Order";
-        public const string AmountTransfer = "Amount Transfer";
-    }
+    //public class TransactionType
+    //{
+    //    public const string Order = "Order";
+    //    public const string AmountTransfer = "Amount Transfer";
+    //}
 
     public class Constants
     {
         public const string TestUser = "test_user";
         public const string Admin = "admin";
         public const string OrderBy = "OrderBy";
-        public const string Price = "Price";
-        public const string Brand = "Brand";
-        public const string Category = "Category";
-        public const string ShoppingCartWallet = "ShoppingCart Wallet";
+        //public const string Price = "Price";
+        //public const string Brand = "Brand";
+        //public const string Category = "Category";
+        //public const string ShoppingCartWallet = "ShoppingCart Wallet";
     }
 
     public class OrderBy

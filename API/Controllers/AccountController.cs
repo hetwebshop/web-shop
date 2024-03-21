@@ -39,8 +39,6 @@ namespace API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<UserDto>> Register(UserRegisterDto registerDto)
         {
-            if (!Enum.GetNames<Gender>().Contains(registerDto.Gender))
-                return BadRequest("Invalid gender.");
             if (await UserNameExist(registerDto.UserName))
                 return BadRequest("Username is taken.");
             if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
@@ -49,7 +47,6 @@ namespace API.Controllers
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
             user.Photo = new Photo();
-            user.Account = new Account { Balance = 100000 };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
@@ -138,8 +135,6 @@ namespace API.Controllers
         {
             profileDto.Id = HttpContext.User.GetUserId();
 
-            if (!Enum.GetNames<Gender>().Contains(profileDto.Gender))
-                return BadRequest("Invalid gender.");
             if (await _userManager.Users.AnyAsync(u => u.Id != profileDto.Id &&
                                                        u.NormalizedUserName == profileDto.UserName.ToUpper()))
                 return BadRequest("Username is taken.");
@@ -202,11 +197,5 @@ namespace API.Controllers
             return NoContent();
         }
 
-        [HttpGet("location-list")]
-        public async Task<ActionResult> GetLocations([FromQuery] int parentId, [FromQuery] string childType)
-        {
-            var locations = await _uow.UserRepository.GetChildLocations(parentId, childType);
-            return Ok(locations);
-        }
     }
 }

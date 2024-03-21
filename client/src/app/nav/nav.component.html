@@ -15,43 +15,9 @@
         <a routerLink="/edit-profile" mat-list-item>
           <mat-icon>face</mat-icon>&nbsp; Profile
         </a>
-        <a routerLink="/wallet" mat-list-item>
-          <mat-icon>account_balance_wallet</mat-icon>&nbsp; My Wallet
-        </a>
-        <a routerLink="/order" mat-list-item>
-          <mat-icon>reorder</mat-icon>&nbsp; My Orders
-        </a>
-        <a routerLink="/cart" mat-list-item>
-          <mat-icon>shopping_cart</mat-icon>&nbsp; Cart
-        </a>
-        <a *appInRole="['TrackAgent','TrackAdmin']" routerLink="/track" mat-list-item>
-          <mat-icon>local_shipping</mat-icon>&nbsp; Track
-        </a>
-        <a *appInRole="['StoreAgent','StoreAdmin']" routerLink="/store/order" mat-list-item>
-          <mat-icon>store</mat-icon>&nbsp; Store
-        </a>
-        <a *appInRole="['TrackAdmin','StoreAdmin','StoreModerator','TrackModerator','Admin']" mat-list-item
-          (click)="menuTrigger.openMenu()">
-          <mat-icon>security</mat-icon>&nbsp; Administration &nbsp;
-          <mat-icon>arrow_drop_down</mat-icon>
-          <div #menuTrigger="matMenuTrigger" [matMenuTriggerFor]="administration" xPosition="before">
-          </div>
-        </a>
         <mat-menu #administration="matMenu">
           <button *appInRole="['Admin']" mat-menu-item routerLink="/admin/moderate/admin-role">
             <mat-icon>admin_panel_settings</mat-icon>Admin
-          </button>
-          <button *appInRole="['StoreModerator','Admin']" mat-menu-item routerLink="/admin/moderate/store-role">
-            <mat-icon>engineering</mat-icon>Moderate Store
-          </button>
-          <button *appInRole="['TrackModerator','Admin']" mat-menu-item routerLink="/admin/moderate/track-role">
-            <mat-icon>engineering</mat-icon>Moderate Track
-          </button>
-          <button *appInRole="['StoreAdmin']" mat-menu-item routerLink="/admin/store-role">
-            <mat-icon>manage_accounts</mat-icon>Store
-          </button>
-          <button *appInRole="['TrackAdmin']" mat-menu-item routerLink="/admin/track-role">
-            <mat-icon>manage_accounts</mat-icon>Track
           </button>
         </mat-menu>
         <a routerLink="/about" mat-list-item>
@@ -110,7 +76,16 @@
             <button mat-icon-button (click)="sidenav.toggle()" fxShow="true">
               <mat-icon>menu</mat-icon>
             </button>
-            <span class="brand" routerLink="/">ShoppingCart</span>
+            <span class="brand" routerLink="/">HireMe</span>
+          </div>
+          <div>
+            <span class="brand" routerLink="/user-jobs">Ads</span>
+          </div>
+          <div>
+            <span class="brand" routerLink="/my-ads">My Ads</span>
+          </div>
+          <div>
+            <span class="brand" routerLink="/user-job-details">Create Job</span>
           </div>
           <form #searchForm="ngForm" fxShow="true" fxHide.lt-sm (ngSubmit)="search()">
             <mat-form-field style="width: 40vw" floatLabel="never">
@@ -127,11 +102,6 @@
             </button>
             <button mat-icon-button (click)="toggleTheme()">
               <mat-icon>{{isDark ? "light_mode":"dark_mode"}}</mat-icon>
-            </button>
-            <button fxHide.sm="true" mat-icon-button routerLink="/cart">
-              <mat-icon [matBadge]="cartCount" matBadgeSize="small" matBadgeColor="accent"
-                [matBadgeHidden]="cartCount <= 0">
-                shopping_cart</mat-icon>
             </button>
             <button class="ms-2" *ngIf="!user" mat-raised-button color="accent" routerLink="/login">
               Login

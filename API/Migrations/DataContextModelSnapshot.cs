@@ -22,7 +22,7 @@ namespace API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("API.Entities.Account", b =>
+            modelBuilder.Entity("API.Entities.City", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -30,41 +30,8 @@ namespace API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<double>("Balance")
-                        .HasColumnType("float");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Accounts");
-                });
-
-            modelBuilder.Entity("API.Entities.Address", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("CountryId")
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("AddressName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("House")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Landmark")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("LocationId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Mobile")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
@@ -74,12 +41,12 @@ namespace API.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LocationId");
+                    b.HasIndex("CountryId");
 
-                    b.ToTable("Addresses");
+                    b.ToTable("Cities");
                 });
 
-            modelBuilder.Entity("API.Entities.CartItem", b =>
+            modelBuilder.Entity("API.Entities.Country", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -87,22 +54,67 @@ namespace API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("StoreItemId")
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Countries");
+                });
+
+            modelBuilder.Entity("API.Entities.JobPost.AdvertisementType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("UserId")
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AdvertisementTypes");
+                });
+
+            modelBuilder.Entity("API.Entities.JobPost.ApplicantEducation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Degree")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EducationEndYear")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EducationStartYear")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FieldOfStudy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("InstitutionName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("University")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserJobPostId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("StoreItemId");
+                    b.HasIndex("UserJobPostId");
 
-                    b.HasIndex("UserId");
-
-                    b.ToTable("CartItems");
+                    b.ToTable("ApplicantEducations");
                 });
 
-            modelBuilder.Entity("API.Entities.Category", b =>
+            modelBuilder.Entity("API.Entities.JobPost.JobCategory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -116,45 +128,14 @@ namespace API.Migrations
                     b.Property<int?>("ParentId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("PhotoId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ParentId");
 
-                    b.HasIndex("PhotoId")
-                        .IsUnique()
-                        .HasFilter("[PhotoId] IS NOT NULL");
-
-                    b.ToTable("Categories");
+                    b.ToTable("JobCategories");
                 });
 
-            modelBuilder.Entity("API.Entities.CategoryTag", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<short>("Score")
-                        .HasColumnType("smallint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("CategoryTags");
-                });
-
-            modelBuilder.Entity("API.Entities.Location", b =>
+            modelBuilder.Entity("API.Entities.JobPost.JobPostStatus", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -165,20 +146,12 @@ namespace API.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ParentId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Type")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("ParentId");
-
-                    b.ToTable("Locations");
+                    b.ToTable("JobPostStatuses");
                 });
 
-            modelBuilder.Entity("API.Entities.Order", b =>
+            modelBuilder.Entity("API.Entities.JobPost.JobType", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -186,126 +159,109 @@ namespace API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<DateTime>("Created")
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("JobTypes");
+                });
+
+            modelBuilder.Entity("API.Entities.JobPost.UserJobPost", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("AdvertisementTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ApplicantDateOfBirth")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("Delivery")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("ApplicantEmail")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<double>("DeliveryCharge")
-                        .HasColumnType("float");
+                    b.Property<string>("ApplicantFirstName")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("DestinationLocationId")
+                    b.Property<int>("ApplicantGender")
                         .HasColumnType("int");
 
-                    b.Property<string>("House")
+                    b.Property<string>("ApplicantLastName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Landmark")
+                    b.Property<string>("ApplicantPhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Mobile")
+                    b.Property<string>("Biography")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("CityId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
-                    b.Property<string>("PostalCode")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
 
-                    b.Property<int>("SourceLocationId")
+                    b.Property<int>("JobCategoryId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
+                    b.Property<int>("JobPostStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("JobTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Position")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("StoreId")
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("SubmittingUserId")
                         .HasColumnType("int");
 
-                    b.Property<double>("TotalAmount")
-                        .HasColumnType("float");
-
-                    b.Property<int?>("TransactionId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Type")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Update")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DestinationLocationId");
+                    b.HasIndex("AdvertisementTypeId");
 
-                    b.HasIndex("SourceLocationId");
+                    b.HasIndex("CityId");
 
-                    b.HasIndex("StoreId");
+                    b.HasIndex("JobCategoryId");
 
-                    b.HasIndex("TransactionId")
-                        .IsUnique()
-                        .HasFilter("[TransactionId] IS NOT NULL");
+                    b.HasIndex("JobPostStatusId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("JobTypeId");
 
-                    b.ToTable("Orders");
+                    b.HasIndex("SubmittingUserId");
+
+                    b.ToTable("UserJobPosts");
                 });
 
-            modelBuilder.Entity("API.Entities.OrderItem", b =>
+            modelBuilder.Entity("API.Entities.JobPost.UserJobSubcategory", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("UserJobPostId")
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("Count")
+                    b.Property<int>("JobCategoryId")
                         .HasColumnType("int");
 
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
+                    b.HasKey("UserJobPostId", "JobCategoryId");
 
-                    b.Property<double>("Price")
-                        .HasColumnType("float");
+                    b.HasIndex("JobCategoryId");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("StoreItemId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderId");
-
-                    b.HasIndex("StoreItemId");
-
-                    b.ToTable("OrderItems");
-                });
-
-            modelBuilder.Entity("API.Entities.PayOption", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<bool>("Available")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Type")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PayOptions");
+                    b.ToTable("UserJobSubcategories");
                 });
 
             modelBuilder.Entity("API.Entities.Photo", b =>
@@ -325,172 +281,6 @@ namespace API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Photos");
-                });
-
-            modelBuilder.Entity("API.Entities.Product", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<double>("Amount")
-                        .HasColumnType("float");
-
-                    b.Property<bool>("Available")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Brand")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Features")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("MaxPerOrder")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Model")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.Property<int>("SoldQuantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("Products");
-                });
-
-            modelBuilder.Entity("API.Entities.ProductTag", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<short>("Score")
-                        .HasColumnType("smallint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("ProductTags");
-                });
-
-            modelBuilder.Entity("API.Entities.ProductView", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<bool>("IsMain")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PublicId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Url")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("ProductViews");
-                });
-
-            modelBuilder.Entity("API.Entities.Property", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Filter")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Type")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Unit")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Values")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("Properties");
-                });
-
-            modelBuilder.Entity("API.Entities.PropertyValue", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int?>("IntegerValue")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PropertyId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("StringValue")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("PropertyId");
-
-                    b.ToTable("PropertyValues");
                 });
 
             modelBuilder.Entity("API.Entities.Role", b =>
@@ -523,199 +313,6 @@ namespace API.Migrations
                     b.ToTable("AspNetRoles", (string)null);
                 });
 
-            modelBuilder.Entity("API.Entities.Store", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AddressId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("PhotoId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId")
-                        .IsUnique();
-
-                    b.HasIndex("AddressId")
-                        .IsUnique();
-
-                    b.HasIndex("PhotoId")
-                        .IsUnique()
-                        .HasFilter("[PhotoId] IS NOT NULL");
-
-                    b.ToTable("Stores");
-                });
-
-            modelBuilder.Entity("API.Entities.StoreAgent", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("Role")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("StoreId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StoreId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("StoresAgents");
-                });
-
-            modelBuilder.Entity("API.Entities.StoreItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("Available")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.Property<int>("SoldQuantity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StoreId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("StoreId");
-
-                    b.ToTable("StoreItems");
-                });
-
-            modelBuilder.Entity("API.Entities.TrackAgent", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("LocationId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Role")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LocationId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("TrackAgents");
-                });
-
-            modelBuilder.Entity("API.Entities.TrackEvent", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int?>("AgentId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("Done")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("LocationId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AgentId");
-
-                    b.HasIndex("LocationId");
-
-                    b.HasIndex("OrderId");
-
-                    b.ToTable("TrackEvents");
-                });
-
-            modelBuilder.Entity("API.Entities.Transaction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<double>("Amount")
-                        .HasColumnType("float");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("FromId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ToId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Type")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FromId");
-
-                    b.HasIndex("ToId");
-
-                    b.ToTable("Transactions");
-                });
-
             modelBuilder.Entity("API.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -725,9 +322,6 @@ namespace API.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AccountId")
                         .HasColumnType("int");
 
                     b.Property<int?>("AddressId")
@@ -794,9 +388,6 @@ namespace API.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId")
-                        .IsUnique();
-
                     b.HasIndex("AddressId")
                         .IsUnique()
                         .HasFilter("[AddressId] IS NOT NULL");
@@ -814,6 +405,30 @@ namespace API.Migrations
                         .HasFilter("[PhotoId] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("API.Entities.UserAddress", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("CityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StreetName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StreetNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.ToTable("UserAddresses");
                 });
 
             modelBuilder.Entity("API.Entities.UserRole", b =>
@@ -919,333 +534,109 @@ namespace API.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("API.Entities.Address", b =>
+            modelBuilder.Entity("API.Entities.City", b =>
                 {
-                    b.HasOne("API.Entities.Location", "Location")
-                        .WithMany("Addresses")
-                        .HasForeignKey("LocationId")
+                    b.HasOne("API.Entities.Country", "Country")
+                        .WithMany("Cities")
+                        .HasForeignKey("CountryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Location");
+                    b.Navigation("Country");
                 });
 
-            modelBuilder.Entity("API.Entities.CartItem", b =>
+            modelBuilder.Entity("API.Entities.JobPost.ApplicantEducation", b =>
                 {
-                    b.HasOne("API.Entities.StoreItem", "StoreItem")
-                        .WithMany("CartItems")
-                        .HasForeignKey("StoreItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("API.Entities.JobPost.UserJobPost", "UserJobPost")
+                        .WithMany("ApplicantEducations")
+                        .HasForeignKey("UserJobPostId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("UserJobPost");
+                });
+
+            modelBuilder.Entity("API.Entities.JobPost.JobCategory", b =>
+                {
+                    b.HasOne("API.Entities.JobPost.JobCategory", "ParentCategory")
+                        .WithMany("Subcategories")
+                        .HasForeignKey("ParentId");
+
+                    b.Navigation("ParentCategory");
+                });
+
+            modelBuilder.Entity("API.Entities.JobPost.UserJobPost", b =>
+                {
+                    b.HasOne("API.Entities.JobPost.AdvertisementType", "AdvertisementType")
+                        .WithMany("UserJobPosts")
+                        .HasForeignKey("AdvertisementTypeId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("API.Entities.User", "User")
-                        .WithMany("CartItems")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("API.Entities.City", "City")
+                        .WithMany("UserJobPosts")
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.Navigation("StoreItem");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("API.Entities.Category", b =>
-                {
-                    b.HasOne("API.Entities.Category", "Parent")
-                        .WithMany("Children")
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("API.Entities.Photo", "Photo")
-                        .WithOne("Category")
-                        .HasForeignKey("API.Entities.Category", "PhotoId");
-
-                    b.Navigation("Parent");
-
-                    b.Navigation("Photo");
-                });
-
-            modelBuilder.Entity("API.Entities.CategoryTag", b =>
-                {
-                    b.HasOne("API.Entities.Category", "Category")
-                        .WithMany("CategoryTags")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-                });
-
-            modelBuilder.Entity("API.Entities.Location", b =>
-                {
-                    b.HasOne("API.Entities.Location", "Parent")
-                        .WithMany("Children")
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Parent");
-                });
-
-            modelBuilder.Entity("API.Entities.Order", b =>
-                {
-                    b.HasOne("API.Entities.Location", "DestinationLocation")
-                        .WithMany("DestinationOrders")
-                        .HasForeignKey("DestinationLocationId")
+                    b.HasOne("API.Entities.JobPost.JobCategory", "JobCategory")
+                        .WithMany("UserJobPosts")
+                        .HasForeignKey("JobCategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("API.Entities.Location", "SourceLocation")
-                        .WithMany("SourceOrders")
-                        .HasForeignKey("SourceLocationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("API.Entities.Store", "Store")
-                        .WithMany("Orders")
-                        .HasForeignKey("StoreId")
+                    b.HasOne("API.Entities.JobPost.JobPostStatus", "JobPostStatus")
+                        .WithMany()
+                        .HasForeignKey("JobPostStatusId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("API.Entities.Transaction", "Transaction")
-                        .WithOne("Order")
-                        .HasForeignKey("API.Entities.Order", "TransactionId");
-
-                    b.HasOne("API.Entities.User", "User")
-                        .WithMany("Orders")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("DestinationLocation");
-
-                    b.Navigation("SourceLocation");
-
-                    b.Navigation("Store");
-
-                    b.Navigation("Transaction");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("API.Entities.OrderItem", b =>
-                {
-                    b.HasOne("API.Entities.Order", "Order")
-                        .WithMany("OrderItems")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("API.Entities.StoreItem", "StoreItem")
-                        .WithMany("OrderItems")
-                        .HasForeignKey("StoreItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Order");
-
-                    b.Navigation("StoreItem");
-                });
-
-            modelBuilder.Entity("API.Entities.Product", b =>
-                {
-                    b.HasOne("API.Entities.Category", "Category")
-                        .WithMany("Products")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-                });
-
-            modelBuilder.Entity("API.Entities.ProductTag", b =>
-                {
-                    b.HasOne("API.Entities.Product", "Product")
-                        .WithMany("ProductTags")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("API.Entities.ProductView", b =>
-                {
-                    b.HasOne("API.Entities.Product", "Product")
-                        .WithMany("ProductViews")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("API.Entities.Property", b =>
-                {
-                    b.HasOne("API.Entities.Category", "Category")
-                        .WithMany("Properties")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-                });
-
-            modelBuilder.Entity("API.Entities.PropertyValue", b =>
-                {
-                    b.HasOne("API.Entities.Product", "Product")
-                        .WithMany("Properties")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("API.Entities.Property", "Property")
-                        .WithMany("PropertyValues")
-                        .HasForeignKey("PropertyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("Property");
-                });
-
-            modelBuilder.Entity("API.Entities.Store", b =>
-                {
-                    b.HasOne("API.Entities.Account", "Account")
-                        .WithOne("Store")
-                        .HasForeignKey("API.Entities.Store", "AccountId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("API.Entities.Address", "Address")
-                        .WithOne("Store")
-                        .HasForeignKey("API.Entities.Store", "AddressId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("API.Entities.Photo", "Photo")
-                        .WithOne("Store")
-                        .HasForeignKey("API.Entities.Store", "PhotoId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Account");
-
-                    b.Navigation("Address");
-
-                    b.Navigation("Photo");
-                });
-
-            modelBuilder.Entity("API.Entities.StoreAgent", b =>
-                {
-                    b.HasOne("API.Entities.Store", "Store")
-                        .WithMany("StoreAgents")
-                        .HasForeignKey("StoreId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("API.Entities.User", "User")
-                        .WithMany("StoreAgents")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Store");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("API.Entities.StoreItem", b =>
-                {
-                    b.HasOne("API.Entities.Product", "Product")
-                        .WithMany("StoreItems")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("API.Entities.Store", "Store")
-                        .WithMany("Items")
-                        .HasForeignKey("StoreId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("Store");
-                });
-
-            modelBuilder.Entity("API.Entities.TrackAgent", b =>
-                {
-                    b.HasOne("API.Entities.Location", "Location")
-                        .WithMany("TrackAgents")
-                        .HasForeignKey("LocationId")
+                    b.HasOne("API.Entities.JobPost.JobType", "JobType")
+                        .WithMany()
+                        .HasForeignKey("JobTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("API.Entities.User", "User")
-                        .WithMany("TrackAgents")
-                        .HasForeignKey("UserId")
+                        .WithMany("UserJobPosts")
+                        .HasForeignKey("SubmittingUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Location");
+                    b.Navigation("AdvertisementType");
+
+                    b.Navigation("City");
+
+                    b.Navigation("JobCategory");
+
+                    b.Navigation("JobPostStatus");
+
+                    b.Navigation("JobType");
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("API.Entities.TrackEvent", b =>
+            modelBuilder.Entity("API.Entities.JobPost.UserJobSubcategory", b =>
                 {
-                    b.HasOne("API.Entities.User", "Agent")
-                        .WithMany("TrackEvents")
-                        .HasForeignKey("AgentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("API.Entities.Location", "SiteLocation")
-                        .WithMany("TrackEvents")
-                        .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("API.Entities.Order", "Order")
-                        .WithMany("TrackEvents")
-                        .HasForeignKey("OrderId")
+                    b.HasOne("API.Entities.JobPost.JobCategory", "JobCategory")
+                        .WithMany()
+                        .HasForeignKey("JobCategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Agent");
-
-                    b.Navigation("Order");
-
-                    b.Navigation("SiteLocation");
-                });
-
-            modelBuilder.Entity("API.Entities.Transaction", b =>
-                {
-                    b.HasOne("API.Entities.Account", "FromAccount")
-                        .WithMany("Withdraw")
-                        .HasForeignKey("FromId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("API.Entities.JobPost.UserJobPost", "UserJobPost")
+                        .WithMany("UserJobSubcategories")
+                        .HasForeignKey("UserJobPostId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("API.Entities.Account", "ToAccount")
-                        .WithMany("Deposit")
-                        .HasForeignKey("ToId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.Navigation("JobCategory");
 
-                    b.Navigation("FromAccount");
-
-                    b.Navigation("ToAccount");
+                    b.Navigation("UserJobPost");
                 });
 
             modelBuilder.Entity("API.Entities.User", b =>
                 {
-                    b.HasOne("API.Entities.Account", "Account")
-                        .WithOne("User")
-                        .HasForeignKey("API.Entities.User", "AccountId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("API.Entities.Address", "Address")
+                    b.HasOne("API.Entities.UserAddress", "Address")
                         .WithOne("User")
                         .HasForeignKey("API.Entities.User", "AddressId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -1255,11 +646,20 @@ namespace API.Migrations
                         .HasForeignKey("API.Entities.User", "PhotoId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Navigation("Account");
-
                     b.Navigation("Address");
 
                     b.Navigation("Photo");
+                });
+
+            modelBuilder.Entity("API.Entities.UserAddress", b =>
+                {
+                    b.HasOne("API.Entities.City", "City")
+                        .WithMany("Addresses")
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("City");
                 });
 
             modelBuilder.Entity("API.Entities.UserRole", b =>
@@ -1317,80 +717,40 @@ namespace API.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("API.Entities.Account", b =>
-                {
-                    b.Navigation("Deposit");
-
-                    b.Navigation("Store");
-
-                    b.Navigation("User");
-
-                    b.Navigation("Withdraw");
-                });
-
-            modelBuilder.Entity("API.Entities.Address", b =>
-                {
-                    b.Navigation("Store");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("API.Entities.Category", b =>
-                {
-                    b.Navigation("CategoryTags");
-
-                    b.Navigation("Children");
-
-                    b.Navigation("Products");
-
-                    b.Navigation("Properties");
-                });
-
-            modelBuilder.Entity("API.Entities.Location", b =>
+            modelBuilder.Entity("API.Entities.City", b =>
                 {
                     b.Navigation("Addresses");
 
-                    b.Navigation("Children");
-
-                    b.Navigation("DestinationOrders");
-
-                    b.Navigation("SourceOrders");
-
-                    b.Navigation("TrackAgents");
-
-                    b.Navigation("TrackEvents");
+                    b.Navigation("UserJobPosts");
                 });
 
-            modelBuilder.Entity("API.Entities.Order", b =>
+            modelBuilder.Entity("API.Entities.Country", b =>
                 {
-                    b.Navigation("OrderItems");
+                    b.Navigation("Cities");
+                });
 
-                    b.Navigation("TrackEvents");
+            modelBuilder.Entity("API.Entities.JobPost.AdvertisementType", b =>
+                {
+                    b.Navigation("UserJobPosts");
+                });
+
+            modelBuilder.Entity("API.Entities.JobPost.JobCategory", b =>
+                {
+                    b.Navigation("Subcategories");
+
+                    b.Navigation("UserJobPosts");
+                });
+
+            modelBuilder.Entity("API.Entities.JobPost.UserJobPost", b =>
+                {
+                    b.Navigation("ApplicantEducations");
+
+                    b.Navigation("UserJobSubcategories");
                 });
 
             modelBuilder.Entity("API.Entities.Photo", b =>
                 {
-                    b.Navigation("Category");
-
-                    b.Navigation("Store");
-
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("API.Entities.Product", b =>
-                {
-                    b.Navigation("ProductTags");
-
-                    b.Navigation("ProductViews");
-
-                    b.Navigation("Properties");
-
-                    b.Navigation("StoreItems");
-                });
-
-            modelBuilder.Entity("API.Entities.Property", b =>
-                {
-                    b.Navigation("PropertyValues");
                 });
 
             modelBuilder.Entity("API.Entities.Role", b =>
@@ -1398,40 +758,16 @@ namespace API.Migrations
                     b.Navigation("UserRoles");
                 });
 
-            modelBuilder.Entity("API.Entities.Store", b =>
-                {
-                    b.Navigation("Items");
-
-                    b.Navigation("Orders");
-
-                    b.Navigation("StoreAgents");
-                });
-
-            modelBuilder.Entity("API.Entities.StoreItem", b =>
-                {
-                    b.Navigation("CartItems");
-
-                    b.Navigation("OrderItems");
-                });
-
-            modelBuilder.Entity("API.Entities.Transaction", b =>
-                {
-                    b.Navigation("Order");
-                });
-
             modelBuilder.Entity("API.Entities.User", b =>
                 {
-                    b.Navigation("CartItems");
-
-                    b.Navigation("Orders");
-
-                    b.Navigation("StoreAgents");
-
-                    b.Navigation("TrackAgents");
-
-                    b.Navigation("TrackEvents");
+                    b.Navigation("UserJobPosts");
 
                     b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("API.Entities.UserAddress", b =>
+                {
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }

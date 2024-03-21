@@ -70,44 +70,16 @@ namespace API.Helpers
         }
     }
 
-    public class OrderParams : BaseParams
-    {
-        public string Status { get; set; }
-        public string StoreName { get; set; }
-    }
-
-    public class TrackParams : BaseParams
-    {
-        public string Status { get; set; }
-        public string Location { get; set; }
-    }
-
     public class BaseRoleParams : BaseParams
     {
         public string Role { get; set; }
         public string UserName { get; set; }
     }
 
-    public class TrackRoleParams : BaseRoleParams
-    {
-        public string Location { get; set; }
-    }
-
-    public class StoreRoleParams : BaseRoleParams
-    {
-        public string StoreName { get; set; }
-    }
-
     public class LocationSearchParams
     {
         public string Name { get; set; }
         public string Type { get; set; }
-        public string For { get; set; }
-    }
-
-    public class StoreSearchParams
-    {
-        public string Name { get; set; }
         public string For { get; set; }
     }
 }

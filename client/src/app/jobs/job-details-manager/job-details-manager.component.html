@@ -1,0 +1,144 @@
+<div fxLayout="row" fxLayoutAlign="center" style="margin-top: 100px;">
+  <mat-card class="text-center" fxFlex="40" fxFlex.lt-sm="90" fxFlex.lt-md="60" fxFlex.lt-lg="50"
+    style="margin-bottom: 2px;">
+    <mat-card-title class="my-4">{{ isEditMode ? 'Edit Job Details' : 'Create Job' }}</mat-card-title>
+    <mat-card-content class="mt-5">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" #jobForm="ngForm" fxLayout="column" fxLayoutAlign="center">
+        <input type="hidden" formControlName="id">
+
+        <mat-form-field appearance="outline">
+          <mat-label>Advertisement Type</mat-label>
+          <mat-select formControlName="advertisementTypeId" placeholder="Select Advertisement Type" (selectionChange)="onAdTypeChange($event.value)">
+            <mat-option *ngFor="let adType of advertisementTypes" [value]="adType.id">{{ adType.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!--Details about user-->
+        <div fxLayout="row" fxLayoutAlign="start center">
+          <mat-form-field appearance="outline" class="px-2" fxFlex>
+            <mat-label>First Name</mat-label>
+            <input matInput type="text" formControlName="applicantFirstName" placeholder="Enter first name" required />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="px-2" fxFlex>
+            <mat-label>Last Name</mat-label>
+            <input matInput type="text" formControlName="applicantLastName" placeholder="Enter last name" required />
+          </mat-form-field>
+        </div>
+        <div fxLayout="row" fxLayoutAlign="start center">
+          <mat-form-field appearance="outline" class="px-2" fxFlex>
+            <mat-label>Email</mat-label>
+            <input matInput type="text" formControlName="applicantEmail" placeholder="Enter email" required />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="px-2" fxFlex>
+            <mat-label>Phone Number</mat-label>
+            <input matInput type="text" formControlName="applicantPhoneNumber" placeholder="Enter phone number" required />
+          </mat-form-field>
+        </div>
+        <mat-form-field appearance="outline">
+          <mat-label>Gender</mat-label>
+          <mat-select formControlName="applicantGender" placeholder="Select gender">
+            <mat-option *ngFor="let gender of genders" [value]="gender">{{ gender }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+          <mat-label>Date of Birth</mat-label>
+          <input matInput [matDatepicker]="dobPicker" formControlName="applicantDateOfBirth">
+          <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+          <mat-datepicker #dobPicker></mat-datepicker>
+        </mat-form-field>
+        
+        <div formArrayName="applicantEducations">
+          <div *ngFor="let education of applicantEducations.controls; let i = index" [formGroupName]="i">
+            <h4>Education {{ i + 1 }}</h4>
+            <mat-form-field appearance="outline">
+              <mat-label>University</mat-label>
+              <input matInput type="text" formControlName="university" placeholder="Enter university" required>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Faculty</mat-label>
+              <input matInput type="text" formControlName="institutionName" placeholder="Enter faculty" required>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Field of study</mat-label>
+              <input matInput type="text" formControlName="fieldOfStudy" placeholder="Enter field of stury" required>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Degree</mat-label>
+              <input matInput type="text" formControlName="degree" placeholder="Enter degree" required>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Education start year</mat-label>
+              <input matInput type="number" formControlName="educationStartYear" placeholder="Enter education start year" required>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Education end year</mat-label>
+              <input matInput type="number" formControlName="educationEndYear" placeholder="Enter education end year">
+            </mat-form-field>
+            <!-- Add other fields for institution name, field of study, start year, end year -->
+            <button mat-button type="button" (click)="removeEducation(i)">Remove</button>
+          </div>
+        </div>
+        <button mat-button type="button" (click)="addEducation()">Add Education</button>
+        <div fxLayout="row" fxLayoutGap="10px" fxLayoutAlign="start center">
+          <mat-form-field appearance="outline">
+            <mat-label>Country</mat-label>
+            <mat-select formControlName="countryId" placeholder="Select Country"
+              (selectionChange)="filterCitiesByCountry($event.value)">
+              <mat-option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>City</mat-label>
+            <mat-select formControlName="cityId" placeholder="Select City">
+              <mat-option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+
+
+        <!--Details about job and skills-->
+        <mat-form-field appearance="outline" class="px-2" fxFlex>
+          <mat-label>Position</mat-label>
+          <input matInput type="text" formControlName="position" placeholder="Enter job title" required />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="px-2" fxFlex>
+          <mat-label>Biography</mat-label>
+          <textarea matInput formControlName="biography" rows="4" placeholder="Enter job biography" required></textarea>
+        </mat-form-field>
+        <mat-form-field *ngIf="selectedAdvertisementType == AdvertisementTypeEnum.Service" appearance="outline" class="px-2" fxFlex>
+          <mat-label>Price</mat-label>
+          <input matInput type="number" formControlName="price" placeholder="Enter price"/>
+        </mat-form-field>
+        <div fxLayout="row" fxLayoutGap="10px" fxLayoutAlign="start stretch">
+          <mat-form-field appearance="outline" class="form-field" fxFlex fxFlexFill>
+            <mat-label>Job Category</mat-label>
+            <mat-select formControlName="jobCategoryId" (selectionChange)="onCategoryChange($event.value)">
+              <mat-option *ngFor="let category of jobCategories" [value]="category.id">{{ category.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="form-field" fxFlex fxFlexFill>
+            <mat-label>Subcategories</mat-label>
+            <mat-select formControlName="jobSubcategories" multiple>
+              <mat-option #allSelected (click)="toggleAllSelection()" [value]="selectAllId">All</mat-option>
+              <mat-option *ngFor="let subcategory of selectedCategory?.subcategories" [value]="subcategory.id" (click)="tosslePerOne()">{{
+                subcategory.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Job Type</mat-label>
+          <mat-select formControlName="jobTypeId" placeholder="Select Type">
+            <mat-option *ngFor="let jobType of jobTypes" [value]="jobType.id">{{ jobType.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" type="submit" [disabled]="!jobForm.valid">Submit</button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,0 +1,36 @@
+﻿[
+  {
+    "Id": 1,
+    "Name": "IT",
+    "ParentId": null,
+    "Subcategories": [
+      {
+        "Id": 2,
+        "Name": "Software Development",
+        "ParentId": 1
+      },
+      {
+        "Id": 3,
+        "Name": "Data Science",
+        "ParentId": 1
+      }
+    ]
+  },
+  {
+    "Id": 4,
+    "Name": "Engineering",
+    "ParentId": null,
+    "Subcategories": [
+      {
+        "Id": 5,
+        "Name": "Electrical Engineering",
+        "ParentId": 4
+      },
+      {
+        "Id": 6,
+        "Name": "Mechanical Engineering",
+        "ParentId": 4
+      }
+    ]
+  }
+]

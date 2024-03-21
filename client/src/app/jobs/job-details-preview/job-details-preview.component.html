@@ -1,0 +1,28 @@
+<div class="container">
+    <div class="row">
+      <div class="col-lg-8 offset-lg-2">
+        <mat-card class="job-details-card">
+          <mat-card-header>
+            <mat-card-title>{{ job?.position }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="job-info">
+              <h4>Employee Info</h4>
+              <p>{{ job?.applicantFirstName }} {{ job?.applicantLastName }} </p>
+              <p>{{ job?.cityId }}, {{ job?.countryId }}</p>
+            </div>
+            <div class="job-details">
+              <h4>Biography</h4>
+              <p>{{ job?.biography }}</p>
+              <h4>Skills</h4>
+              <h4>Job Type</h4>
+              <p>{{ job?.jobTypeId }}</p>
+              <h4>Job Category</h4>
+              <p>{{ job?.jobCategoryId }}</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+</div>
+  

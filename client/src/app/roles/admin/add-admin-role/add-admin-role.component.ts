@@ -28,13 +28,13 @@ export class AddAdminRoleComponent implements OnInit {
   }
 
   onSubmit() {
-    this.adminService
-      .addModeratorByAdmin(this.adminRole)
-      .subscribe((response) => {
-        this.userName = '';
-        this.toastr.success(
-          `${response.name} is added to role ${response.role}`
-        );
-      });
+    // this.adminService
+    //   .addModeratorByAdmin(this.adminRole)
+    //   .subscribe((response) => {
+    //     this.userName = '';
+    //     this.toastr.success(
+    //       `${response.name} is added to role ${response.role}`
+    //     );
+    //   });
   }
 }

@@ -31,7 +31,7 @@ export class UtilityService {
   }
 
   setTitle(title: string) {
-    this.titleService.setTitle(title + ' - ShoppingCart');
+    this.titleService.setTitle(title + ' - HireMe');
   }
 
   private getRelativePath(appPath: string, queryParams = {}) {
