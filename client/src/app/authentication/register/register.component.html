@@ -5,33 +5,41 @@
         <mat-card-content class="mt-5">
             <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" autocomplete="off">
                 <div fxLayout="row wrap" fxLayoutAlign="space-around center">
-                    <app-input fxFlex="45" fxFlex.lt-sm="90" label="Name" [formControl]="registerForm.get('name')">
+                    <app-input fxFlex="45" fxFlex.lt-sm="90" label="Ime" [formControl]="registerForm.get('firstName')">
                     </app-input>
-                    <app-input fxFlex="45" fxFlex.lt-sm="90" label="Username"
+                    <app-input fxFlex="45" fxFlex.lt-sm="90" label="Prezime" [formControl]="registerForm.get('lastName')">
+                    </app-input>
+                    <app-input fxFlex="45" fxFlex.lt-sm="90" label="Korisničko ime"
                         [formControl]="registerForm.get('userName')">
                     </app-input>
+                    <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                        <mat-label>Grad</mat-label>
+                        <mat-select formControlName="cityId" placeholder="Grad">
+                            <mat-option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="registerForm.get('cityId').invalid">Potrebno je da unesete grad</mat-error>
+                    </mat-form-field>
                     <app-input fxFlex="45" fxFlex.lt-sm="90" label="Email" type="email"
                         [formControl]="registerForm.get('email')">
                     </app-input>
-                    <app-input fxFlex="45" fxFlex.lt-sm="90" label="Phone"
+                    <app-input fxFlex="45" fxFlex.lt-sm="90" label="Mobitel"
                         [formControl]="registerForm.get('phoneNumber')">
                     </app-input>
-                    <app-input fxFlex="45" fxFlex.lt-sm="90" label="Password" type="password"
+                    <app-input fxFlex="45" fxFlex.lt-sm="90" label="Lozinka" type="password"
                         [formControl]="registerForm.get('password')">
                     </app-input>
-                    <app-input fxFlex="45" fxFlex.lt-sm="90" label="Confirm Password" type="password"
+                    <app-input fxFlex="45" fxFlex.lt-sm="90" label="Potvrdite lozinku" type="password"
                         [formControl]="registerForm.get('confirmPassword')">
                     </app-input>
                     <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                        <mat-label>Gender</mat-label>
-                        <mat-select formControlName="gender">
-                            <mat-option value="Male">Male</mat-option>
-                            <mat-option value="Female">Female</mat-option>
+                        <mat-label>Spol</mat-label>
+                        <mat-select formControlName="gender" placeholder="Odaberite spol">
+                            <mat-option *ngFor="let gender of genders" [value]="gender">{{ genderName(gender) }}</mat-option>
                         </mat-select>
-                        <mat-error *ngIf="registerForm.get('gender').invalid">Please select Gender</mat-error>
+                        <mat-error *ngIf="registerForm.get('gender').invalid">Potrebno je da unesete spol</mat-error>
                     </mat-form-field>
                     <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                        <mat-label>Date of Birth</mat-label>
+                        <mat-label>Datum rođenja</mat-label>
                         <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
                         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                         <mat-datepicker touchUi #picker></mat-datepicker>
@@ -39,14 +47,14 @@
                         </mat-error>
                     </mat-form-field>
                 </div>
-                <button mat-flat-button [disabled]="!registerForm.valid" color="primary" type="submit">Register</button>
+                <button mat-flat-button [disabled]="!registerForm.valid" color="primary" type="submit">Registracija</button>
             </form>
         </mat-card-content>
         <mat-divider inset></mat-divider>
         <mat-card-actions class="mb-2 px-3">
-            <p class="mat-typography">Existing User?</p>
+            <p class="mat-typography">Imate račun?</p>
             <button mat-flat-button color="accent" routerLink="/login" [queryParams]="{redirectTo:redirectUrl}"
-                type="button">Login</button>
+                type="button">Prijavi se</button>
         </mat-card-actions>
     </mat-card>
 </div>

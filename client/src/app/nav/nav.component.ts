@@ -10,6 +10,7 @@ import { MatSidenav } from '@angular/material/sidenav';
 import { ActivatedRoute, Router } from '@angular/router';
 import { User } from '../modal/user';
 import { AccountService } from '../services/account.service';
+import { AdvertisementTypeEnum } from '../models/enums';
 
 @Component({
   selector: 'app-nav',
@@ -21,7 +22,8 @@ export class NavComponent implements OnInit {
   @Input() isDark = false;
   @Output() changeTheme = new EventEmitter<boolean>();
   user: User;
-
+  AdvertisementTypeEnum = AdvertisementTypeEnum;
+  
   constructor(
     public accountService: AccountService,
     private router: Router,
@@ -51,15 +53,19 @@ export class NavComponent implements OnInit {
     this.router.navigate(['/'], { queryParams: { logout: true } });
   }
 
-  search() {
-    if (this.isValid()) {
-      this.router.navigate(['/search'], {
-        queryParams: { q: this.value.trim() },
-      });
-    }
-  }
+  // search() {
+  //   if (this.isValid()) {
+  //     this.router.navigate(['/search'], {
+  //       queryParams: { q: this.value.trim() },
+  //     });
+  //   }
+  // }
 
   isValid() {
     return this.value && this.value.trim();
+  }
+
+  getEnumName(value: number): string {
+    return AdvertisementTypeEnum[value];
   }
 }

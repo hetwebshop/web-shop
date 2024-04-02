@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {
   ActivatedRouteSnapshot,
   CanActivate,
+  Router,
   RouterStateSnapshot,
 } from '@angular/router';
 import { map, Observable } from 'rxjs';
@@ -14,7 +15,8 @@ import { ToastrService } from 'src/app/services/toastr.service';
 export class AuthGuard implements CanActivate {
   constructor(
     private accountService: AccountService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private router: Router
   ) {}
   canActivate(
     route: ActivatedRouteSnapshot,
@@ -23,7 +25,8 @@ export class AuthGuard implements CanActivate {
     return this.accountService.user$.pipe(
       map((user) => {
         if (!user) {
-          this.toastr.error('You are not allowed');
+          //this.toastr.error('You are not allowed');
+          this.router.navigate(['login']);
           return false;
         }
         if (
@@ -32,7 +35,8 @@ export class AuthGuard implements CanActivate {
         ) {
           return true;
         }
-        this.toastr.error('You are not allowed');
+        //this.toastr.error('You are not allowed');
+        this.router.navigate(['login']);
         return false;
       })
     );

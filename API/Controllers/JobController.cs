@@ -1,4 +1,8 @@
 ﻿using API.DTOs;
+using API.Extensions;
+using API.Helpers;
+using API.Mappers;
+using API.PaginationEntities;
 using API.Services.UserOfferServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,18 +22,19 @@ namespace API.Controllers
             _jobPostService = jobPostService;
         }
 
-        [HttpGet("alljobposts")]
+        [HttpGet("ads")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAllJobPosts()
+        public async Task<IActionResult> GetAds([FromQuery] AdsPaginationParameters adsParameters)
         {
-            var allJobPosts = await _jobPostService.GetAllUserJobPostsAsync();
-            return Ok(allJobPosts);
+            var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
+            var pagedResponse = jobPosts.ToPagedResponse();
+            return Ok(pagedResponse);
         }
 
         [HttpGet("my-ads")]
         public async Task<IActionResult> GetMyAds()
         {
-            var currentUserId = (int)HttpContext.Items["SubmittingUserId"];
+            var currentUserId = HttpContext.User.GetUserId(); ;
 
             var myAds = await _jobPostService.GetMyAdsAsync(currentUserId);
             return Ok(myAds);
@@ -46,7 +51,7 @@ namespace API.Controllers
         public async Task<IActionResult> CreateUserJobPost([FromBody]UserJobPostDto userJobPostDto)
         {
 
-            userJobPostDto.SubmittingUserId = (int)HttpContext.Items["SubmittingUserId"];
+            userJobPostDto.SubmittingUserId = HttpContext.User.GetUserId(); ;
             var newItem = await _jobPostService.CreateUserJobPostAsync(userJobPostDto);
             return Ok(newItem);
         }
@@ -54,7 +59,7 @@ namespace API.Controllers
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateUserJobPost(int id, [FromBody]UserJobPostDto userJobPostDto)
         {
-            userJobPostDto.SubmittingUserId = (int)HttpContext.Items["SubmittingUserId"];
+            userJobPostDto.SubmittingUserId = HttpContext.User.GetUserId(); ;
             var updatedItem = await _jobPostService.UpdateUserJobPostAsync(userJobPostDto);
             return Ok(updatedItem);
         }

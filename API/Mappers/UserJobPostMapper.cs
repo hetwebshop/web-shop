@@ -1,5 +1,7 @@
-﻿using API.DTOs;
+﻿using API.Data.Pagination;
+using API.DTOs;
 using API.Entities.JobPost;
+using API.PaginationEntities;
 using AutoMapper;
 using System.Collections.Generic;
 
@@ -32,6 +34,21 @@ namespace API.Mappers
         public static List<UserJobPost> ToEntity(this List<UserJobPostDto> userJobPostDtos)
         {
             return Mapper.Map<List<UserJobPost>>(userJobPostDtos);
+        }
+
+        public static PagedList<UserJobPostDto> ToDto(this PagedList<UserJobPost> userJobPosts)
+        {
+            return Mapper.Map<PagedList<UserJobPostDto>>(userJobPosts);
+        }
+
+        public static PagedList<UserJobPost> ToEntity(this PagedList<UserJobPostDto> userJobPosts)
+        {
+            return Mapper.Map<PagedList<UserJobPost>>(userJobPosts);
+        }
+
+        public static PagedResponse<UserJobPostDto> ToPagedResponse(this PagedList<UserJobPostDto> userJobPosts)
+        {
+            return Mapper.Map<PagedResponse<UserJobPostDto>>(userJobPosts);
         }
     }
 }

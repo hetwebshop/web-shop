@@ -14,7 +14,6 @@ namespace API.Entities
         //public ICollection<Municipality> Municipalities { get; set; }
         //public int? CantonId { get; set; }
         //public Canton Canton { get; set; }
-        public ICollection<UserAddress> Addresses { get; set; }
-        public ICollection<UserJobPost> UserJobPosts { get; set; }
+        //public ICollection<UserJobPost> UserJobPosts { get; set; }
     }
 }

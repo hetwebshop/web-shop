@@ -324,7 +324,7 @@ namespace API.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
-                    b.Property<int?>("AddressId")
+                    b.Property<int>("CityId")
                         .HasColumnType("int");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -341,20 +341,29 @@ namespace API.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("FirstName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Gender")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("JobCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("JobTypeId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("LastActive")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("LastName")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -388,9 +397,11 @@ namespace API.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AddressId")
-                        .IsUnique()
-                        .HasFilter("[AddressId] IS NOT NULL");
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("JobCategoryId");
+
+                    b.HasIndex("JobTypeId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -407,7 +418,7 @@ namespace API.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("API.Entities.UserAddress", b =>
+            modelBuilder.Entity("API.Entities.UserEducation", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -415,20 +426,32 @@ namespace API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("CityId")
+                    b.Property<string>("Degree")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EducationEndYear")
                         .HasColumnType("int");
 
-                    b.Property<string>("StreetName")
+                    b.Property<int>("EducationStartYear")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FieldOfStudy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("StreetNumber")
+                    b.Property<string>("InstitutionName")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("University")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CityId");
+                    b.HasIndex("UserId");
 
-                    b.ToTable("UserAddresses");
+                    b.ToTable("UserEducations");
                 });
 
             modelBuilder.Entity("API.Entities.UserRole", b =>
@@ -573,7 +596,7 @@ namespace API.Migrations
                         .IsRequired();
 
                     b.HasOne("API.Entities.City", "City")
-                        .WithMany("UserJobPosts")
+                        .WithMany()
                         .HasForeignKey("CityId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
@@ -636,9 +659,20 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Entities.User", b =>
                 {
-                    b.HasOne("API.Entities.UserAddress", "Address")
-                        .WithOne("User")
-                        .HasForeignKey("API.Entities.User", "AddressId")
+                    b.HasOne("API.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("API.Entities.JobPost.JobCategory", "JobCategory")
+                        .WithMany()
+                        .HasForeignKey("JobCategoryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("API.Entities.JobPost.JobType", "JobType")
+                        .WithMany()
+                        .HasForeignKey("JobTypeId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("API.Entities.Photo", "Photo")
@@ -646,20 +680,24 @@ namespace API.Migrations
                         .HasForeignKey("API.Entities.User", "PhotoId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Navigation("Address");
+                    b.Navigation("City");
+
+                    b.Navigation("JobCategory");
+
+                    b.Navigation("JobType");
 
                     b.Navigation("Photo");
                 });
 
-            modelBuilder.Entity("API.Entities.UserAddress", b =>
+            modelBuilder.Entity("API.Entities.UserEducation", b =>
                 {
-                    b.HasOne("API.Entities.City", "City")
-                        .WithMany("Addresses")
-                        .HasForeignKey("CityId")
+                    b.HasOne("API.Entities.User", "User")
+                        .WithMany("UserEducations")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("City");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("API.Entities.UserRole", b =>
@@ -717,13 +755,6 @@ namespace API.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("API.Entities.City", b =>
-                {
-                    b.Navigation("Addresses");
-
-                    b.Navigation("UserJobPosts");
-                });
-
             modelBuilder.Entity("API.Entities.Country", b =>
                 {
                     b.Navigation("Cities");
@@ -760,14 +791,11 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Entities.User", b =>
                 {
+                    b.Navigation("UserEducations");
+
                     b.Navigation("UserJobPosts");
 
                     b.Navigation("UserRoles");
-                });
-
-            modelBuilder.Entity("API.Entities.UserAddress", b =>
-                {
-                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }

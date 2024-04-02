@@ -120,14 +120,14 @@
               <mat-option *ngFor="let category of jobCategories" [value]="category.id">{{ category.name }}</mat-option>
             </mat-select>
           </mat-form-field>
-          <mat-form-field appearance="outline" class="form-field" fxFlex fxFlexFill>
+          <!-- <mat-form-field appearance="outline" class="form-field" fxFlex fxFlexFill>
             <mat-label>Subcategories</mat-label>
             <mat-select formControlName="jobSubcategories" multiple>
               <mat-option #allSelected (click)="toggleAllSelection()" [value]="selectAllId">All</mat-option>
               <mat-option *ngFor="let subcategory of selectedCategory?.subcategories" [value]="subcategory.id" (click)="tosslePerOne()">{{
                 subcategory.name }}</mat-option>
             </mat-select>
-          </mat-form-field>
+          </mat-form-field> -->
         </div>
 
         <mat-form-field appearance="outline">

@@ -25,17 +25,11 @@ namespace API.DTOs
         public string JobCategory { get; set; }
         public int JobPostStatusId { get; set; }
         public string JobPostStatus { get; set; }
-        public int AddressId { get; set; }
-        public string StreetName { get; set; }
-        public string StreetNumber { get; set; }
         public int CityId { get; set; }
         public string City { get; set; }
-        public int CountryId { get; set; }
-        public string Country { get; set; }
         public int SubmittingUserId { get; set; }
         public int AdvertisementTypeId { get; set; }
 
         public List<ApplicantEducationDto> ApplicantEducations { get; set; }
-        public List<UserJobSubcategoryDto> UserJobSubcategories { get; set; }
     }
 }

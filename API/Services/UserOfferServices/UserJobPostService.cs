@@ -1,7 +1,10 @@
 ﻿using API.Data.IUserOfferRepository;
+using API.Data.Pagination;
 using API.DTOs;
 using API.Entities.JobPost;
+using API.Helpers;
 using API.Mappers;
+using API.PaginationEntities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -16,9 +19,9 @@ namespace API.Services.UserOfferServices
             this.userJobPostRepository = userJobPostRepository;
         }
 
-        public async Task<List<UserJobPostDto>> GetAllUserJobPostsAsync()
+        public async Task<PagedList<UserJobPostDto>> GetJobPostsAsync(AdsPaginationParameters adsParameters)
         {
-            var userJobPosts = await userJobPostRepository.GetAllUserJobPostsAsync();
+            var userJobPosts = await userJobPostRepository.GetJobPostsAsync(adsParameters);
             return userJobPosts.ToDto();
         }
 

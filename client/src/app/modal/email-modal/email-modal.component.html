@@ -1,0 +1,19 @@
+<h2 mat-dialog-title>Pošaljite Email</h2>
+<div mat-dialog-content fxLayout="column" fxLayoutGap="10px">
+  <mat-form-field>
+    <input matInput placeholder="Pošiljatelj" [(ngModel)]="fromEmail">
+  </mat-form-field>
+  <mat-form-field>
+    <input matInput placeholder="Primalac" [(ngModel)]="toEmail" disabled>
+  </mat-form-field>
+  <mat-form-field>
+    <input matInput placeholder="Naslov" [(ngModel)]="title">
+  </mat-form-field>
+  <mat-form-field fxFlex>
+    <textarea matInput placeholder="Poruka" [(ngModel)]="message" rows="5"></textarea>
+  </mat-form-field>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="openCancelConfirmationModal()">Otkaži</button>
+  <button mat-button color="primary" (click)="sendEmail()">Pošalji</button>
+</div>

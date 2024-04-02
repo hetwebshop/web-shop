@@ -1,111 +1,46 @@
 <mat-sidenav-container class="sidenav-container" style="min-height: 100vh;">
-  <mat-sidenav #sidenav [fixedInViewport]="true" class="sidenav">
-    <mat-nav-list fxLayout="column">
-      <button class="me-2" fxFlexAlign="end" mat-icon-button (click)="sidenav.toggle()">
-        <mat-icon>close</mat-icon>
-      </button>
-      <br>
-      <div>
-        <a *ngIf="!user" routerLink="/login" mat-list-item>
-          <mat-icon>login</mat-icon>&nbsp; Login
-        </a>
-        <a routerLink="/" mat-list-item>
-          <mat-icon>home</mat-icon>&nbsp; Home
-        </a>
-        <a routerLink="/edit-profile" mat-list-item>
-          <mat-icon>face</mat-icon>&nbsp; Profile
-        </a>
-        <mat-menu #administration="matMenu">
-          <button *appInRole="['Admin']" mat-menu-item routerLink="/admin/moderate/admin-role">
-            <mat-icon>admin_panel_settings</mat-icon>Admin
-          </button>
-        </mat-menu>
-        <a routerLink="/about" mat-list-item>
-          <mat-icon>info</mat-icon>&nbsp; About
-        </a>
-        <a *ngIf="user" (click)="logout()" mat-list-item>
-          <mat-icon>logout</mat-icon>&nbsp; Logout
-        </a>
-      </div>
-      <br>
-      <mat-divider></mat-divider>
-      <br>
-      <div>
-        <a routerLink="/search" [queryParams]="{q:'Mobiles'}" mat-list-item>
-          <mat-icon>phone_android</mat-icon>&nbsp; Mobiles
-        </a>
-        <a routerLink="/search" [queryParams]="{q:'Laptops'}" mat-list-item>
-          <mat-icon>laptop</mat-icon>&nbsp; Laptops
-        </a>
-        <a routerLink="/search" [queryParams]="{q:'Television'}" mat-list-item>
-          <mat-icon>tv</mat-icon>&nbsp; Television
-        </a>
-        <a routerLink="/search" [queryParams]="{q:'Refrigerators'}" mat-list-item>
-          <mat-icon>kitchen</mat-icon>&nbsp; Refrigerators
-        </a>
-        <a routerLink="/search" [queryParams]="{q:'Washing Machine'}" mat-list-item>
-          <mat-icon>local_laundry_service</mat-icon>&nbsp; Washing Machine
-        </a>
-        <a routerLink="/search" [queryParams]="{q:'Memory Cards'}" mat-list-item>
-          <mat-icon>sd_card</mat-icon>&nbsp; Memory Cards
-        </a>
-        <a routerLink="/search" [queryParams]="{q:'Headphones'}" mat-list-item>
-          <mat-icon>headset_mic</mat-icon>&nbsp; Headphones
-        </a>
-        <a routerLink="/search" [queryParams]="{q:'Power Banks'}" mat-list-item>
-          <mat-icon>battery_charging_full</mat-icon>&nbsp; Power Banks
-        </a>
-        <a routerLink="/search" [queryParams]="{q:'Camera'}" mat-list-item>
-          <mat-icon>photo_camera</mat-icon>&nbsp; Camera
-        </a>
-        <a routerLink="/search" [queryParams]="{q:'Speakers'}" mat-list-item>
-          <mat-icon>speaker</mat-icon>&nbsp; Speakers
-        </a>
-        <a routerLink="/search" [queryParams]="{q:'Air Conditioners'}" mat-list-item>
-          <mat-icon>ac_unit</mat-icon>&nbsp; Air Conditioners
-        </a>
-      </div>
-      <br>
-    </mat-nav-list>
-  </mat-sidenav>
   <mat-sidenav-content>
-    <mat-toolbar color="primary">
+    <mat-toolbar>
       <mat-toolbar-row>
         <div fxLayout="row" fxLayoutGap="2%" fxFlexFill fxLayoutAlign="space-between center">
           <div>
-            <button mat-icon-button (click)="sidenav.toggle()" fxShow="true">
-              <mat-icon>menu</mat-icon>
-            </button>
-            <span class="brand" routerLink="/">HireMe</span>
+            <span class="brand" routerLink="/">ZaposliMe</span>
           </div>
-          <div>
-            <span class="brand" routerLink="/user-jobs">Ads</span>
+          <div fxLayout="row" fxLayoutGap="2%" class="pe-4">
+            <div>
+              <span class="brand" [routerLink]="['/user-job-details']">Kreiraj Oglas</span>
+            </div>
+            <span class="separator">|</span>
+            <div>
+              <span class="brand" [routerLink]="['/user-job-details']">Kreiraj Uslugu</span>
+            </div>
+            <span class="separator">|</span>
+            <div>
+              <span class="brand" [routerLink]="['/ads']" [queryParams]="{ type: getEnumName(AdvertisementTypeEnum.JobAd) }">Pretraži Oglase</span>
+            </div>
+            <span class="separator">|</span>
+            <div>
+              <span class="brand" [routerLink]="['/ads']" [queryParams]="{ type: getEnumName(AdvertisementTypeEnum.Service) }">Pretraži Usluge</span>
+            </div>
+            <span class="separator">|</span>
+            <div>
+              <span class="brand" routerLink="/user-job-details">O nama</span>
+            </div>
+            <span class="separator">|</span>
+            <div>
+              <span class="brand" routerLink="/user-job-details">Kontakt</span>
+            </div>
           </div>
-          <div>
-            <span class="brand" routerLink="/my-ads">My Ads</span>
-          </div>
-          <div>
-            <span class="brand" routerLink="/user-job-details">Create Job</span>
-          </div>
-          <form #searchForm="ngForm" fxShow="true" fxHide.lt-sm (ngSubmit)="search()">
-            <mat-form-field style="width: 40vw" floatLabel="never">
-              <input matInput #searchInput="matInput" type="text" placeholder="Search" name="search" autocomplete="off"
-                [(ngModel)]="value" />
-              <button matSuffix mat-icon-button>
-                <mat-icon>search</mat-icon>
-              </button>
-            </mat-form-field>
-          </form>
-          <div fxLayout="row" class="pe-4">
-            <button fxHide.lt-md="true" mat-icon-button routerLink="/about">
-              <mat-icon>info</mat-icon>
-            </button>
-            <button mat-icon-button (click)="toggleTheme()">
-              <mat-icon>{{isDark ? "light_mode":"dark_mode"}}</mat-icon>
-            </button>
-            <button class="ms-2" *ngIf="!user" mat-raised-button color="accent" routerLink="/login">
-              Login
-            </button>
+          
+          
+          <div fxLayout="row" fxLayoutGap="2%" class="pe-4">
+            <span *ngIf="!user" class="nav-item brand" routerLink="/login">
+              Prijavi se
+            </span>
+            <span class="separator" *ngIf="!user">|</span>
+            <span *ngIf="!user" class="nav-item brand" routerLink="/register">
+              Registracija
+            </span>
             <button *ngIf="user" mat-icon-button [matMenuTriggerFor]="navMenu">
               <img class="profile" src="{{user.photoUrl || './assets/images/profile.png'}}" alt="Profile">
               <mat-icon>arrow_drop_down</mat-icon>
@@ -115,21 +50,6 @@
               <button mat-menu-item routerLink="/edit-profile">Edit Profile</button>
               <button mat-menu-item (click)="logout()">Logout</button>
             </mat-menu>
-          </div>
-        </div>
-      </mat-toolbar-row>
-      <mat-toolbar-row fxShow="false" fxShow.lt-sm>
-        <div fxLayout="row" style="width: 100vw;" fxLayoutAlign="center center">
-          <div>
-            <form #searchForm2="ngForm" (ngSubmit)="search()">
-              <mat-form-field style="width:75vw" floatLabel="never">
-                <input matInput #searchInput="matInput" type="text" placeholder="Search" name="search"
-                  autocomplete="off" [(ngModel)]="value" />
-                <button matSuffix mat-icon-button type="submit">
-                  <mat-icon>search</mat-icon>
-                </button>
-              </mat-form-field>
-            </form>
           </div>
         </div>
       </mat-toolbar-row>

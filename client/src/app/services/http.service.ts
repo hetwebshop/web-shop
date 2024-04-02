@@ -2,6 +2,7 @@ import {
   HttpClient,
   HttpParameterCodec,
   HttpParams,
+  HttpUrlEncodingCodec,
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Params } from '@angular/router';
@@ -74,26 +75,18 @@ export class HttpService {
   }
 
   private getHttpParams(params: Params) {
-    let httpParams = new HttpParams({ encoder: new HttpParamEncoder() });
-
-    for (const key in params) {
-      httpParams = httpParams.append(key, params[key]);
-    }
+    let  httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      const value = params[key];
+      if (Array.isArray(value)) {
+        value.forEach(val => {
+          httpParams = httpParams.append(key, val.toString());
+        });
+      } else {
+        httpParams = httpParams.append(key, value.toString());
+      }
+    });
+    console.log(httpParams);
     return httpParams;
-  }
-}
-
-class HttpParamEncoder implements HttpParameterCodec {
-  encodeKey(key: string): string {
-    return encodeURIComponent(key);
-  }
-  encodeValue(value: string): string {
-    return encodeURIComponent(value);
-  }
-  decodeKey(key: string): string {
-    return decodeURIComponent(key);
-  }
-  decodeValue(value: string): string {
-    return decodeURIComponent(value);
   }
 }

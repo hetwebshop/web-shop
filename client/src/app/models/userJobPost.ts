@@ -61,3 +61,5 @@ export interface ApplicantEducation {
     educationStartYear: number;
     educationEndYear: number;
 }
+
+export interface UserEducation extends ApplicantEducation {}

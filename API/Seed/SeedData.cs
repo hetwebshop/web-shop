@@ -125,8 +125,7 @@ namespace API.Seed
             foreach (var user in users)
             {
                 user.UserName = user.UserName.ToLower();
-                user.Address = await GetRandomAddress();
-                user.Address.StreetName = user.Name;
+                user.CityId = await GetRandomCityId();
 
                 switch (user.UserName)
                 {
@@ -216,19 +215,13 @@ namespace API.Seed
             }
         }
 
-        async Task<UserAddress> GetRandomAddress()
+        async Task<int> GetRandomCityId()
         {
             var cities = _context.Cities.ToList();
             var random = new Random();
             int randomIndex = random.Next(0, cities.Count);
 
-            var faker = new Faker<UserAddress>()
-                .RuleFor(a => a.StreetName, f => f.Address.StreetName())
-                .RuleFor(a => a.StreetNumber, f => f.Address.BuildingNumber())
-                .RuleFor(a => a.CityId, f => cities[randomIndex].Id);
-
-            var randomAddress = faker.Generate();
-            return randomAddress;
+            return randomIndex;
         }
 
     }

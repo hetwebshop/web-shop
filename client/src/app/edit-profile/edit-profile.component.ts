@@ -1,10 +1,17 @@
-import { Component, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, NgForm, Validators } from '@angular/forms';
+import { Component, OnChanges, OnInit } from '@angular/core';
+import { UntypedFormBuilder, UntypedFormGroup, NgForm, Validators, FormGroup, FormArray, FormControl } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { Address, LocationInfo } from '../modal/address';
 import { AccountService } from '../services/account.service';
 import { ToastrService } from '../services/toastr.service';
 import { UtilityService } from '../services/utility.service';
+import { Gender } from '../models/enums';
+import { City } from '../models/location';
+import { LocationService } from '../services/location.service';
+import { JobCategory, JobType, UserEducation } from '../models/userJobPost';
+import { JobService } from '../services/job.service';
+import { MatDialog } from '@angular/material/dialog';
+import { CancelConfirmationModalComponent } from '../modal/cancel-confirmation-modal/cancel-confirmation-modal.component';
 
 @Component({
   selector: 'app-edit-profile',
@@ -14,34 +21,89 @@ import { UtilityService } from '../services/utility.service';
 export class EditProfileComponent implements OnInit {
   user;
   profileUpdate: UntypedFormGroup;
-  address: Address = new Address();
-  states: LocationInfo[];
-  cities: LocationInfo[];
-  areas: LocationInfo[];
+  genders = Object.values(Gender);
+  jobTypes: JobType[] = [];
+  jobCategories: JobCategory[] = [];
   loading: string;
+  cities: City[] = [];
+  //jobInfoForm: FormGroup;
+  userEducations: FormArray;
+
   constructor(
     private fb: UntypedFormBuilder,
     public accountService: AccountService,
     private toastr: ToastrService,
-    utility: UtilityService
+    utility: UtilityService,
+    private locationService: LocationService,
+    private jobService: JobService,
+    public dialog: MatDialog
   ) {
-    utility.setTitle('Edit profile');
+    utility.setTitle('Uredi profil');
   }
 
   ngOnInit(): void {
+    this.loadCities();
+    this.loadJobTypes();
+    this.loadJobCategories();
+    
     this.accountService.getProfile().subscribe((response) => {
       this.user = response;
       this.initilizeProfileForm();
+      console.log("user");
+      console.log(this.user);
+      this.updateUserEducations(this.user?.userEducations);
+      //this.jobInfoForm = this.initializeJobInfoForm();
     });
-    this.accountService.getAddress().subscribe((response) => {
-      this.initilizeAddressForm(response);
+    // this.accountService.getAddress().subscribe((response) => {
+    //   this.initilizeAddressForm(response);
+    // });
+  }
+
+  private updateUserEducations(educations: any[]): void {
+    console.log(educations);
+    this.userEducations = this.profileUpdate.get('userEducations') as FormArray;
+    console.log(this.userEducations);
+    this.userEducations.clear();
+  
+    educations.forEach(education => {
+      this.userEducations.push(this.createEducationFormGroup(education));
     });
+  }
+  
+  private createEducationFormGroup(education: any): FormGroup {
+    return this.fb.group({
+        degree: new FormControl(education.degree, Validators.required),
+        institutionName: new FormControl(education.institutionName, Validators.required),
+        fieldOfStudy: new FormControl(education.fieldOfStudy, Validators.required),
+        educationStartYear: new FormControl(education.educationStartYear, Validators.required),
+        educationEndYear: new FormControl(education.educationEndYear),
+        university: new FormControl(education.university, Validators.required)
+    });
+  }
+  
+  loadJobTypes(): void {
+    this.jobService.getJobTypes()
+      .subscribe(types => {
+        this.jobTypes = types
+      });
+  }
+
+
+  loadJobCategories(): void {
+    this.jobService.getJobCategories()
+      .subscribe(categories => {
+        this.jobCategories = categories.filter(r => r.parentId == null);
+        console.log("Job categories" + JSON.stringify(this.jobCategories));
+      });
   }
 
   initilizeProfileForm() {
+    this.userEducations = this.fb.array([]);
+
     this.profileUpdate = this.fb.group({
       id: [this.user.id],
-      name: [this.user.name, Validators.required],
+      firstName: [this.user.firstName, Validators.required],
+      lastName: [this.user.lastName, Validators.required],
       userName: [
         this.user.userName,
         [Validators.required, Validators.minLength(3)],
@@ -51,74 +113,46 @@ export class EditProfileComponent implements OnInit {
       email: [this.user.email, [Validators.email, Validators.required]],
       dateOfBirth: [new Date(this.user.dateOfBirth), Validators.required],
       gender: [this.user.gender, Validators.required],
+      streetName: [this.user.streetName],
+      streetNumber: [this.user.streetNumber],
+      cityId: [this.user.cityId, Validators.required],
+      jobTypeId: [this.user.jobTypeId],
+      jobCategoryId: [this.user.jobCategoryId],
+      userEducations: this.userEducations
     });
   }
 
   initilizeAddressForm(response: Address) {
-    this.address = response;
-    this.areas = response.locations.areas;
-    this.cities = response.locations.cities;
-    this.states = response.locations.states;
+    // this.address = response;
+    // this.areas = response.locations.areas;
+    // this.cities = response.locations.cities;
+    // this.states = response.locations.states;
   }
 
-  loadLocations(parentId: number, childType: string) {
-    this.loading = childType;
-    this.accountService
-      .getLocations({
-        parentId: parentId,
-        childType: childType,
-      })
-      .pipe(
-        finalize(() => {
-          this.loading = undefined;
-        })
-      )
-      .subscribe((response) => {
-        switch (childType) {
-          case 'City':
-            this.cities = response;
-            break;
-          case 'Area':
-            this.areas = response;
-            break;
-        }
+  loadCities(): void {
+    this.locationService.getCities()
+      .subscribe(cities => {
+        this.cities = cities;
       });
   }
 
   onSelect(event, childType: string) {
-    let value = event.source.value;
-    switch (childType) {
-      case 'City':
-        if (!event.isUserInput || value === this.address.stateId) return;
-        this.areas = this.cities = [];
-        this.address.areaId = this.address.cityId = undefined;
-        break;
-      case 'Area':
-        if (!event.isUserInput || value === this.address.cityId) return;
-        this.areas = [];
-        this.address.areaId = undefined;
-        break;
-    }
-    this.loading = childType;
-    this.loadLocations(value, childType);
   }
 
   onSubmit() {
     this.accountService
       .updateProfile(this.profileUpdate.value)
       .subscribe((response) => {
+        console.log("Update user profile");
+        console.log(response);
         this.user = response;
         this.initilizeProfileForm();
+        this.updateUserEducations(this.user?.userEducations);
         this.toastr.success('Profile updated.');
       });
   }
 
   updateAddress(form: NgForm) {
-    this.accountService.updateAddress(this.address).subscribe((response) => {
-      this.initilizeAddressForm(response);
-      form.resetForm(response);
-      this.toastr.success('Address updated.');
-    });
   }
 
   changePhoto(files: FileList) {
@@ -134,6 +168,51 @@ export class EditProfileComponent implements OnInit {
     this.accountService.removePhoto().subscribe(() => {
       this.user.photoUrl = null;
       this.toastr.success('Photo removed.');
+    });
+  }
+
+  genderName(gender: Gender) {
+    if(gender == Gender.Male){
+      return "Muškarac";
+    }
+    else if(gender == Gender.Female){
+      return "Žena";
+    }
+    else 
+      return "Ostali";
+  }
+
+  createEducation(education?: UserEducation): FormGroup {
+    return this.fb.group({
+      degree: new FormControl(education?.degree || '', Validators.required),
+      institutionName: new FormControl(education?.institutionName || '', Validators.required),
+      fieldOfStudy: new FormControl(education?.fieldOfStudy || '', Validators.required),
+      educationStartYear: new FormControl(education?.educationStartYear || '', Validators.required),
+      educationEndYear: new FormControl(education?.educationEndYear || ''),
+      university: new FormControl(education?.university || '', Validators.required)
+    });
+  }
+
+  addEducation(): void {
+    this.userEducations.push(this.createEducation());
+  }
+  
+  removeEducation(index: number): void {
+    this.userEducations.removeAt(index);
+  }
+
+  openCancelConfirmationModal(index: number): void {
+    const cancelDialogRef = this.dialog.open(CancelConfirmationModalComponent,
+      {data: {
+        title: "Obriši obrazovanje",
+        message: "Da li ste sigurni da želite obrisati obrazovanje?"
+      }});
+
+    cancelDialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.profileUpdate.markAsDirty();
+        this.removeEducation(index);
+      }
     });
   }
 }

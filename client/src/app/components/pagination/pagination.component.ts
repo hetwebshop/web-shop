@@ -8,6 +8,8 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 export class PaginationComponent implements OnInit {
   selected: number;
   range: number[] = [];
+  pageSize: number = 10;
+  pageSizeOptions: number[] = [10, 20, 50];
 
   @Input() listSize: number = 5;
   _totalPages: number;
@@ -23,6 +25,7 @@ export class PaginationComponent implements OnInit {
     this.setPagination();
   }
   @Output() pageChange: EventEmitter<number> = new EventEmitter<number>();
+  @Output() pageSizeChange: EventEmitter<number> = new EventEmitter<number>();
 
   constructor() {}
 
@@ -55,5 +58,10 @@ export class PaginationComponent implements OnInit {
     this.selected = page;
     this.setPagination();
     this.pageChange.emit(page);
+  }
+
+  onPageSizeChange(pageSize: number) {
+    this.pageSize = pageSize;
+    this.pageSizeChange.emit(pageSize);
   }
 }

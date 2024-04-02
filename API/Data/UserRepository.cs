@@ -6,6 +6,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -21,39 +22,13 @@ namespace API.Data
         public async Task<UserProfileDto> GetProfile(int id)
         {
             var user = await DataContext.Users
+                .Include(u => u.City)
+                .Include(u => u.UserEducations)
                 .Where(u => u.Id == id)
                 .ProjectTo<UserProfileDto>(Mapper.ConfigurationProvider)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
             return user;
-        }
-
-        public async Task<AddressDto> GetAddress(int userId)
-        {
-            var address = await DataContext.Users
-                .Where(u => u.Id == userId)
-                .Select(u => u.Address)
-                .ProjectTo<AddressDto>(Mapper.ConfigurationProvider)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
-            return address;
-        }
-
-        public async Task UpdateAddress(int userId, AddressDto addressDto)
-        {
-            var user = await DataContext.Users.Include(u => u.Address).SingleAsync(u => u.Id == userId);
-            user.Address = new UserAddress();
-            user.Address = Mapper.Map(addressDto, user.Address);
-        }
-
-        public async Task RemoveAddress(int userId)
-        {
-            var address = await DataContext.UserAddresses
-                .Where(a => a.User.Id == userId)
-                .SingleOrDefaultAsync();
-            if (address != null)
-                DataContext.UserAddresses.Remove(address);
         }
 
         public async Task<string> UpdateUserPhoto(IFormFile file, int userId)
@@ -76,6 +51,24 @@ namespace API.Data
             var photo = await DataContext.Photos.FirstOrDefaultAsync(p => p.User.Id == userId);
             if (photo?.Url == null) throw new HttpException("Photo already removed!");
             await DeletePhoto(photo);
+        }
+
+        public async Task<List<UserEducation>> GetAllUserEducationsAsync(int userId)
+        {
+            var userEducations = await DataContext.UserEducations.Where(u => u.UserId == userId).ToListAsync();
+            return userEducations;
+        }
+
+        public async Task<bool> RemoveAllUserEducationsAsync(int userId)
+        {
+            var userEducations = await GetAllUserEducationsAsync(userId);
+            if (userEducations.Any())
+            {
+                DataContext.UserEducations.RemoveRange(userEducations);
+                if(await SaveChanges())
+                    return true;
+            }
+            return false;
         }
     }
 }

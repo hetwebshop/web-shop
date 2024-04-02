@@ -17,15 +17,14 @@ namespace API.Helpers
                 .ForMember(dest => dest.UserName,
                     opt => opt.MapFrom(src => src.UserName.ToLower()));
 
-            CreateMap<User, UserProfileDto>().ReverseMap();
+            CreateMap<User, UserProfileDto>()
+                .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.CityId))
+                .ReverseMap();
+
+            CreateMap<UserEducation, UserEducationDto>().ReverseMap();
+
             CreateMap<User, UserInfoDto>()
                 .ForMember(dest => dest.PhotoUrl, act => act.MapFrom(src => src.Photo.Url));
-
-            CreateMap<AddressDto, UserAddress>();
-            CreateMap<UserAddress, AddressDto>()
-                .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.CityId))
-                //.ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.City.CountryId))
-                .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.City.CountryId));
 
             #endregion
 

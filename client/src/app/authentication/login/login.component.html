@@ -6,25 +6,22 @@
             <form #loginForm="ngForm" (ngSubmit)="onSubmit()">
                 <div class="px-2" fxLayout="column" fxLayoutAlign="center">
                     <mat-form-field appearance="outline">
-                        <mat-label>Username</mat-label>
-                        <input matInput type="text" [(ngModel)]="modal.userName" name="username" required />
+                        <mat-label>Email ili korisničko ime</mat-label>
+                        <input matInput type="text" [(ngModel)]="modal.userNameOrEmail" name="username" required />
                     </mat-form-field>
                     <mat-form-field appearance="outline">
-                        <mat-label>Password</mat-label>
+                        <mat-label>Lozinka</mat-label>
                         <input matInput type="password" [(ngModel)]="modal.password" name="password" required />
                     </mat-form-field>
-                    <button mat-raised-button color="warn" [disabled]="loginForm.invalid" type="submit">Login</button>
-                    <div class="mt-3">Try with Test User?</div>
-                    <button class="mt-1" mat-raised-button color="primary" (click)="loginAsTester()" type="button">Login as
-                        Tester</button>
+                    <button mat-raised-button color="warn" [disabled]="loginForm.invalid" type="submit">Prijava</button>
                 </div>
             </form>
         </mat-card-content>
         <mat-divider inset></mat-divider>
         <mat-card-actions class="mb-2 px-3">
-            <p class="mat-typography">New to ShoppingCart? Create an account</p>
+            <p class="mat-typography">Nemate račun? Kreirajte ga</p>
             <button mat-flat-button color="accent" routerLink="/register" [queryParams]="{redirectTo:redirectUrl}"
-                type="button">Create</button>
+                type="button">Kreiraj račun</button>
         </mat-card-actions>
     </mat-card>
 </div>

@@ -1,4 +1,7 @@
-﻿using API.Entities.JobPost;
+﻿using API.Data.Pagination;
+using API.Entities.JobPost;
+using API.Helpers;
+using API.PaginationEntities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6,7 +9,7 @@ namespace API.Data.IUserOfferRepository
 {
     public interface IUserJobPostRepository
     {
-        Task<List<UserJobPost>> GetAllUserJobPostsAsync();
+        Task<PagedList<UserJobPost>> GetJobPostsAsync(AdsPaginationParameters adsParameters);
         Task<UserJobPost> GetUserJobPostByIdAsync(int id);
         Task<UserJobPost> CreateUserJobPostAsync(UserJobPost userJobPost);
         Task<UserJobPost> UpdateUserJobPostAsync(UserJobPost userJobPost);

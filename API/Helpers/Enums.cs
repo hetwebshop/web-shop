@@ -35,4 +35,10 @@ namespace API.Helpers
         State,
         Country
     }
+
+    public enum AdvertisementTypeEnum
+    {
+        JobAd = 1,
+        Service
+    }
 }

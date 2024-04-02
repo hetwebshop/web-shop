@@ -1,19 +1,25 @@
-﻿using API.Entities.JobPost;
+﻿using API.Data.Pagination;
+using API.Entities.JobPost;
+using API.Helpers;
+using API.PaginationEntities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace API.Data.IUserOfferRepository
 {
-    public class UserJobPostRepository : IUserJobPostRepository
+    public class UserJobPostRepository : RepositoryBase<UserJobPost>, IUserJobPostRepository
     {
-        public DataContext DataContext { get; }
+        ISortHelper<UserJobPost> _sortHelper;
 
-        public UserJobPostRepository(DataContext dataContext)
+        public UserJobPostRepository(DataContext dataContext, ISortHelper<UserJobPost> sortHelper)
+            : base(dataContext)
         {
-            DataContext = dataContext;
+            _sortHelper = sortHelper;
         }
 
         private IQueryable<UserJobPost> GetUserJobPostBaseQuery()
@@ -29,10 +35,24 @@ namespace API.Data.IUserOfferRepository
                 ThenInclude(r => r.Country);
         }
 
-        public async Task<List<UserJobPost>> GetAllUserJobPostsAsync()
+        public async Task<PagedList<UserJobPost>> GetJobPostsAsync(AdsPaginationParameters adsParameters)
         {
-            var userJobPosts = await GetUserJobPostBaseQuery().ToListAsync();
-            return userJobPosts;
+            var userJobPosts = FindByCondition(u =>
+                (adsParameters.cityIds == null || adsParameters.cityIds.Contains(u.CityId)) &&
+                (adsParameters.jobCategoryIds == null || adsParameters.jobCategoryIds.Contains(u.JobCategoryId)) &&
+                (adsParameters.jobTypeIds == null || adsParameters.jobTypeIds.Contains(u.JobTypeId)) &&
+                (adsParameters.advertisementTypeId == null || u.AdvertisementTypeId == adsParameters.advertisementTypeId) &&
+                (
+                    (adsParameters.fromDate == null && adsParameters.toDate == null) ||
+                    (adsParameters.fromDate.HasValue && !adsParameters.toDate.HasValue && u.CreatedAt.Date >= adsParameters.fromDate.Value.Date) ||
+                    (adsParameters.fromDate.HasValue  && adsParameters.toDate.HasValue && u.CreatedAt.Date >= adsParameters.fromDate.Value.Date && u.CreatedAt.Date <= adsParameters.toDate.Value.Date) ||
+                    (!adsParameters.fromDate.HasValue && adsParameters.toDate.HasValue && u.CreatedAt.Date <= adsParameters.toDate.Value.Date))
+                );
+            
+            //Add method to search by keyword here
+
+            userJobPosts = _sortHelper.ApplySort(userJobPosts, adsParameters.OrderBy);
+            return await PagedList<UserJobPost>.ToPagedListAsync(userJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }
 
         public async Task<List<UserJobPost>> GetMyAdsAsync(int userId)

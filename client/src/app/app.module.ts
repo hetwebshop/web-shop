@@ -46,10 +46,19 @@ import { AddAdminRoleComponent } from './roles/admin/add-admin-role/add-admin-ro
 import { PageNotFoundComponent } from './error/page-not-found/page-not-found.component';
 import { InRoleDirective } from './components/directives/in-role.directive';
 import { ServerErrorComponent } from './error/server-error/server-error.component';
-import { UserJobsComponent } from './jobs/user-jobs/user-jobs.component';
+import { UserJobsListComponent } from './jobs/user-jobs/user-jobs-list.component';
 import { JobDetailsPreviewComponent } from './jobs/job-details-preview/job-details-preview.component';
 import { JobDetailsManagerComponent } from './jobs/job-details-manager/job-details-manager.component';
 import { MyAdsComponent } from './jobs/my-ads/my-ads.component';
+import { UserAdsFilterComponent } from './jobs/user-jobs/user-ads-filter/user-ads-filter.component';
+import { DatePipe } from '@angular/common';
+import { EmailModalComponent } from './modal/email-modal/email-modal.component';
+import { MatDialogModule } from '@angular/material/dialog';
+import { CancelConfirmationModalComponent } from './modal/cancel-confirmation-modal/cancel-confirmation-modal.component';
+import { TruncateModule } from './customPipes/truncate.module';
+import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
+import { UserJobsComponent } from './jobs/user-jobs/user-jobs.component';
+import { BackButtonDirective } from './components/directives/back-button.directive';
 
 @Injectable()
 export class HammerConfig extends HammerGestureConfig {
@@ -92,10 +101,16 @@ export class HammerConfig extends HammerGestureConfig {
     PageNotFoundComponent,
     InRoleDirective,
     ServerErrorComponent,
-    UserJobsComponent,
+    UserJobsListComponent,
     JobDetailsPreviewComponent,
     JobDetailsManagerComponent,
     MyAdsComponent,
+    UserAdsFilterComponent,
+    EmailModalComponent,
+    CancelConfirmationModalComponent,
+    BreadcrumbsComponent,
+    UserJobsComponent,
+    BackButtonDirective
   ],
   imports: [
     BrowserModule,
@@ -106,6 +121,8 @@ export class HammerConfig extends HammerGestureConfig {
     ReactiveFormsModule,
     HttpClientModule,
     HammerModule,
+    MatDialogModule,
+    TruncateModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
@@ -113,6 +130,7 @@ export class HammerConfig extends HammerGestureConfig {
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
     { provide: HAMMER_GESTURE_CONFIG, useClass: HammerConfig },
     { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
+    [DatePipe],
   ],
   bootstrap: [AppComponent],
 })

@@ -10,22 +10,28 @@ import { AdminRolesComponent } from './roles/admin/admin-roles/admin-roles.compo
 import { AuthGuard } from './components/guards/auth.guard';
 import { PageNotFoundComponent } from './error/page-not-found/page-not-found.component';
 import { ServerErrorComponent } from './error/server-error/server-error.component';
-import { UserJobsComponent } from './jobs/user-jobs/user-jobs.component';
 import { JobDetailsPreviewComponent } from './jobs/job-details-preview/job-details-preview.component';
 import { JobDetailsManagerComponent } from './jobs/job-details-manager/job-details-manager.component';
 import { MyAdsComponent } from './jobs/my-ads/my-ads.component';
+import { CreateAdAuthGard } from './components/guards/createAdAuth.guard';
+import { UserJobsListComponent } from './jobs/user-jobs/user-jobs-list.component';
+import { UserJobsComponent } from './jobs/user-jobs/user-jobs.component';
 
 const routes: Routes = [
-  { path: '', component: HomeComponent },
-  { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
-  { path: 'about', component: AboutComponent },
-  { path: 'edit-profile', component: EditProfileComponent },
-  { path: 'user-jobs', component: UserJobsComponent},
-  { path: 'user-job-details-preview/:id', component: JobDetailsPreviewComponent},
-  { path: 'user-job-details/:id', component: JobDetailsManagerComponent},
-  { path: 'user-job-details', component: JobDetailsManagerComponent},
-  { path: 'my-ads', component: MyAdsComponent},
+  { path: '', component: HomeComponent, data: { breadcrumb: {alias: 'Uredi oglas 1'}} },
+  { path: 'login', component: LoginComponent, data: { breadcrumb: {alias: 'Uredi oglas 2'} } },
+  { path: 'register', component: RegisterComponent, data: { breadcrumb: {alias: 'Uredi oglas 3'} } },
+  { path: 'about', component: AboutComponent, data: { breadcrumb: {alias: 'Uredi oglas 4'}} },
+  { path: 'edit-profile', component: EditProfileComponent, data: { breadcrumb: {alias: 'Uredi oglas 5'} } },
+  { path: 'ads', component: UserJobsComponent, data: { breadcrumb: {alias: 'Uredi oglas6'} }, 
+  children: [
+    { path: '', component: UserJobsListComponent },
+    { path: ':id', component: JobDetailsPreviewComponent}
+  ]},
+  //{ path: 'user-job-details-preview/:id', component: JobDetailsPreviewComponent, data: { breadcrumb: {alias: 'Uredi oglas7'} }},
+  { path: 'user-job-details/:id', component: JobDetailsManagerComponent,  data: { breadcrumb: {alias: 'Uredi oglas8'} }},
+  { path: 'user-job-details', component: JobDetailsManagerComponent, data: { breadcrumb: {alias: 'Uredi oglas9'}  }},
+  { path: 'my-ads', component: MyAdsComponent, data: {breadcrumb: {alias: 'Uredi oglas91'} }},
   // {
   //   path: '',
   //   runGuardsAndResolvers: 'always',
@@ -50,8 +56,8 @@ const routes: Routes = [
   //   ],
 
   // },
-  { path: 'server-error', component: ServerErrorComponent },
-  { path: '**', component: PageNotFoundComponent },
+  { path: 'server-error', component: ServerErrorComponent, data: {breadcrumb: {alias: 'Uredi oglas21'} } },
+  { path: '**', component: PageNotFoundComponent, data: { breadcrumb: {alias: 'Uredi oglas43'} } },
 ];
 
 @NgModule({

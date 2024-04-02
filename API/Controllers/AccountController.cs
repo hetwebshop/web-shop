@@ -58,10 +58,13 @@ namespace API.Controllers
 
             return new UserDto
             {
-                Name = user.Name,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                CityId = user.CityId,
                 UserName = user.UserName,
                 Token = token,
-                PhotoUrl = user.Photo?.Url
+                PhotoUrl = user.Photo?.Url,
+                Email = user.Email
             };
         }
 
@@ -71,21 +74,24 @@ namespace API.Controllers
         {
             var user = await _userManager.Users
                 .Include(u => u.Photo)
-                .SingleOrDefaultAsync(u => u.UserName == loginDto.UserName.ToLower());
+                .SingleOrDefaultAsync(u => u.UserName == loginDto.UserNameOrEmail.ToLower() || u.Email == loginDto.UserNameOrEmail);
 
             if (user == null) return BadRequest("Invalid user");
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-            if (!result.Succeeded && loginDto.UserName != Constants.TestUser) return BadRequest("Invalid username or password.");
+            if (!result.Succeeded && loginDto.UserNameOrEmail != Constants.TestUser) return BadRequest("Invalid username or password.");
 
             var token = await _tokenService.CreateToken(user);
 
             return new UserDto
             {
-                Name = user.Name,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                CityId = user.CityId,
                 UserName = user.UserName,
                 Token = token,
-                PhotoUrl = user.Photo?.Url
+                PhotoUrl = user.Photo?.Url,
+                Email = user.Email
             };
         }
 
@@ -102,10 +108,13 @@ namespace API.Controllers
 
             return new UserDto
             {
-                Name = user.Name,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                CityId = user.CityId,
                 UserName = user.UserName,
                 Token = token,
-                PhotoUrl = user.Photo?.Url
+                PhotoUrl = user.Photo?.Url,
+                Email = user.Email
             };
         }
 
@@ -146,6 +155,9 @@ namespace API.Controllers
 
             var user = await _userManager.Users.SingleAsync(u => u.Id == profileDto.Id);
             _mapper.Map(profileDto, user);
+
+            bool deleteUserEducations = await _uow.UserRepository.RemoveAllUserEducationsAsync(profileDto.Id);
+
             var result = await _userManager.UpdateAsync(user);
 
             if (!result.Succeeded) return BadRequest("Failed to update.");
@@ -169,33 +181,5 @@ namespace API.Controllers
             var url = await _uow.UserRepository.UpdateUserPhoto(updateDto.File, id);
             return Ok(new { PhotoUrl = url });
         }
-
-        [HttpGet("address")]
-        public async Task<ActionResult> GetAddress()
-        {
-            var address = await _uow.UserRepository.GetAddress(HttpContext.User.GetUserId());
-            if (address == null)
-                return NoContent();
-            return Ok(address);
-        }
-
-        [HttpPost("address")]
-        public async Task<ActionResult> UpdateAddress(AddressDto address)
-        {
-            await _uow.UserRepository.UpdateAddress(HttpContext.User.GetUserId(), address);
-            if (!await _uow.SaveChanges())
-                return BadRequest("Failed to update.");
-            return await GetAddress();
-        }
-
-        [HttpDelete("address")]
-        public async Task<ActionResult> RemoveAddress()
-        {
-            await _uow.UserRepository.RemoveAddress(HttpContext.User.GetUserId());
-            if (!await _uow.SaveChanges())
-                return BadRequest("Failed to remove.");
-            return NoContent();
-        }
-
     }
 }

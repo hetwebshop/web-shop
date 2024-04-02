@@ -6,7 +6,9 @@ namespace API.DTOs
 {
     public class UserRegisterDto
     {
-        [Required] public string Name { get; set; }
+        [Required] public string FirstName { get; set; }
+        [Required] public string LastName { get; set; }
+        [Required] public int CityId { get; set; }
         [Required] public DateTime DateOfBirth { get; set; }
         [Required] public Gender Gender { get; set; }
         public string PhoneNumber { get; set; }

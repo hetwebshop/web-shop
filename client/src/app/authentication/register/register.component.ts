@@ -8,7 +8,10 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Gender } from 'src/app/models/enums';
+import { City } from 'src/app/models/location';
 import { AccountService } from 'src/app/services/account.service';
+import { LocationService } from 'src/app/services/location.service';
 import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
@@ -19,27 +22,46 @@ import { UtilityService } from 'src/app/services/utility.service';
 export class RegisterComponent implements OnInit {
   registerForm: UntypedFormGroup;
   redirectUrl: string;
+  cities: City[];
+  genders = Object.values(Gender);
+
   constructor(
     private fb: UntypedFormBuilder,
     private accountService: AccountService,
     private router: Router,
     private route: ActivatedRoute,
-    utility: UtilityService
+    utility: UtilityService,
+    private locationService: LocationService
   ) {
-    utility.setTitle('Create New Account');
+    utility.setTitle('Kreiranje novog računa');
     this.initilizeForm();
   }
 
   ngOnInit(): void {
+    this.loadCities();
     this.redirectUrl = this.route.snapshot.queryParams.redirectTo;
     if (this.accountService.loggedIn) {
       this.redirect();
     }
   }
 
+  loadCities(): void {
+    this.locationService.getCities()
+      .subscribe(cities => {
+        this.cities = cities;
+      });
+  }
+
   initilizeForm() {
     this.registerForm = this.fb.group({
-      name: ['', Validators.required],
+      firstName: [
+        '',
+        [Validators.required],
+      ],
+      lastName: [
+        '',
+        [Validators.required],
+      ],
       userName: [
         '',
         [Validators.required, Validators.minLength(3)],
@@ -49,6 +71,7 @@ export class RegisterComponent implements OnInit {
       email: ['', [Validators.email, Validators.required]],
       dateOfBirth: ['', Validators.required],
       gender: [, Validators.required],
+      cityId: [null, Validators.required],
       password: [
         '',
         [
@@ -86,5 +109,16 @@ export class RegisterComponent implements OnInit {
     this.accountService.register(this.registerForm.value).subscribe(() => {
       location.reload();
     });
+  }
+
+  genderName(gender: Gender) {
+    if(gender == Gender.Male){
+      return "Muškarac";
+    }
+    else if(gender == Gender.Female){
+      return "Žena";
+    }
+    else 
+      return "Ostali";
   }
 }

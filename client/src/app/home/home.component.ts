@@ -3,6 +3,7 @@ import { Title } from '@angular/platform-browser';
 import { UtilityService } from '../services/utility.service';
 import { JobService } from '../services/job.service';
 import { UserJobPost } from '../models/userJobPost';
+import { AdvertisementTypeEnum } from '../models/enums';
 
 @Component({
   selector: 'app-home',
@@ -16,8 +17,9 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.jobService.getAllUserJobs().subscribe((response) => {
-      this.allJobs = response;
+    console.log("from home");
+    this.jobService.getAds().subscribe((response) => {
+      this.allJobs = response.items;
     });
   }
 }

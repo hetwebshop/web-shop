@@ -6,6 +6,7 @@ export interface User {
   token: string;
   photoUrl: string;
   roles: string[];
+  email: string;
 }
 
 export interface UserInfo {

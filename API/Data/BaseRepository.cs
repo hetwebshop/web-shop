@@ -79,26 +79,6 @@ namespace API.Data
             return user;
         }
 
-        public async Task<bool> UserHasAddress(int userId)
-        {
-            if (userId == 0) return false;
-            return await DataContext.Users.AnyAsync(u => u.AddressId != null);
-        }
-
-        public async Task<UserAddress> GetUserAddress(int userId)
-        {
-            return await DataContext.UserAddresses.Where(a => a.User.Id == userId).FirstOrDefaultAsync();
-        }
-
-        public async Task<string> GetUserAddressName(int userId)
-        {
-            if (userId == 0) return null;
-            return await DataContext.Users
-                .Where(u => u.Id == userId)
-                .Select(u => u.Address.StreetName)
-                .FirstOrDefaultAsync();
-        }
-
         #endregion
 
         #region Photo

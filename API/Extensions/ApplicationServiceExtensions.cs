@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using API.Services.UserOfferServices;
 using API.Data.IUserOfferRepository;
+using API.Data.Pagination;
 
 namespace API.Extensions
 {
@@ -37,6 +38,8 @@ namespace API.Extensions
             services.AddScoped<IPhotoService, PhotoService>();
             services.AddScoped<SeedData, SeedData>();
 
+            services.AddSingleton(typeof(ISortHelper<>), typeof(SortHelper<>));
+            
             //jobPosts
             services.AddScoped<IUserJobPostService, UserJobPostService>();
             services.AddScoped<IUserJobPostRepository, UserJobPostRepository>();

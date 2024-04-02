@@ -26,7 +26,7 @@ builder.Services.AddSwaggerGen(c =>
 //middleware
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
-app.UseMiddleware<TokenMiddleware>();
+//app.UseMiddleware<TokenMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseSwagger();

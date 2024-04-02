@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription, map, switchMap } from 'rxjs';
 import { AdvertisementType, ApplicantEducation, JobCategory, JobType, UserJobPost, UserJobSubcategory } from 'src/app/models/userJobPost';
 import { JobService } from 'src/app/services/job.service';
@@ -9,6 +9,8 @@ import { LocationService } from 'src/app/services/location.service';
 import { City, Country } from 'src/app/models/location';
 import { AdvertisementTypeEnum, Gender, JobPostStatus } from 'src/app/models/enums';
 import { MatOption } from '@angular/material/core';
+import { User } from 'src/app/modal/user';
+import { AccountService } from 'src/app/services/account.service';
 
 @Component({
   selector: 'app-job-details-manager',
@@ -33,17 +35,24 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
   selectedAdvertisementType: any;
   AdvertisementTypeEnum = AdvertisementTypeEnum;
   selectAllId: number = 0;
-
+  user: User;
+  
   @ViewChild('allSelected', { static: true }) private allSelected: MatOption;
 
   constructor(private jobService: JobService, private locationService: LocationService, utility: UtilityService, 
     private route: ActivatedRoute, private cdr: ChangeDetectorRef, 
-    private fb: FormBuilder) {
-    utility.setTitle('Job Details');
+    private fb: FormBuilder, private accountService: AccountService, private router: Router) {
+    utility.setTitle('Detalji oglasa');
     this.form = this.createForm();
   }
 
   ngOnInit(): void {
+    // this.accountService.user$.subscribe((user) => {
+    //   this.user = user;
+    //   if(this.user == null || this.user == undefined){
+    //     this.router.navigateByUrl("")
+    //   }
+    // });
     this.loadCountries();
     this.loadCities();
     this.loadJobTypes();

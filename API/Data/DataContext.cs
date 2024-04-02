@@ -15,7 +15,6 @@ namespace API.Data
 
         }
 
-        public DbSet<UserAddress> UserAddresses { get; set; }
         public DbSet<Photo> Photos { get; set; }
         public DbSet<Country> Countries { get; set; }
         public DbSet<City> Cities { get; set; }
@@ -26,6 +25,8 @@ namespace API.Data
         public DbSet<ApplicantEducation> ApplicantEducations { get; set; }
         public DbSet<UserJobSubcategory> UserJobSubcategories { get; set; }
         public DbSet<AdvertisementType> AdvertisementTypes { get; set; }
+        public DbSet<UserEducation> UserEducations { get; set; }
+
         //public DbSet<Canton> Cantons { get; set; }
         //public DbSet<Municipality> Municipalities { get; set; }
 
@@ -79,7 +80,7 @@ namespace API.Data
                       .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(e => e.City)
-                      .WithMany(e => e.UserJobPosts)
+                      .WithMany()
                       .HasForeignKey(e => e.CityId)
                       .OnDelete(DeleteBehavior.NoAction);
                 entity.Property(c => c.CityId).HasDefaultValue(1);
@@ -130,10 +131,19 @@ namespace API.Data
         private void RegisterUserRolesTables(ModelBuilder builder)
         {
             builder.Entity<User>()
-                .HasOne(u => u.Address)
-                .WithOne(a => a.User)
-                .HasForeignKey<User>(u => u.AddressId)
+                .HasOne(u => u.JobCategory)
+                .WithMany()
                 .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<User>()
+                .HasOne(u => u.JobType)
+                .WithMany()
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<User>()
+                .HasOne(u => u.City)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<User>()
                 .HasOne(u => u.Photo)
@@ -150,6 +160,11 @@ namespace API.Data
                 .HasMany(u => u.UserRoles)
                 .WithOne(ur => ur.User)
                 .HasForeignKey(ur => ur.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<UserEducation>()
+                .HasOne(u => u.User)
+                .WithMany(u => u.UserEducations)
                 .OnDelete(DeleteBehavior.Cascade);
         }
 
@@ -193,9 +208,6 @@ namespace API.Data
 
             //builder.Entity<Municipality>()
             //    .HasKey(m => m.Id);
-
-            builder.Entity<UserAddress>()
-                .HasKey(a => a.Id);
         }
     }
 }
