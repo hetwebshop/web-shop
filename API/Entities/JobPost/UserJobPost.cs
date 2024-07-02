@@ -37,6 +37,5 @@ namespace API.Entities.JobPost
         //public UserAddress Address { get; set; }
 
         public ICollection<ApplicantEducation> ApplicantEducations { get; set; }
-        public ICollection<UserJobSubcategory> UserJobSubcategories { get; set; }
     }
 }

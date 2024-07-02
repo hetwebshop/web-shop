@@ -18,6 +18,8 @@ namespace API.DTOs
         [Required] public int CityId { get; set; }
         public int? JobCategoryId { get; set; }
         public int? JobTypeId { get; set; }
+        public string Biography { get; set; }
+        public string Position { get; set; }
 
         public List<UserEducationDto> UserEducations { get; set; }
     }

@@ -59,6 +59,9 @@ import { TruncateModule } from './customPipes/truncate.module';
 import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
 import { UserJobsComponent } from './jobs/user-jobs/user-jobs.component';
 import { BackButtonDirective } from './components/directives/back-button.directive';
+import { ContactUsComponent } from './contactUs/contactus.component';
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 @Injectable()
 export class HammerConfig extends HammerGestureConfig {
@@ -89,6 +92,7 @@ export class HammerConfig extends HammerGestureConfig {
     ReducePipe,
     ScrollContentComponent,
     AboutComponent,
+    ContactUsComponent,
     ScrollToTopComponent,
     FilterListComponent,
     SpaceBetweenPipe,
@@ -110,7 +114,7 @@ export class HammerConfig extends HammerGestureConfig {
     CancelConfirmationModalComponent,
     BreadcrumbsComponent,
     UserJobsComponent,
-    BackButtonDirective
+    BackButtonDirective,
   ],
   imports: [
     BrowserModule,
@@ -122,7 +126,9 @@ export class HammerConfig extends HammerGestureConfig {
     HttpClientModule,
     HammerModule,
     MatDialogModule,
-    TruncateModule
+    TruncateModule,
+    MatButtonToggleModule,
+    MatSlideToggleModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
@@ -130,7 +136,7 @@ export class HammerConfig extends HammerGestureConfig {
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
     { provide: HAMMER_GESTURE_CONFIG, useClass: HammerConfig },
     { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
-    [DatePipe],
+    [DatePipe]    
   ],
   bootstrap: [AppComponent],
 })

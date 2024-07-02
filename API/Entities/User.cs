@@ -21,6 +21,8 @@ namespace API.Entities
         public JobType JobType { get; set; }
         public int? JobCategoryId { get; set; }
         public JobCategory JobCategory { get; set; }
+        public string Position { get; set; }
+        public string Biography { get; set; }
         public ICollection<UserRole> UserRoles { get; set; }
         public ICollection<UserJobPost> UserJobPosts { get; set; }
         public ICollection<UserEducation> UserEducations { get; set; }

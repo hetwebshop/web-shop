@@ -3,6 +3,7 @@ using API.DTOs;
 using API.Entities;
 using API.Extensions;
 using API.Helpers;
+using API.Mappers;
 using API.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication;
@@ -74,6 +75,8 @@ namespace API.Controllers
         {
             var user = await _userManager.Users
                 .Include(u => u.Photo)
+                .Include(u => u.UserEducations)
+                .Include(u => u.UserRoles)
                 .SingleOrDefaultAsync(u => u.UserName == loginDto.UserNameOrEmail.ToLower() || u.Email == loginDto.UserNameOrEmail);
 
             if (user == null) return BadRequest("Invalid user");
@@ -91,7 +94,7 @@ namespace API.Controllers
                 UserName = user.UserName,
                 Token = token,
                 PhotoUrl = user.Photo?.Url,
-                Email = user.Email
+                Email = user.Email,
             };
         }
 

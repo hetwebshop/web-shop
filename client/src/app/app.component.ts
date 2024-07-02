@@ -1,9 +1,10 @@
-import { Component, OnInit, Renderer2 } from '@angular/core';
+import { Component, NgZone, OnInit, Renderer2 } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { User } from './modal/user';
 import { AccountService } from './services/account.service';
 import { BusyService } from './services/busy.service';
 import { UtilityService } from './services/utility.service';
+import { akitaDevtools } from '@datorama/akita';
 
 @Component({
   selector: 'app-root',
@@ -18,9 +19,11 @@ export class AppComponent implements OnInit {
     private route: ActivatedRoute,
     private utility: UtilityService,
     public busy: BusyService,
-    private _renderer: Renderer2
+    private _renderer: Renderer2,
+    private ngZone: NgZone
   ) {
     this.addIcons();
+    akitaDevtools(ngZone);
   }
 
   ngOnInit() {

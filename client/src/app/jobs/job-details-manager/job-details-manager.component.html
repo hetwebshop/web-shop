@@ -1,143 +1,141 @@
 <div fxLayout="row" fxLayoutAlign="center" style="margin-top: 100px;">
-  <mat-card class="text-center" fxFlex="40" fxFlex.lt-sm="90" fxFlex.lt-md="60" fxFlex.lt-lg="50"
-    style="margin-bottom: 2px;">
-    <mat-card-title class="my-4">{{ isEditMode ? 'Edit Job Details' : 'Create Job' }}</mat-card-title>
-    <mat-card-content class="mt-5">
+  <mat-card class="text-center" fxFlex="40" fxFlex.lt-sm="90" fxFlex.lt-md="60" fxFlex.lt-lg="50">
+    <mat-card-title class="my-4">
+      {{ isJobAd ? (isEditMode ? 'Uredi Oglas' : 'Kreiraj Oglas') : (isEditMode ? 'Uredi uslugu' : 'Kreiraj uslugu') }}
+    </mat-card-title>
+        <mat-card-content class="mt-5">
       <form [formGroup]="form" (ngSubmit)="onSubmit()" #jobForm="ngForm" fxLayout="column" fxLayoutAlign="center">
         <input type="hidden" formControlName="id">
-
-        <mat-form-field appearance="outline">
-          <mat-label>Advertisement Type</mat-label>
-          <mat-select formControlName="advertisementTypeId" placeholder="Select Advertisement Type" (selectionChange)="onAdTypeChange($event.value)">
+        <mat-slide-toggle color="primary" (change)="onToggleUseUserDataChange($event)" style="margin-bottom: 20px;">
+          <span style="font-weight: bold;">Popuni podacima sa mog profila</span>
+        </mat-slide-toggle>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Tip oglasa</mat-label>
+          <mat-select formControlName="advertisementTypeId" placeholder="Odaberite tip oglasa">
             <mat-option *ngFor="let adType of advertisementTypes" [value]="adType.id">{{ adType.name }}</mat-option>
           </mat-select>
         </mat-form-field>
 
-        <!--Details about user-->
-        <div fxLayout="row" fxLayoutAlign="start center">
-          <mat-form-field appearance="outline" class="px-2" fxFlex>
-            <mat-label>First Name</mat-label>
-            <input matInput type="text" formControlName="applicantFirstName" placeholder="Enter first name" required />
+        <!-- Details about user -->
+        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+          <mat-form-field appearance="outline" fxFlex class="flex-item full-width">
+            <mat-label>Ime</mat-label>
+            <input matInput type="text" formControlName="applicantFirstName" placeholder="Unesite ime" required />
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="px-2" fxFlex>
-            <mat-label>Last Name</mat-label>
-            <input matInput type="text" formControlName="applicantLastName" placeholder="Enter last name" required />
+          <mat-form-field appearance="outline" fxFlex class="flex-item full-width">
+            <mat-label>Prezime</mat-label>
+            <input matInput type="text" formControlName="applicantLastName" placeholder="Unesite prezime" required />
           </mat-form-field>
         </div>
-        <div fxLayout="row" fxLayoutAlign="start center">
-          <mat-form-field appearance="outline" class="px-2" fxFlex>
+        
+        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+          <mat-form-field appearance="outline" fxFlex class="flex-item full-width">
             <mat-label>Email</mat-label>
-            <input matInput type="text" formControlName="applicantEmail" placeholder="Enter email" required />
+            <input matInput type="email" formControlName="applicantEmail" placeholder="Unesite email" required />
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="px-2" fxFlex>
-            <mat-label>Phone Number</mat-label>
-            <input matInput type="text" formControlName="applicantPhoneNumber" placeholder="Enter phone number" required />
+          <mat-form-field appearance="outline" fxFlex class="flex-item full-width">
+            <mat-label>Broj telefona</mat-label>
+            <input matInput type="tel" formControlName="applicantPhoneNumber" placeholder="Unesite broj telefona" required />
           </mat-form-field>
         </div>
-        <mat-form-field appearance="outline">
-          <mat-label>Gender</mat-label>
-          <mat-select formControlName="applicantGender" placeholder="Select gender">
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Spol</mat-label>
+          <mat-select formControlName="applicantGender" placeholder="Odaberite spol">
             <mat-option *ngFor="let gender of genders" [value]="gender">{{ gender }}</mat-option>
           </mat-select>
         </mat-form-field>
-        <mat-form-field appearance="fill">
-          <mat-label>Date of Birth</mat-label>
+
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>Datum rođenja</mat-label>
           <input matInput [matDatepicker]="dobPicker" formControlName="applicantDateOfBirth">
           <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
           <mat-datepicker #dobPicker></mat-datepicker>
         </mat-form-field>
         
         <div formArrayName="applicantEducations">
-          <div *ngFor="let education of applicantEducations.controls; let i = index" [formGroupName]="i">
-            <h4>Education {{ i + 1 }}</h4>
-            <mat-form-field appearance="outline">
-              <mat-label>University</mat-label>
-              <input matInput type="text" formControlName="university" placeholder="Enter university" required>
+          <div *ngFor="let education of applicantEducations.controls; let i = index" [formGroupName]="i" class="education-group">
+            <h3>Obrazovanje {{ i + 1 }}</h3>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Univerzitet</mat-label>
+              <input matInput type="text" formControlName="university" placeholder="Unesite univerzitet" required>
             </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Faculty</mat-label>
-              <input matInput type="text" formControlName="institutionName" placeholder="Enter faculty" required>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Fakultet</mat-label>
+              <input matInput type="text" formControlName="institutionName" placeholder="Unesite fakultet" required>
             </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Field of study</mat-label>
-              <input matInput type="text" formControlName="fieldOfStudy" placeholder="Enter field of stury" required>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Odsjek</mat-label>
+              <input matInput type="text" formControlName="fieldOfStudy" placeholder="Unesite odsjek" required>
             </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Degree</mat-label>
-              <input matInput type="text" formControlName="degree" placeholder="Enter degree" required>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Zvanje</mat-label>
+              <input matInput type="text" formControlName="degree" placeholder="Unesite zvanje" required>
             </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Education start year</mat-label>
-              <input matInput type="number" formControlName="educationStartYear" placeholder="Enter education start year" required>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Godina početka studija</mat-label>
+              <input matInput type="number" formControlName="educationStartYear" placeholder="Unesite godinu početka studija" required>
             </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Education end year</mat-label>
-              <input matInput type="number" formControlName="educationEndYear" placeholder="Enter education end year">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Godina kraja studija</mat-label>
+              <input matInput type="number" formControlName="educationEndYear" placeholder="Unesite godinu kraja studija">
             </mat-form-field>
-            <!-- Add other fields for institution name, field of study, start year, end year -->
-            <button mat-button type="button" (click)="removeEducation(i)">Remove</button>
+            <button mat-button type="button" color="warn" (click)="removeEducation(i)">Ukloni obrazovanje</button>
           </div>
         </div>
-        <button mat-button type="button" (click)="addEducation()">Add Education</button>
-        <div fxLayout="row" fxLayoutGap="10px" fxLayoutAlign="start center">
-          <mat-form-field appearance="outline">
-            <mat-label>Country</mat-label>
-            <mat-select formControlName="countryId" placeholder="Select Country"
-              (selectionChange)="filterCitiesByCountry($event.value)">
+        <button mat-raised-button color="primary" type="button" style="margin-bottom: 25px;" (click)="addEducation()">Dodaj obrazovanje</button>
+        
+        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Država</mat-label>
+            <mat-select formControlName="countryId" placeholder="Odaberite državu" (selectionChange)="filterCitiesByCountry($event.value)" disabled>
               <mat-option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</mat-option>
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
-            <mat-label>City</mat-label>
-            <mat-select formControlName="cityId" placeholder="Select City">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Grad</mat-label>
+            <mat-select formControlName="cityId" placeholder="Odaberite grad">
               <mat-option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
 
-
-
-        <!--Details about job and skills-->
-        <mat-form-field appearance="outline" class="px-2" fxFlex>
-          <mat-label>Position</mat-label>
-          <input matInput type="text" formControlName="position" placeholder="Enter job title" required />
+        <!-- Details about job and skills -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Pozicija</mat-label>
+          <input matInput type="text" formControlName="position" placeholder="Unesite poziciju" required />
         </mat-form-field>
-        <mat-form-field appearance="outline" class="px-2" fxFlex>
-          <mat-label>Biography</mat-label>
-          <textarea matInput formControlName="biography" rows="4" placeholder="Enter job biography" required></textarea>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Biografija</mat-label>
+          <textarea matInput formControlName="biography" rows="4" placeholder="Unesite biografiju" required></textarea>
         </mat-form-field>
-        <mat-form-field *ngIf="selectedAdvertisementType == AdvertisementTypeEnum.Service" appearance="outline" class="px-2" fxFlex>
-          <mat-label>Price</mat-label>
-          <input matInput type="number" formControlName="price" placeholder="Enter price"/>
+        
+        <mat-form-field *ngIf="selectedAdvertisementType == AdvertisementTypeEnum.Service" appearance="outline" class="full-width">
+          <mat-label>Cijena usluge</mat-label>
+          <input matInput type="number" formControlName="price" placeholder="Unesite cijenu" />
         </mat-form-field>
-        <div fxLayout="row" fxLayoutGap="10px" fxLayoutAlign="start stretch">
-          <mat-form-field appearance="outline" class="form-field" fxFlex fxFlexFill>
-            <mat-label>Job Category</mat-label>
+        
+        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start stretch">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Kategorija posla</mat-label>
             <mat-select formControlName="jobCategoryId" (selectionChange)="onCategoryChange($event.value)">
               <mat-option *ngFor="let category of jobCategories" [value]="category.id">{{ category.name }}</mat-option>
             </mat-select>
           </mat-form-field>
-          <!-- <mat-form-field appearance="outline" class="form-field" fxFlex fxFlexFill>
-            <mat-label>Subcategories</mat-label>
-            <mat-select formControlName="jobSubcategories" multiple>
-              <mat-option #allSelected (click)="toggleAllSelection()" [value]="selectAllId">All</mat-option>
-              <mat-option *ngFor="let subcategory of selectedCategory?.subcategories" [value]="subcategory.id" (click)="tosslePerOne()">{{
-                subcategory.name }}</mat-option>
-            </mat-select>
-          </mat-form-field> -->
         </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Job Type</mat-label>
-          <mat-select formControlName="jobTypeId" placeholder="Select Type">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Tip posla</mat-label>
+          <mat-select formControlName="jobTypeId" placeholder="Odaberite tip posla">
             <mat-option *ngFor="let jobType of jobTypes" [value]="jobType.id">{{ jobType.name }}</mat-option>
           </mat-select>
         </mat-form-field>
 
-        <button mat-raised-button color="primary" type="submit" [disabled]="!jobForm.valid">Submit</button>
+        <button mat-raised-button color="primary" type="submit">{{ isJobAd ? (isEditMode ? 'Uredi Oglas' : 'Kreiraj Oglas') : (isEditMode ? 'Uredi uslugu' : 'Kreiraj uslugu') }}</button>
       </form>
     </mat-card-content>
   </mat-card>

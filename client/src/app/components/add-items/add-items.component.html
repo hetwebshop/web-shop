@@ -2,7 +2,7 @@
     <p class="title">{{name}}</p>
     <mat-form-field fxFlex appearance="outline">
         <mat-label>{{name}}</mat-label>
-        <mat-chip-list #chipList>
+        <!-- <mat-chip-list #chipList>
             <mat-chip *ngFor="let item of values; let i = index" (removed)="remove(item)">
                 {{item}}
                 <button matChipRemove>
@@ -12,6 +12,6 @@
         </mat-chip-list>
         <input [placeholder]="'Add ' + name + '...'" [matChipInputFor]="chipList"
             [matChipInputSeparatorKeyCodes]="separatorKeysCodes" [matChipInputAddOnBlur]="true"
-            (matChipInputTokenEnd)="add($event)" autocomplete="off">
+            (matChipInputTokenEnd)="add($event)" autocomplete="off"> -->
     </mat-form-field>
 </div>

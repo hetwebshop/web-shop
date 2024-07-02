@@ -2,14 +2,25 @@
 <div class="job-details-container">
   <div class="job-details-content">
     <div fxLayout="row" fxLayoutAlign="space-between">
-      <button mat-button style="font-size: 14px; padding-left: 0px; margin-bottom: 10px; text-align: left;">
+      <button mat-button style="font-size: 14px; padding-left: 0px; margin-bottom: 10px; text-align: left;" backButton>
         <mat-icon style="margin-right: 5px;">arrow_back</mat-icon>
         <span>Nazad</span>
       </button>
-      <button mat-button style="font-size: 14px; padding-left: 0px; margin-bottom: 10px; text-align: left;">
+      <!-- <button mat-button style="font-size: 14px; padding-left: 0px; margin-bottom: 10px; text-align: left;">
         <span>Naprijed</span>
         <mat-icon style="margin-left: 5px;">arrow_forward</mat-icon>
-      </button>
+      </button> -->
+      <div *ngIf="prevNextButtonVisible">
+        <span>{{ currentItemIndex + 1 }} od {{ totalItems }}</span>
+        <button mat-icon-button (click)="moveToPrevious()" [disabled]="currentItemIndex === 0">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <button mat-icon-button (click)="moveToNext()" [disabled]="currentItemIndex === totalItems - 1">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+        
+      </div>
+
     </div>
     
       <ng-container *ngIf="job != null && job != undefined">

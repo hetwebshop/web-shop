@@ -1,23 +1,30 @@
-.job-details-form {
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.job-details-form .form-group {
-    margin-bottom: 20px;
-}
-
-.job-details-form label {
-    font-weight: bold;
-}
-
-.job-details-form textarea {
-    height: 150px;
-    resize: vertical;
-}
-
-.job-details-form button[type="submit"] {
+.text-center {
+    text-align: center;
+  }
+  
+  .full-width {
     width: 100%;
-}
+  }
+  
+  .flex-item {
+    margin-bottom: 16px;
+  }
+  
+  .education-group {
+    margin-bottom: 24px;
+  }
+  
+  .mat-form-field {
+    margin-bottom: 16px;
+  }
+  
+  @media (max-width: 600px) {
+    .full-width {
+      width: 100%;
+    }
+    
+    .flex-item {
+      width: 100%;
+    }
+  }
+  

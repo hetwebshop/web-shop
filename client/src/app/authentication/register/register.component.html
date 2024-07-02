@@ -1,8 +1,12 @@
 <div fxLayout="row" fxLayoutAlign="center" style="margin-top: 50px;">
     <mat-card class="text-center" fxFlex="60" fxFlex.lt-sm="90" fxFlex.lt-md="80" fxFlex.lt-lg="70"
         style="margin-bottom: 2px;">
-        <mat-card-title class="my-4">Create an account</mat-card-title>
-        <mat-card-content class="mt-5">
+        <mat-card-title class="my-4">Kreirajte račun</mat-card-title>
+        <mat-button-toggle-group #group="matButtonToggleGroup" (change)="toggleRegistrationType(group.value)"  aria-label="Registration Type">
+            <mat-button-toggle value="user" checked>Registracija korisnika</mat-button-toggle>
+            <mat-button-toggle value="company">Registracija kompanije</mat-button-toggle>
+          </mat-button-toggle-group>
+        <mat-card-content class="mt-5" *ngIf="registrationType === 'user'">
             <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" autocomplete="off">
                 <div fxLayout="row wrap" fxLayoutAlign="space-around center">
                     <app-input fxFlex="45" fxFlex.lt-sm="90" label="Ime" [formControl]="registerForm.get('firstName')">
@@ -50,6 +54,34 @@
                 <button mat-flat-button [disabled]="!registerForm.valid" color="primary" type="submit">Registracija</button>
             </form>
         </mat-card-content>
+        <mat-card-content class="mt-5" *ngIf="registrationType === 'company'">
+            <form [formGroup]="registerCompanyForm" (ngSubmit)="onSubmitCompany()" autocomplete="off">
+                <div fxLayout="row wrap" fxLayoutAlign="space-around center">
+                    <app-input fxFlex="45" fxFlex.lt-sm="90" label="Naziv kompanije" [formControl]="registerCompanyForm.get('companyName')">
+                    </app-input>
+                    <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                        <mat-label>Grad</mat-label>
+                        <mat-select formControlName="cityId" placeholder="Grad">
+                            <mat-option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="registerCompanyForm.get('cityId').invalid">Potrebno je da unesete grad</mat-error>
+                    </mat-form-field>
+                    <app-input fxFlex="45" fxFlex.lt-sm="90" label="Email" type="email"
+                        [formControl]="registerCompanyForm.get('email')">
+                    </app-input>
+                    <app-input fxFlex="45" fxFlex.lt-sm="90" label="Kontakt telefon"
+                        [formControl]="registerCompanyForm.get('phoneNumber')">
+                    </app-input>
+                    <app-input fxFlex="45" fxFlex.lt-sm="90" label="Lozinka" type="password"
+                        [formControl]="registerCompanyForm.get('password')">
+                    </app-input>
+                    <app-input fxFlex="45" fxFlex.lt-sm="90" label="Potvrdite lozinku" type="password"
+                        [formControl]="registerCompanyForm.get('confirmPassword')">
+                    </app-input>
+                </div>
+                <button mat-flat-button [disabled]="!registerForm.valid" color="primary" type="submit">Registracija Kompanije</button>
+            </form>
+          </mat-card-content>
         <mat-divider inset></mat-divider>
         <mat-card-actions class="mb-2 px-3">
             <p class="mat-typography">Imate račun?</p>

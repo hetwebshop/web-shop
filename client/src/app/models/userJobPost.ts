@@ -27,7 +27,7 @@ export interface UserJobPost {
     applicantDateOfBirth: Date;
     applicantPhoneNumber: string;
     applicantEducations: ApplicantEducation[];
-    userJobSubcategories: UserJobSubcategory[];
+    //userJobSubcategories: UserJobSubcategory[];
     advertisementTypeId: number;
 }
 

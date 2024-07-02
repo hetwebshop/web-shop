@@ -19,7 +19,7 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     console.log("from home");
     this.jobService.getAds().subscribe((response) => {
-      this.allJobs = response.items;
+      //this.allJobs = response.items;
     });
   }
 }

@@ -21,9 +21,11 @@ import { UtilityService } from 'src/app/services/utility.service';
 })
 export class RegisterComponent implements OnInit {
   registerForm: UntypedFormGroup;
+  registerCompanyForm: UntypedFormGroup;
   redirectUrl: string;
   cities: City[];
   genders = Object.values(Gender);
+  registrationType: string = 'user';
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -34,7 +36,7 @@ export class RegisterComponent implements OnInit {
     private locationService: LocationService
   ) {
     utility.setTitle('Kreiranje novog računa');
-    this.initilizeForm();
+    this.initilizeForms();
   }
 
   ngOnInit(): void {
@@ -45,6 +47,10 @@ export class RegisterComponent implements OnInit {
     }
   }
 
+  toggleRegistrationType(type: string): void {
+    this.registrationType = type;
+  }
+
   loadCities(): void {
     this.locationService.getCities()
       .subscribe(cities => {
@@ -52,7 +58,7 @@ export class RegisterComponent implements OnInit {
       });
   }
 
-  initilizeForm() {
+  initilizeForms() {
     this.registerForm = this.fb.group({
       firstName: [
         '',
@@ -89,6 +95,32 @@ export class RegisterComponent implements OnInit {
     this.registerForm.controls.password.valueChanges.subscribe(() => {
       this.registerForm.controls.confirmPassword.updateValueAndValidity();
     });
+
+    this.registerCompanyForm = this.fb.group({
+      companyName: [
+        '',
+        [Validators.required],
+      ],
+      phoneNumber: ['', Validators.required],
+      email: ['', [Validators.email, Validators.required]],
+      cityId: [null, Validators.required],
+      password: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(6),
+          Validators.maxLength(12),
+        ],
+      ],
+      confirmPassword: [
+        '',
+        [Validators.required, this.matchValues('password')],
+      ],
+    });
+
+    this.registerCompanyForm.controls.password.valueChanges.subscribe(() => {
+      this.registerCompanyForm.controls.confirmPassword.updateValueAndValidity();
+    });
   }
 
   matchValues(name: string): ValidatorFn {
@@ -107,6 +139,12 @@ export class RegisterComponent implements OnInit {
 
   onSubmit() {
     this.accountService.register(this.registerForm.value).subscribe(() => {
+      location.reload();
+    });
+  }
+
+  onSubmitCompany() {
+    this.accountService.registerCompany(this.registerCompanyForm.value).subscribe(() => {
       location.reload();
     });
   }

@@ -50,6 +50,17 @@ export class AccountService {
     );
   }
 
+  registerCompany(model) {
+    model.userName = model.emal;
+    return this.http.post<User>(this.baseUrl + 'register-company', model).pipe(
+      map((user: User) => {
+        if (user) {
+          this.setUser(user);
+        }
+      })
+    );
+  }
+
   getProfile() {
     return this.http.get(this.baseUrl + 'profile');
   }

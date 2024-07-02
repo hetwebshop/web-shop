@@ -12,6 +12,7 @@ import { JobCategory, JobType, UserEducation } from '../models/userJobPost';
 import { JobService } from '../services/job.service';
 import { MatDialog } from '@angular/material/dialog';
 import { CancelConfirmationModalComponent } from '../modal/cancel-confirmation-modal/cancel-confirmation-modal.component';
+import { UserProfile } from '../modal/user';
 
 @Component({
   selector: 'app-edit-profile',
@@ -19,7 +20,7 @@ import { CancelConfirmationModalComponent } from '../modal/cancel-confirmation-m
   styleUrls: ['./edit-profile.component.css'],
 })
 export class EditProfileComponent implements OnInit {
-  user;
+  user: UserProfile;
   profileUpdate: UntypedFormGroup;
   genders = Object.values(Gender);
   jobTypes: JobType[] = [];
@@ -46,7 +47,7 @@ export class EditProfileComponent implements OnInit {
     this.loadJobTypes();
     this.loadJobCategories();
     
-    this.accountService.getProfile().subscribe((response) => {
+    this.accountService.getProfile().subscribe((response: UserProfile) => {
       this.user = response;
       this.initilizeProfileForm();
       console.log("user");
@@ -113,12 +114,12 @@ export class EditProfileComponent implements OnInit {
       email: [this.user.email, [Validators.email, Validators.required]],
       dateOfBirth: [new Date(this.user.dateOfBirth), Validators.required],
       gender: [this.user.gender, Validators.required],
-      streetName: [this.user.streetName],
-      streetNumber: [this.user.streetNumber],
       cityId: [this.user.cityId, Validators.required],
       jobTypeId: [this.user.jobTypeId],
       jobCategoryId: [this.user.jobCategoryId],
-      userEducations: this.userEducations
+      userEducations: this.userEducations,
+      position: [this.user.position],
+      biography: [this.user.biography]
     });
   }
 

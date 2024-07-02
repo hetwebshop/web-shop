@@ -86,6 +86,16 @@
                                 </mat-select>
                             </mat-form-field>
 
+                            <mat-form-field fxFlex="95" appearance="outline" class="full-width">
+                                <mat-label>Pozicija</mat-label>
+                                <input matInput type="text" formControlName="position" placeholder="Unesite poziciju" required />
+                              </mat-form-field>
+                              
+                              <mat-form-field fxFlex="95" appearance="outline" class="full-width">
+                                <mat-label>Biografija</mat-label>
+                                <textarea matInput formControlName="biography" rows="4" placeholder="Unesite biografiju" required></textarea>
+                              </mat-form-field>
+
                             <ng-container formArrayName="userEducations">
                                 <ng-container *ngFor="let education of userEducations.controls; let i = index" [formGroupName]="i">
                                     <ng-container style="margin-top: 20px">

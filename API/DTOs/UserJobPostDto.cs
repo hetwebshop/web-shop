@@ -16,7 +16,7 @@ namespace API.DTOs
         public string ApplicantEmail { get; set; }
         public string ApplicantPhoneNumber { get; set; }
         public DateTime ApplicantDateOfBirth { get; set; }
-        public Gender ApplicantGender { get; set; }
+        public string ApplicantGender { get; set; }
         public decimal? Price { get; set; }
         public DateTime UpdatedAt { get; set; }
         public int JobTypeId { get; set; }

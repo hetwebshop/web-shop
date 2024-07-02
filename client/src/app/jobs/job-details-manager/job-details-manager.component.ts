@@ -9,7 +9,7 @@ import { LocationService } from 'src/app/services/location.service';
 import { City, Country } from 'src/app/models/location';
 import { AdvertisementTypeEnum, Gender, JobPostStatus } from 'src/app/models/enums';
 import { MatOption } from '@angular/material/core';
-import { User } from 'src/app/modal/user';
+import { User, UserInfo, UserProfile } from 'src/app/modal/user';
 import { AccountService } from 'src/app/services/account.service';
 
 @Component({
@@ -35,24 +35,33 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
   selectedAdvertisementType: any;
   AdvertisementTypeEnum = AdvertisementTypeEnum;
   selectAllId: number = 0;
-  user: User;
+  user: UserProfile;
+  isJobAd: boolean = true;
   
   @ViewChild('allSelected', { static: true }) private allSelected: MatOption;
 
   constructor(private jobService: JobService, private locationService: LocationService, utility: UtilityService, 
     private route: ActivatedRoute, private cdr: ChangeDetectorRef, 
     private fb: FormBuilder, private accountService: AccountService, private router: Router) {
+      this.route.url.subscribe(urlSegment => {
+        this.isJobAd = !urlSegment.some(segment => segment.path.includes('service'));
+      });
     utility.setTitle('Detalji oglasa');
-    this.form = this.createForm();
   }
 
   ngOnInit(): void {
-    // this.accountService.user$.subscribe((user) => {
-    //   this.user = user;
-    //   if(this.user == null || this.user == undefined){
-    //     this.router.navigateByUrl("")
-    //   }
-    // });
+    this.form = this.createForm();
+
+    this.accountService.user$.subscribe((user: UserProfile) => {
+      this.user = user;
+      // if(this.user == null || this.user == undefined){
+      //   this.router.navigateByUrl("")
+      // }
+    });
+
+    this.accountService.getProfile().subscribe((user: UserProfile) => {
+      this.user = user;
+    })
     this.loadCountries();
     this.loadCities();
     this.loadJobTypes();
@@ -73,10 +82,10 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
               console.log("job cat" + JSON.stringify(this.job));
               this.updateApplicantEducations(this.job?.applicantEducations);
               this.onCategoryChange(this.job.jobCategoryId);
-              const categoryIds = this.job.userJobSubcategories.map(value => value.jobCategoryId);
-              if(categoryIds.length == this.selectedCategory?.subcategories.length){
-                categoryIds.push(this.selectAllId);
-              }
+              //const categoryIds = this.job.userJobSubcategories.map(value => value.jobCategoryId);
+              // if(categoryIds.length == this.selectedCategory?.subcategories.length){
+              //   categoryIds.push(this.selectAllId);
+              // }
               this.form.patchValue({
                 id: this.job.id,
                 position: this.job.position,
@@ -93,7 +102,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
                 cityId: this.job.cityId,
                 countryId: this.job.countryId,
                 price: this.job.price,
-                jobSubcategories: categoryIds
+                //jobSubcategories: categoryIds
               });
               this.cdr.detectChanges();
             },
@@ -124,26 +133,26 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
       applicantEducations: this.applicantEducations,
       jobTypeId: new FormControl(0, Validators.required),
       cityId: new FormControl('', Validators.required),
-      countryId: new FormControl('', Validators.required),
+      countryId: new FormControl({ value: null, disabled: true}, Validators.required),
       jobCategoryId: new FormControl('', Validators.required),
-      jobSubcategories: new FormControl({value: [[]], disabled: true}, Validators.required),
-      advertisementTypeId: new FormControl(AdvertisementTypeEnum.JobAd, Validators.required),
+      //jobSubcategories: new FormControl({value: [[]], disabled: true}, Validators.required),
+      advertisementTypeId: new FormControl({ value: this.isJobAd ? this.AdvertisementTypeEnum.JobAd : this.AdvertisementTypeEnum.Service, disabled: true}, Validators.required),
       price: new FormControl('')
     });
   }
 
   prepareModel(formData: any) : UserJobPost {
-    const jobSubcategories: UserJobSubcategory[] = [];
+    //const jobSubcategories: UserJobSubcategory[] = [];
     const applicantEducations: ApplicantEducation[] = [];
-    formData.jobSubcategories.forEach(catId => {
-      if(catId != this.selectAllId){
-        const jobSubCat: UserJobSubcategory = {
-          //userJobPostId: 0,
-          jobCategoryId: catId
-        };
-        jobSubcategories.push(jobSubCat);
-      }
-    });
+    // formData.jobSubcategories.forEach(catId => {
+    //   if(catId != this.selectAllId){
+    //     const jobSubCat: UserJobSubcategory = {
+    //       //userJobPostId: 0,
+    //       jobCategoryId: catId
+    //     };
+    //     jobSubcategories.push(jobSubCat);
+    //   }
+    // });
 
     this.applicantEducations.controls.forEach(control => {
       const educationModel: ApplicantEducation = {
@@ -174,10 +183,10 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
       countryId: formData.countryId,
       jobCategoryId: formData.jobCategoryId,
       jobPostStatusId: JobPostStatus.Active,
-      userJobSubcategories: jobSubcategories,
+      //userJobSubcategories: jobSubcategories,
       advertisementTypeId: formData.advertisementTypeId
     };
-  
+    console.log("MODEL IS", model);
     return model;
   }
 
@@ -204,37 +213,60 @@ private createEducationFormGroup(education: any): FormGroup {
 
   onCategoryChange(categoryId: number): void {
     this.selectedCategory = this.jobCategories.find(category => category.id === categoryId);
-    this.form.get('jobSubcategories').setValue([]);
-    if(this.selectedCategory){
-      this.form.get('jobSubcategories').enable();
-    }
+    // this.form.get('jobSubcategories').setValue([]);
+    // if(this.selectedCategory){
+    //   this.form.get('jobSubcategories').enable();
+    // }
   }
 
   onAdTypeChange(adTypeId: number): void {
     this.selectedAdvertisementType = adTypeId;
   }
-
+  logInvalidControls(formGroup: FormGroup): void {
+    Object.keys(formGroup.controls).forEach(key => {
+      const control = formGroup.get(key);
+      if (control instanceof FormControl && control.invalid) {
+        console.log(`Invalid Field: ${key}`);
+      } else if (control instanceof FormGroup) {
+        this.logInvalidControls(control);
+      } else if (control instanceof FormArray) {
+        control.controls.forEach((ctrl, index) => {
+          if (ctrl instanceof FormGroup) {
+            console.log(`FormArray Group Index: ${index}`);
+            this.logInvalidControls(ctrl);
+          } else if (ctrl instanceof FormControl && ctrl.invalid) {
+            console.log(`Invalid Field in FormArray: ${key}[${index}]`);
+          }
+        });
+      }
+    });
+  }
   onSubmit(): void {
     console.log(this.form.valid);
+    console.log("FORM VA", this.form.getRawValue());
+
     if (this.form.valid) {
-      const formData = this.form.value;
+      const formData = this.form.getRawValue();
       const model = this.prepareModel(formData);
-      this.subscription = this.jobService.upsertJob(this.isEditMode, model).subscribe();
+      //this.subscription = this.jobService.upsertJob(this.isEditMode, model).subscribe();
     } 
-    // else {
-    //   Object.keys(this.form.controls).forEach(field => {
-    //     const control = this.form.get(field);
-    //     if (control.invalid) {
-    //       control.markAsTouched();
-    //     }
-    //   });
-    // }
+    else {
+      this.logInvalidControls(this.form);
+      Object.keys(this.form.controls).forEach(field => {
+        const control = this.form.get(field);
+        if (control.invalid) {
+          control.markAsTouched();
+        }
+      });
+    }
   }
 
   loadCountries(): void {
     this.locationService.getCountries()
       .subscribe(countries => {
         this.countries = countries;
+        const defaultCountry = countries[0];
+        this.form.get('countryId').setValue(defaultCountry.id);
       });
   }
 
@@ -264,6 +296,9 @@ private createEducationFormGroup(education: any): FormGroup {
     this.jobService.getAdTypes()
       .subscribe(adTypes => {
         this.advertisementTypes = adTypes;
+        const defaultType = this.isJobAd ? this.AdvertisementTypeEnum.JobAd : this.AdvertisementTypeEnum.Service;
+        this.form.get('advertisementTypeId').setValue(defaultType);
+        console.log("FETCH TYPES" ,this.form.get('advertisementTypeId').value);
       });
   }
 
@@ -284,14 +319,6 @@ private createEducationFormGroup(education: any): FormGroup {
 
   filterCitiesByCountry(countryId: number): void {
     this.cities = this.cities.filter(city => city.countryId == countryId);
-  }
-
-  filterSubcategories(selectedCategoryId: number): JobCategory[] {
-    const filteredSubcategories: JobCategory[] = this.jobCategories.filter(category => category.parentId === selectedCategoryId);
-    filteredSubcategories.forEach(subcategory => {
-      subcategory.subcategories = this.filterSubcategories(subcategory.id);
-    });
-    return filteredSubcategories;
   }
 
   createEducation(education?: ApplicantEducation): FormGroup {
@@ -319,25 +346,27 @@ private createEducationFormGroup(education: any): FormGroup {
     }
   }
 
-  tosslePerOne(): boolean { 
-    if (this.allSelected.selected) {  
-     this.allSelected.deselect();
-     return false;
-    }
-    const control = this.form.get('jobSubcategories');
-    if(control.value.length==this.selectedCategory?.subcategories.length)
-      this.allSelected.select();
-  }
-
-  toggleAllSelection(): void {
-    const control = this.form.get('jobSubcategories');
-    console.log("all selec");
-    if (this.allSelected.selected) {
-      console.log("all selec IF");
-      const allSubcategoryIds = this.selectedCategory?.subcategories.map(subcategory => subcategory.id);
-      control.patchValue([...allSubcategoryIds, this.selectAllId]);
+  onToggleUseUserDataChange(event): void {
+    const checked = event.checked;
+    console.log("ISCHECKED", checked);
+    console.log("USER", this.user);
+    if (checked) {
+      this.form.patchValue({
+        applicantFirstName: this.user.firstName,
+        applicantLastName: this.user.lastName,
+        cityId: this.user.cityId,
+        applicantGender: this.user.gender,
+        applicantEmail: this.user.email,
+        applicantPhoneNumber: this.user.phoneNumber,
+        jobTypeId: this.user.jobTypeId,
+        jobCategoryId: this.user.jobCategoryId,
+        applicantDateOfBirth: this.user.dateOfBirth,
+        biography: this.user.biography,
+        position: this.user.position,
+      });
+      this.updateApplicantEducations(this.user.userEducations);
     } else {
-      control.patchValue([]);
+      this.form.reset();
     }
   }
 }

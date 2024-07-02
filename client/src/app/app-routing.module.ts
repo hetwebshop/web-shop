@@ -16,12 +16,14 @@ import { MyAdsComponent } from './jobs/my-ads/my-ads.component';
 import { CreateAdAuthGard } from './components/guards/createAdAuth.guard';
 import { UserJobsListComponent } from './jobs/user-jobs/user-jobs-list.component';
 import { UserJobsComponent } from './jobs/user-jobs/user-jobs.component';
+import { ContactUsComponent } from './contactUs/contactus.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent, data: { breadcrumb: {alias: 'Uredi oglas 1'}} },
   { path: 'login', component: LoginComponent, data: { breadcrumb: {alias: 'Uredi oglas 2'} } },
   { path: 'register', component: RegisterComponent, data: { breadcrumb: {alias: 'Uredi oglas 3'} } },
   { path: 'about', component: AboutComponent, data: { breadcrumb: {alias: 'Uredi oglas 4'}} },
+  { path: 'contact-us', component: ContactUsComponent, data: { breadcrumb: {alias: 'Uredi oglas 4'}} },
   { path: 'edit-profile', component: EditProfileComponent, data: { breadcrumb: {alias: 'Uredi oglas 5'} } },
   { path: 'ads', component: UserJobsComponent, data: { breadcrumb: {alias: 'Uredi oglas6'} }, 
   children: [
@@ -30,7 +32,8 @@ const routes: Routes = [
   ]},
   //{ path: 'user-job-details-preview/:id', component: JobDetailsPreviewComponent, data: { breadcrumb: {alias: 'Uredi oglas7'} }},
   { path: 'user-job-details/:id', component: JobDetailsManagerComponent,  data: { breadcrumb: {alias: 'Uredi oglas8'} }},
-  { path: 'user-job-details', component: JobDetailsManagerComponent, data: { breadcrumb: {alias: 'Uredi oglas9'}  }},
+  { path: 'create-job-ad', component: JobDetailsManagerComponent, data: { breadcrumb: {alias: 'Uredi oglas9'}  }},
+  { path: 'create-service-ad', component: JobDetailsManagerComponent, data: { breadcrumb: {alias: 'Uredi oglas9'}  }},
   { path: 'my-ads', component: MyAdsComponent, data: {breadcrumb: {alias: 'Uredi oglas91'} }},
   // {
   //   path: '',

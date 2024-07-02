@@ -1,15 +1,17 @@
 import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatOption } from '@angular/material/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
 import { AdvertisementTypeEnum } from 'src/app/models/enums';
 import { AdsPaginationParameters } from 'src/app/models/filterCriteria';
-import { City, Country } from 'src/app/models/location';
+import { City } from 'src/app/models/location';
 import { AdvertisementType, JobCategory, JobType } from 'src/app/models/userJobPost';
 import { JobService } from 'src/app/services/job.service';
 import { LocationService } from 'src/app/services/location.service';
-import { toDateGreaterThanFromDate } from 'src/app/validatorFunctions/validatorFunctions';
+import { FiltersQuery } from 'src/app/store/filters/filters.query';
+import { FiltersStore } from 'src/app/store/filters/filters.store';
+
 
 @Component({
   selector: 'app-user-ads-filter',
@@ -31,6 +33,7 @@ export class UserAdsFilterComponent {
     pageSize: 10,
     advertisementTypeId: 1
   };
+  filters$ = this.filtersQuery.selectAll();
   @Output() filterSubmitted = new EventEmitter();
 
   @ViewChild('allCitiesSelected', { static: true }) private allCitiesSelected: MatOption;
@@ -40,21 +43,25 @@ export class UserAdsFilterComponent {
   selectAllId: number = 0;
 
   constructor(private jobService: JobService, private locationService: LocationService,
-    private route: ActivatedRoute, private fb: FormBuilder) {
+    private route: ActivatedRoute, private fb: FormBuilder, private filtersStore: FiltersStore,
+    private filtersQuery: FiltersQuery) {
   }
 
   ngOnInit(): void {
     this.loadCities();
     this.loadJobTypes();
     this.loadJobCategories();
-    this.loadAdTypes();
-    
+
     this.form = this.createForm();
+    
+    this.filters$.subscribe((filters) => {
+      if (filters && filters.length > 0) {
+        this.updateForm(filters[0]);
+      }
+    });
     this.route.queryParams.subscribe(params => {
       if (params['type']) {
         this.selectedAdType = this.getEnumValue(params['type']);
-        // var control = this.form.get('advertisementTypeIds');
-        // control.patchValue(this.selectedAdType);
       }
     });
 
@@ -70,6 +77,17 @@ export class UserAdsFilterComponent {
     return AdvertisementTypeEnum[name as keyof typeof AdvertisementTypeEnum];
   }
 
+  private updateForm(filter: AdsPaginationParameters): void {
+    this.form.patchValue({
+      jobTypeIds: filter.jobTypeIds,
+      cityIds: filter.cityIds,
+      jobCategoryIds: filter.jobCategoryIds,
+      fromDate: filter.fromDate,
+      toDate: filter.toDate,
+      searchKeyword: filter.searchKeyword
+    });
+  }
+
   private createForm(): FormGroup {
     return this.fb.group({
       jobTypeIds: new FormControl(null),
@@ -77,7 +95,6 @@ export class UserAdsFilterComponent {
       jobCategoryIds: new FormControl(null),
       fromDate: new FormControl(null),
       toDate: new FormControl(null),
-      //advertisementTypeIds: new FormControl(this.selectedAdType),
       searchKeyword: new FormControl(null)
     });
   }
@@ -85,7 +102,7 @@ export class UserAdsFilterComponent {
   validateForm() {
     const fromDate = this.form.get('fromDate').value;
     const toDate = this.form.get('toDate').value;
-  
+
     if (fromDate && toDate && toDate < fromDate) {
       this.form.get('toDate').setErrors({ toDateGreaterThanFromDate: true });
       return false;
@@ -96,31 +113,32 @@ export class UserAdsFilterComponent {
   }
 
   onSubmit(): void {
-    if(!this.validateForm())
+    if (!this.validateForm())
       return;
-    if (this.formChanged) {
+    //if (this.formChanged) {
       // Send request to backend to fetch filtered items
-        this.filterCriteria = {
-          advertisementTypeId: 1,
-          jobTypeIds: this.form.get('jobTypeIds')?.value,
-          jobCategoryIds: this.form.get('jobCategoryIds')?.value,
-          cityIds: this.form.get('cityIds')?.value,
-          searchKeyword: this.form.get('searchKeyword')?.value,
-          fromDate: this.form.get('fromDate')?.value,
-          toDate: this.form.get('toDate')?.value
-        }
+      this.filterCriteria = {
+        advertisementTypeId: 1,
+        jobTypeIds: this.form.get('jobTypeIds')?.value,
+        jobCategoryIds: this.form.get('jobCategoryIds')?.value,
+        cityIds: this.form.get('cityIds')?.value,
+        searchKeyword: this.form.get('searchKeyword')?.value,
+        fromDate: this.form.get('fromDate')?.value,
+        toDate: this.form.get('toDate')?.value
+      };
       this.filterSubmitted.emit(this.filterCriteria);
+      //this.filtersStore.set([this.filterCriteria]);
       this.formChanged = false; // Reset flag
-    }
+    //}
   }
 
   onPrevious() {
-    this.filterCriteria.pageNumber --;
+    this.filterCriteria.pageNumber--;
     this.formChanged = true;
     this.onSubmit();
   }
   onNext() {
-    this.filterCriteria.pageNumber ++;
+    this.filterCriteria.pageNumber++;
     this.formChanged = true;
     this.onSubmit();
   }
@@ -135,7 +153,7 @@ export class UserAdsFilterComponent {
   loadJobTypes(): void {
     this.jobService.getJobTypes()
       .subscribe(types => {
-        this.jobTypes = types
+        this.jobTypes = types;
       });
   }
 
@@ -143,51 +161,43 @@ export class UserAdsFilterComponent {
     this.jobService.getJobCategories()
       .subscribe(categories => {
         this.jobCategories = categories.filter(r => r.parentId == null);
-        console.log("Job categories" + JSON.stringify(this.jobCategories));
       });
   }
 
-  loadAdTypes(): void {
-    this.jobService.getAdTypes()
-      .subscribe(adTypes => {
-        this.advertisementTypes = adTypes;
-      });
-  }
-
-  tosslePerOne(controlName: string): boolean { 
+  tosslePerOne(controlName: string): boolean {
     const control = this.form.get(controlName);
 
-    if(controlName.includes("advertisementTypeIds")){
-      if (this.allAdTypesSelected.selected) {  
+    if (controlName.includes("advertisementTypeIds")) {
+      if (this.allAdTypesSelected.selected) {
         this.allAdTypesSelected.deselect();
         return false;
-       }
-       if(control.value.length==this.advertisementTypes.length)
-         this.allAdTypesSelected.select();
+      }
+      if (control.value.length == this.advertisementTypes.length)
+        this.allAdTypesSelected.select();
     }
-    else if(controlName.includes("cityIds")){
-      if (this.allCitiesSelected.selected) {  
+    else if (controlName.includes("cityIds")) {
+      if (this.allCitiesSelected.selected) {
         this.allCitiesSelected.deselect();
         return false;
-       }
-       if(control.value.length==this.cities.length)
-         this.allCitiesSelected.select();
+      }
+      if (control.value.length == this.cities.length)
+        this.allCitiesSelected.select();
     }
-    else if(controlName.includes("jobCategoryIds")){
-      if (this.allJobCategoriesSelected.selected) {  
+    else if (controlName.includes("jobCategoryIds")) {
+      if (this.allJobCategoriesSelected.selected) {
         this.allJobCategoriesSelected.deselect();
         return false;
-       }
-       if(control.value.length==this.jobCategories.length)
-         this.allJobCategoriesSelected.select();
+      }
+      if (control.value.length == this.jobCategories.length)
+        this.allJobCategoriesSelected.select();
     }
-    else if(controlName.includes("jobTypeIds")){
-      if (this.allJobTypesSelected.selected) {  
+    else if (controlName.includes("jobTypeIds")) {
+      if (this.allJobTypesSelected.selected) {
         this.allJobTypesSelected.deselect();
         return false;
-       }
-       if(control.value.length==this.jobTypes.length)
-         this.allJobTypesSelected.select();
+      }
+      if (control.value.length == this.jobTypes.length)
+        this.allJobTypesSelected.select();
     }
   }
 
@@ -195,7 +205,7 @@ export class UserAdsFilterComponent {
   toggleAllSelection(controlName: string): void {
     const control = this.form.get(controlName);
     console.log(control);
-    if(controlName.includes("advertisementTypeIds")){
+    if (controlName.includes("advertisementTypeIds")) {
       console.log("from if");
       console.log(this.advertisementTypes);
       if (this.allAdTypesSelected.selected) {
@@ -204,21 +214,21 @@ export class UserAdsFilterComponent {
         control.patchValue([]);
       }
     }
-    else if(controlName.includes("cityIds")){
+    else if (controlName.includes("cityIds")) {
       if (this.allCitiesSelected.selected) {
         control.patchValue([...this.cities.map(city => city.id), this.selectAllId]);
       } else {
         control.patchValue([]);
       }
     }
-    else if(controlName.includes("jobCategoryIds")){
+    else if (controlName.includes("jobCategoryIds")) {
       if (this.allJobCategoriesSelected.selected) {
         control.patchValue([...this.jobCategories.map(jobCategory => jobCategory.id), this.selectAllId]);
       } else {
         control.patchValue([]);
       }
     }
-    else if(controlName.includes("jobTypeIds")){
+    else if (controlName.includes("jobTypeIds")) {
       if (this.allJobTypesSelected.selected) {
         control.patchValue([...this.jobTypes.map(jobType => jobType.id), this.selectAllId]);
       } else {

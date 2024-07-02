@@ -117,10 +117,10 @@ namespace API.Data
             builder.Entity<UserJobSubcategory>()
                 .HasKey(uc => new { uc.UserJobPostId, uc.JobCategoryId });
 
-            builder.Entity<UserJobSubcategory>()
-                .HasOne(uc => uc.UserJobPost)
-                .WithMany(ujp => ujp.UserJobSubcategories)
-                .HasForeignKey(uc => uc.UserJobPostId);
+            //builder.Entity<UserJobSubcategory>()
+            //    .HasOne(uc => uc.UserJobPost)
+            //    .WithMany(ujp => ujp.UserJobSubcategories)
+            //    .HasForeignKey(uc => uc.UserJobPostId);
 
             builder.Entity<UserJobSubcategory>()
                 .HasOne(uc => uc.JobCategory)

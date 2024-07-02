@@ -7,6 +7,13 @@ import { AdvertisementTypeEnum } from '../models/enums';
 import { AdsPaginationParameters } from '../models/filterCriteria';
 import { PagedResponse } from '../models/pagedResponse';
 import { DatePipe } from '@angular/common';
+import { AdsStore } from '../store/jobs/ads.store';
+import { AdsQuery } from '../store/jobs/ads.query';
+import { setLoading } from '@datorama/akita';
+import { JobCategoryStore } from '../store/jobsHelpers/job-category.store';
+import { JobCategoryQuery } from '../store/jobsHelpers/job-category.query';
+import { JobTypeStore } from '../store/jobsHelpers/job-type.store';
+import { JobTypeQuery } from '../store/jobsHelpers/job-type.query';
 
 @Injectable({
   providedIn: 'root',
@@ -14,9 +21,12 @@ import { DatePipe } from '@angular/common';
 export class JobService {
   private allJobs: UserJobPost[];
   private myAds: UserJobPost[];
+  totalItems: number;
   baseUrl = environment.apiUrl + 'job/';
 
-  constructor(private http: HttpService, private datePipe: DatePipe) {}
+  constructor(private http: HttpService, private datePipe: DatePipe, private adsStore: AdsStore, private adsQuery: AdsQuery,
+    private jobCategoryStore: JobCategoryStore, private jobCategoryQuery: JobCategoryQuery,
+    private jobTypeStore: JobTypeStore, private jobTypeQuery: JobTypeQuery) {}
 
   getAds(adsFilter?: AdsPaginationParameters) {
     const queryParams: any = {
@@ -41,12 +51,12 @@ export class JobService {
       queryParams.jobTypeIds = adsFilter.jobTypeIds;
     }
 
-    console.log("query params");
-    console.log(queryParams);
-
     return this.http.get<PagedResponse<UserJobPost>>(`${this.baseUrl}ads`, { params: queryParams }).pipe(
       map(response => {
         this.allJobs = response.items;
+        this.adsStore.set(response.items);
+        this.totalItems = response.totalCount;
+        setLoading(this.adsStore);
         return response;
       })
     );
@@ -60,31 +70,70 @@ export class JobService {
   }
 
   getJobById(id: number): Observable<UserJobPost> {
-    if (this.allJobs) {
-      console.log("all jobs " + JSON.stringify(this.allJobs));
-      console.log("id " + JSON.stringify(id));
-      return of(this.allJobs.find(job => job.id == id));
+    console.log("Job by id ");
+    var entity = this.adsQuery.getEntity(id);
+    console.log(entity);
+    if (entity) {
+      return of(entity);
     } else {
-      return this.http.get<UserJobPost>(`${this.baseUrl}user-job/${id}`);
+      console.log("http request");
+      return this.http.get<UserJobPost>(`${this.baseUrl}user-job/${id}`).pipe(
+        tap((response) => {
+          this.adsStore.add(response);
+          this.adsStore.setActive(response.id);
+          setLoading(this.adsStore);
+
+          return response;
+        })
+      );
     }
   }
 
   upsertJob(isEditMode: boolean, jobData: UserJobPost): Observable<UserJobPost> {
-    console.log("Job data service");
-    console.log(jobData);
     if (isEditMode) {
-      return this.http.put<UserJobPost>(`${this.baseUrl}update/${jobData.id}`, jobData);
+      return this.http.put<UserJobPost>(`${this.baseUrl}update/${jobData.id}`, jobData).pipe(
+        tap((response) => {
+          this.adsStore.update(jobData.id, response);
+          this.adsStore.setActive(response.id);
+          setLoading(this.adsStore);
+
+          return response;
+        })
+      );
     } else {
-      return this.http.post<UserJobPost>(`${this.baseUrl}create`, jobData);
+      return this.http.post<UserJobPost>(`${this.baseUrl}create`, jobData).pipe(
+        tap((response) => {
+          this.adsStore.add(response);
+          this.adsStore.setActive(response.id);
+          setLoading(this.adsStore);
+
+          return response;
+        })
+      );;
     }
   }
 
   getJobTypes(): Observable<JobType[]> {
-    return this.http.get<JobType[]>(this.baseUrl + "types");
+    const jobTypes = this.jobTypeQuery.getAll();
+    if(jobTypes && jobTypes.length > 0){
+      return of(jobTypes);
+    }
+    return this.http.get<JobType[]>(this.baseUrl + "types").pipe(
+      tap(response => this.jobTypeStore.set(response))
+    );
   }
 
   getJobCategories(): Observable<JobCategory[]> {
-    return this.http.get<JobCategory[]>(this.baseUrl + "categories");
+    var jobCategories = this.jobCategoryQuery.getAll();
+    if(jobCategories && jobCategories.length > 0){
+      return of(jobCategories);
+    }
+    else 
+      return this.http.get<JobCategory[]>(this.baseUrl + "categories").pipe(
+        tap((response) => {
+          this.jobCategoryStore.set(response);
+        })
+      );
   }
 
   getAdTypes(): Observable<JobCategory[]> {

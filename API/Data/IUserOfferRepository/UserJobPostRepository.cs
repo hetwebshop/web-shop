@@ -30,7 +30,7 @@ namespace API.Data.IUserOfferRepository
                 Include(r => r.JobType).
                 Include(r => r.User).
                 Include(r => r.ApplicantEducations).
-                Include(r => r.UserJobSubcategories).
+                //Include(r => r.UserJobSubcategories).
                 Include(r => r.City).
                 ThenInclude(r => r.Country);
         }
@@ -118,7 +118,7 @@ namespace API.Data.IUserOfferRepository
 
                 // Update related collections
                 existingUserJobPost.ApplicantEducations = updatedUserJobPost.ApplicantEducations;
-                existingUserJobPost.UserJobSubcategories = updatedUserJobPost.UserJobSubcategories;
+                //existingUserJobPost.UserJobSubcategories = updatedUserJobPost.UserJobSubcategories;
 
                 await DataContext.SaveChangesAsync();
             }

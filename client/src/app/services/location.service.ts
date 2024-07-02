@@ -3,36 +3,39 @@ import { HttpService } from "./http.service";
 import { environment } from "src/environments/environment";
 import { Observable, of, tap } from "rxjs";
 import { City, Country } from "../models/location";
+import { CityQuery } from "../store/jobsHelpers/cities.query";
+import { CityStore } from "../store/jobsHelpers/cities.store";
+import { CountryStore } from "../store/jobsHelpers/countries.store";
+import { CountryQuery } from "../store/jobsHelpers/countries.query";
 
 @Injectable({
     providedIn: 'root',
 })
 export class LocationService {
-    countries: Country[];
-    cities: City[];
-
     baseUrl = environment.apiUrl + 'location/';
 
-    constructor(private http: HttpService) {}
-
-    getCountries(): Observable<Country[]> {
-        if (this.countries){
-            return of(this.countries);
-        }
-        return this.http.get<Country[]>(this.baseUrl + "countries").pipe(
-            tap(countries => this.countries = countries)
-        );
-    }
-
+    constructor(private http: HttpService, private cityStore: CityStore, private cityQuery: CityQuery,
+        private countryStore: CountryStore, private countryQuery: CountryQuery) {}
+    
     getCities(): Observable<City[]> {
-        if (this.cities){
-            return of(this.cities);
+        const cities = this.cityQuery.getAll();
+        if(cities && cities.length > 0){
+            return of(cities);
         }
+
         return this.http.get<City[]>(this.baseUrl + "cities").pipe(
-            tap(cities => this.cities = cities)
+            tap(cities => this.cityStore.set(cities))
         );    
     }
-
+    getCountries(): Observable<Country[]> {
+        const countries = this.countryQuery.getAll();
+        if (countries && countries.length > 0){
+            return of(countries);
+        }
+        return this.http.get<Country[]>(this.baseUrl + "countries").pipe(
+            tap(countries => this.countryStore.set(countries))
+        );
+    }
     // getCantons(): Observable<Canton[]> {
     //     if (this.cantons){
     //         return of(this.cantons);
@@ -50,4 +53,5 @@ export class LocationService {
     //         tap(municipalities => this.municipalities = municipalities)
     //     );
     // }
+
 }

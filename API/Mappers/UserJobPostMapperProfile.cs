@@ -62,11 +62,11 @@ namespace API.Mappers
             switch (gender)
             {
                 case Gender.Male:
-                    return "Male";
+                    return "Muško";
                 case Gender.Female:
-                    return "Female";
+                    return "Žensko";
                 default:
-                    return "Other";
+                    return "Ostali";
             }
         }
 

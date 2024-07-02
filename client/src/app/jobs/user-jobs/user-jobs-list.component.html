@@ -1,26 +1,25 @@
 <div class="container-fluid">
-  <div fxLayoutGap="55px" fxLayout="row">
+  <div fxLayout="row" fxLayoutGap="10px" fxLayoutGap.xs="5px" fxLayoutAlign="start stretch" fxLayoutWrap>
+    
     <!-- User Ads Filter -->
-    <div fxFlex="14%" fxLayout.xs="100%" fxLayoutAlign="start">
+    <div fxFlex="14%" fxHide.lt-md fxFlex.xs="100%" fxFlex.sm="100%" fxFlex.md="25%" fxFlex.lg="20%" fxLayoutAlign="start">
       <app-user-ads-filter (filterSubmitted)="fetchPaginatedItems($event)"></app-user-ads-filter>
     </div>
 
     <!-- Job Cards -->
-    <div fxFlex fxLayout="column" fxLayoutAlign="space-around">
-      <app-pagination *ngIf="paginationResponse != null && paginationResponse != undefined" 
-        [listSize]="paginationResponse?.pageSize" 
+    <div fxFlex fxFlex.xs="100%" fxFlex.sm="100%" fxFlex.md="75%" fxFlex.lg="80%" fxLayout="column" fxLayoutAlign="start stretch">
+      <app-pagination *ngIf="paginationResponse" 
+        [listSize]="paginationResponse.pageSize" 
         [totalPages]="paginationResponse.totalPages"
         [page]="paginationResponse.currentPage"
         (pageChange)="onPageChange($event)"
         (pageSizeChange)="onPageSizeChange($event)">
       </app-pagination>
-      <div *ngFor="let job of allJobs" class="job-link" style="margin-bottom: 10px;">
-          <mat-card class="job-card">
-            <a class="job-link" [routerLink]="['/ads', job.id]">
-            <mat-card-header fxLayout="row" fxLayoutAlign="space-between">
-              <!-- <div style="margin-right: 50px;">
-                <img src="./assets/images/profile.png" alt="Image Description" style="width: 150px; height: 150px;">
-              </div> -->
+      
+      <div *ngFor="let job of allJobs$ | async" class="job-link" style="margin-bottom: 10px;">
+        <mat-card class="job-card">
+          <a class="job-link" [routerLink]="['/ads', job.id]">
+            <mat-card-header fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
               <div fxFlex="grow">
                 <mat-card-title>{{ job.position }}</mat-card-title>
                 <p><span style="font-size: 17px; font-weight: 500;">Ime i prezime:</span> {{ job.applicantFirstName }} {{ job.applicantLastName }}</p>
@@ -68,14 +67,13 @@
                 <h2>Biografija</h2>
                 <p>{{ job.biography | truncate:150:true }}</p>
               </div>
-
             </mat-card-content>
           </a>
           <div class="job-details">
-            <button *ngIf="job.applicantEmail != '' && job.applicantEmail != null" mat-raised-button (click)="openEmailModal(job.applicantEmail)" color="accent">Kontaktiraj mailom</button>
-            <button *ngIf="job.applicantEmail == '' || job.applicantEmail == null" mat-raised-button  color="warn" disabled>Korisnik nema email</button>
+            <button *ngIf="job.applicantEmail" mat-raised-button (click)="openEmailModal(job.applicantEmail)" color="accent">Kontaktiraj mailom</button>
+            <button *ngIf="!job.applicantEmail" mat-raised-button color="warn" disabled>Korisnik nema email</button>
           </div>
-          </mat-card>
+        </mat-card>
       </div>
     </div>
   </div>
