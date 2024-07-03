@@ -11,5 +11,5 @@ export interface AdsPaginationParameters extends PaginationParameters {
     jobTypeIds?: number[];
     fromDate?: Date;
     toDate?: Date;
-    advertisementTypeId: number;
+    advertisementTypeId?: number;
 }

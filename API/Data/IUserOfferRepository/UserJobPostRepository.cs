@@ -38,6 +38,7 @@ namespace API.Data.IUserOfferRepository
         public async Task<PagedList<UserJobPost>> GetJobPostsAsync(AdsPaginationParameters adsParameters)
         {
             var userJobPosts = FindByCondition(u =>
+                (adsParameters.UserId == null || adsParameters.UserId == u.SubmittingUserId) &&
                 (adsParameters.cityIds == null || adsParameters.cityIds.Contains(u.CityId)) &&
                 (adsParameters.jobCategoryIds == null || adsParameters.jobCategoryIds.Contains(u.JobCategoryId)) &&
                 (adsParameters.jobTypeIds == null || adsParameters.jobTypeIds.Contains(u.JobTypeId)) &&

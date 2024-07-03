@@ -33,12 +33,13 @@ namespace API.Controllers
         }
 
         [HttpGet("my-ads")]
-        public async Task<IActionResult> GetMyAds()
+        public async Task<IActionResult> GetMyAds([FromQuery] AdsPaginationParameters adsParameters)
         {
             var currentUserId = HttpContext.User.GetUserId(); ;
-
-            var myAds = await _jobPostService.GetMyAdsAsync(currentUserId);
-            return Ok(myAds);
+            adsParameters.UserId = currentUserId;
+            var myAds = await _jobPostService.GetJobPostsAsync(adsParameters);
+            var pagedResponse = myAds.ToPagedResponse();
+            return Ok(pagedResponse);
         }
 
         [HttpGet("user-job/{id}")]

@@ -63,9 +63,17 @@ export class JobService {
 }
 
 
-  getMyAds() {
-    return this.http.get<UserJobPost[]>(this.baseUrl + "my-ads").pipe(
-      tap(jobs => this.myAds = jobs)
+  getMyAds(adsFilter?: AdsPaginationParameters) {
+    const queryParams: any = {
+      pageNumber: adsFilter?.pageNumber ?? 1,
+      pageSize: adsFilter?.pageSize ?? 10,
+      orderBy: adsFilter?.orderBy ?? "",
+      //advertisementTypeId: adsFilter?.advertisementTypeId,
+      // fromDate: this.datePipe.transform(adsFilter?.fromDate, 'yyyy-MM-dd') ?? "",
+      // toDate: this.datePipe.transform(adsFilter?.toDate, 'yyyy-MM-dd') ?? ""
+    };
+    return this.http.get<PagedResponse<UserJobPost>>(this.baseUrl + "my-ads", { params: queryParams }).pipe(
+      tap(jobs => this.myAds = jobs.items)
     );
   }
 

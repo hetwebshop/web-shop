@@ -17,6 +17,8 @@ import { CreateAdAuthGard } from './components/guards/createAdAuth.guard';
 import { UserJobsListComponent } from './jobs/user-jobs/user-jobs-list.component';
 import { UserJobsComponent } from './jobs/user-jobs/user-jobs.component';
 import { ContactUsComponent } from './contactUs/contactus.component';
+import { MyAdComponent } from './jobs/my-ads/my-ad/my-ad.component';
+import { MyAdsWrapper } from './jobs/my-ads/my-ads-wrapper.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent, data: { breadcrumb: {alias: 'Uredi oglas 1'}} },
@@ -34,7 +36,11 @@ const routes: Routes = [
   { path: 'user-job-details/:id', component: JobDetailsManagerComponent,  data: { breadcrumb: {alias: 'Uredi oglas8'} }},
   { path: 'create-job-ad', component: JobDetailsManagerComponent, data: { breadcrumb: {alias: 'Uredi oglas9'}  }},
   { path: 'create-service-ad', component: JobDetailsManagerComponent, data: { breadcrumb: {alias: 'Uredi oglas9'}  }},
-  { path: 'my-ads', component: MyAdsComponent, data: {breadcrumb: {alias: 'Uredi oglas91'} }},
+  { path: 'my-ads', component: MyAdsWrapper, data: {breadcrumb: {alias: 'Uredi oglas91'} },
+  children: [
+    { path: '', component: MyAdsComponent },
+    { path: ':id', component: MyAdComponent}
+  ]},
   // {
   //   path: '',
   //   runGuardsAndResolvers: 'always',

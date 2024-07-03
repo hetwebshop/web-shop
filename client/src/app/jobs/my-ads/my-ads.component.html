@@ -1,30 +1,72 @@
-<div class="container">
-    <div class="row">
-        <a [routerLink]="['/user-job-details', job.id]" class="col-lg-4 col-md-6 col-sm-12 job-link" *ngFor="let job of allJobs">
-            <mat-card class="job-card" [class.dark-theme]="isDarkTheme">
-                <mat-card-header>
-                    <mat-card-title >{{ job.userFullName }}</mat-card-title>
-                    <mat-card-subtitle>{{ job.title }} - {{ job.subtitle }}</mat-card-subtitle>
-                </mat-card-header>
-                <mat-card-content>
-                    <div class="job-info">
-                        <h4>Employee Info</h4>
-                        <p>{{ job.streetName }}, {{ job.streetNumber }}, {{ job.city }}, {{ job.country }}</p>
-                    </div>
-                    <div class="job-details">
-                        <h4>Biography</h4>
-                        <p>{{ job.biography }}</p>
-                        <h4>Skills</h4>
-                        <p>{{ job.skills }}</p>
-                        <h4>Job Type</h4>
-                        <p>{{ job.jobType }}</p>
-                        <h4>Job Category</h4>
-                        <p>{{ job.jobCategory }}</p>
-                        <h4>Tags</h4>
-                        <p>{{ job.tags }}</p>
-                    </div>
-                </mat-card-content>
-            </mat-card>
-        </a>
+<div class="container-fluid">
+    <div fxLayout="row" fxLayoutGap="10px" fxLayoutGap.xs="5px" fxLayoutAlign="start stretch" fxLayoutWrap>
+      
+      <!-- Job Cards -->
+      <div fxFlex fxFlex.xs="100%" fxFlex.sm="100%" fxFlex.md="75%" fxFlex.lg="80%" fxLayout="column" fxLayoutAlign="start stretch">
+        <app-pagination *ngIf="paginationResponse" 
+          [listSize]="paginationResponse.pageSize" 
+          [totalPages]="paginationResponse.totalPages"
+          [page]="paginationResponse.currentPage"
+          (pageChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)">
+        </app-pagination>
+        
+        <div *ngFor="let job of allJobs$ | async" class="job-link" style="margin-bottom: 10px;">
+          <mat-card class="job-card">
+            <a class="job-link" [routerLink]="['/my-ads', job.id]">
+              <mat-card-header fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
+                <div fxFlex="grow">
+                  <mat-card-title>{{ job.position }}</mat-card-title>
+                  <p><span style="font-size: 17px; font-weight: 500;">Ime i prezime:</span> {{ job.applicantFirstName }} {{ job.applicantLastName }}</p>
+                  <p><span style="font-size: 17px; font-weight: 500;">Kategorija:</span> {{ getCategoryName(jobCategories, jobCategoryId) }}</p>
+                </div>
+                <div fxFlex>
+                  <p style="min-width: 150px;">
+                    <span style="font-weight: 500; font-size: 17px;">Tip Oglasa:</span> {{ getEnumName(job?.advertisementTypeId) }}
+                  </p>
+                </div>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="job-info">
+                  <p>
+                    <ng-container *ngIf="getFormattedDate(job?.applicantDateOfBirth) !== ''">
+                      <strong style="font-weight: 500;">Datum rođenja:</strong> {{ getFormattedDate(job?.applicantDateOfBirth) }} &nbsp; &nbsp;
+                    </ng-container>
+                    <ng-container *ngIf="getFormattedDate(job?.applicantDateOfBirth) === ''">
+                      <strong style="font-weight: 500;">Datum rođenja:</strong> Nije unešeno &nbsp; &nbsp;
+                    </ng-container>
+                  
+                    <ng-container *ngIf="job?.applicantGender !== ''">
+                      <strong style="font-weight: 500;">Spol:</strong> {{ job?.applicantGender }} &nbsp; &nbsp;
+                    </ng-container>
+                    <ng-container *ngIf="job?.applicantGender === ''">
+                      <strong style="font-weight: 500;">Spol:</strong> Nije unešeno &nbsp; &nbsp;
+                    </ng-container>
+                  
+                    <ng-container *ngIf="job?.applicantEmail !== ''">
+                      <strong style="font-weight: 500;">Email:</strong> {{ job?.applicantEmail }} &nbsp; &nbsp;
+                    </ng-container>
+                    <ng-container *ngIf="job?.applicantEmail === ''">
+                      <strong style="font-weight: 500;">Email:</strong> Nije unešeno &nbsp; &nbsp;
+                    </ng-container>
+                  
+                    <ng-container *ngIf="job?.applicantPhoneNumber !== ''">
+                      <strong style="font-weight: 500;">Broj telefona:</strong> {{ job?.applicantPhoneNumber }} &nbsp; &nbsp;
+                    </ng-container>
+                    <ng-container *ngIf="job?.applicantPhoneNumber === ''">
+                      <strong style="font-weight: 500;">Broj telefona:</strong> Nije unešeno &nbsp; &nbsp;
+                    </ng-container>
+                  </p>
+                </div>
+                <div class="job-details">
+                  <h2>Biografija</h2>
+                  <p>{{ job.biography | truncate:150:true }}</p>
+                </div>
+              </mat-card-content>
+            </a>
+          </mat-card>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+  
