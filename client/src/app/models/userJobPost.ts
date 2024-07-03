@@ -29,6 +29,8 @@ export interface UserJobPost {
     applicantEducations: ApplicantEducation[];
     //userJobSubcategories: UserJobSubcategory[];
     advertisementTypeId: number;
+    cvFile?: File;
+    cvFilePath?: string;
 }
 
 export interface AdvertisementType {

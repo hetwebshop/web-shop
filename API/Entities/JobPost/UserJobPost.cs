@@ -33,6 +33,7 @@ namespace API.Entities.JobPost
         public City City { get; set; } 
         public int AdvertisementTypeId { get; set; }
         public AdvertisementType AdvertisementType { get; set; }
+        public string CvFilePath { get; set; }
         //public int AddressId { get; set; }
         //public UserAddress Address { get; set; }
 

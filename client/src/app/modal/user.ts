@@ -43,5 +43,6 @@ export interface UserProfile {
   dateOfBirth: Date;
   position: string;
   biography: string;
+  cvFilePath: string;
   userEducations: UserEducation[];
 }

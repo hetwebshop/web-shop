@@ -89,11 +89,11 @@ export class JobService {
     }
   }
 
-  upsertJob(isEditMode: boolean, jobData: UserJobPost): Observable<UserJobPost> {
+  upsertJob(isEditMode: boolean, jobData: FormData): Observable<UserJobPost> {
     if (isEditMode) {
-      return this.http.put<UserJobPost>(`${this.baseUrl}update/${jobData.id}`, jobData).pipe(
+      return this.http.put<UserJobPost>(`${this.baseUrl}update/${jobData.get('id')}`, jobData).pipe(
         tap((response) => {
-          this.adsStore.update(jobData.id, response);
+          this.adsStore.update(response.id, response);
           this.adsStore.setActive(response.id);
           setLoading(this.adsStore);
 
@@ -109,7 +109,7 @@ export class JobService {
 
           return response;
         })
-      );;
+      );
     }
   }
 

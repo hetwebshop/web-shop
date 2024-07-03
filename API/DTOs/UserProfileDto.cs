@@ -1,4 +1,5 @@
 ﻿using API.Helpers;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -20,6 +21,8 @@ namespace API.DTOs
         public int? JobTypeId { get; set; }
         public string Biography { get; set; }
         public string Position { get; set; }
+        public IFormFile CvFile { get; set; }
+        public string CvFilePath { get; set; }
 
         public List<UserEducationDto> UserEducations { get; set; }
     }

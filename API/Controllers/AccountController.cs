@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -143,7 +144,7 @@ namespace API.Controllers
         }
 
         [HttpPost("profile")]
-        public async Task<ActionResult<UserProfileDto>> UpdateUserProfile(UserProfileDto profileDto)
+        public async Task<ActionResult<UserProfileDto>> UpdateUserProfile([FromForm]UserProfileDto profileDto)
         {
             profileDto.Id = HttpContext.User.GetUserId();
 
@@ -157,7 +158,22 @@ namespace API.Controllers
                 return BadRequest("Test User cannot change username.");
 
             var user = await _userManager.Users.SingleAsync(u => u.Id == profileDto.Id);
+
+            var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+            if (!Directory.Exists(uploadsDir))
+            {
+                Directory.CreateDirectory(uploadsDir);
+            }
+
+            var filePath = Path.Combine(uploadsDir, profileDto.CvFile.FileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await profileDto.CvFile.CopyToAsync(stream);
+            }
+
             _mapper.Map(profileDto, user);
+            user.CvFilePath = filePath;
 
             bool deleteUserEducations = await _uow.UserRepository.RemoveAllUserEducationsAsync(profileDto.Id);
 

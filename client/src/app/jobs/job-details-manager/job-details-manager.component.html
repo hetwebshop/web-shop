@@ -90,7 +90,7 @@
         <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Država</mat-label>
-            <mat-select formControlName="countryId" placeholder="Odaberite državu" (selectionChange)="filterCitiesByCountry($event.value)" disabled>
+            <mat-select formControlName="countryId" placeholder="Odaberite državu" disabled>
               <mat-option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</mat-option>
             </mat-select>
           </mat-form-field>
@@ -113,7 +113,25 @@
           <mat-label>Biografija</mat-label>
           <textarea matInput formControlName="biography" rows="4" placeholder="Unesite biografiju" required></textarea>
         </mat-form-field>
+
+        <div fxFlex="95" fxFlex.lt-sm="90" appearance="outline" style="margin-bottom: 20px;">
+          <!-- If there is no existing file, show file input -->
+          <div *ngIf="!existingFilePath || !populateFormWithUserProfileData">
+            <input type="file" (change)="onFileSelected($event)" accept="application/pdf" />
+          </div>
         
+          <!-- If there is an existing file, show file details and delete option -->
+          <div *ngIf="existingFilePath && populateFormWithUserProfileData">
+            <p>Existing file: <a [href]="existingFilePath" target="_blank">View file</a></p>
+            <button mat-button (click)="deleteExistingFile()">Delete existing file</button>
+          </div>
+        
+          <!-- Show selected file name if a new file is selected -->
+          <div *ngIf="selectedFileName">
+            Selected file: {{ selectedFileName }}
+          </div>
+        </div>
+
         <mat-form-field *ngIf="selectedAdvertisementType == AdvertisementTypeEnum.Service" appearance="outline" class="full-width">
           <mat-label>Cijena usluge</mat-label>
           <input matInput type="number" formControlName="price" placeholder="Unesite cijenu" />

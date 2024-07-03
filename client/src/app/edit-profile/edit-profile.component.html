@@ -30,117 +30,149 @@
             <h2>Uredi Profil</h2>
             <mat-card-content class="mt-3">
                 <form [formGroup]="profileUpdate" (ngSubmit)="onSubmit()" autocomplete="off">
-                    <div style="border-bottom: 1px solid #ddd; margin-bottom: 20px;" fxLayout="row wrap" fxLayoutAlign="space-around center">
-                        <mat-card-subtitle fxFlex="95" fxLayoutAlign="start" style="font-weight: 500; color: black; border-bottom: 1px solid #ddd;">Lični podaci</mat-card-subtitle>
-                            <app-input fxFlex="45" fxFlex.lt-sm="90" label="Ime" [formControl]="profileUpdate.get('firstName')">
-                            </app-input>
-                            <app-input fxFlex="45" fxFlex.lt-sm="90" label="Prezime" [formControl]="profileUpdate.get('lastName')">
-                            </app-input>
-                            <app-input fxFlex="45" fxFlex.lt-sm="90" label="Korisničko ime"
-                                [formControl]="profileUpdate.get('userName')">
-                            </app-input>
-                            <app-input fxFlex="45" fxFlex.lt-sm="90" label="Email" type="email"
-                                [formControl]="profileUpdate.get('email')">
-                            </app-input>
-                            <app-input fxFlex="45" fxFlex.lt-sm="90" label="Mobitel"
-                                [formControl]="profileUpdate.get('phoneNumber')">
-                            </app-input>
-                            <!-- <mat-form-field  fxFlex="45" fxFlex.lt-sm="90" appearance="outline" style="width: 100%;">
+                    <div style="border-bottom: 1px solid #ddd; margin-bottom: 20px;" fxLayout="row wrap"
+                        fxLayoutAlign="space-around center">
+                        <mat-card-subtitle fxFlex="95" fxLayoutAlign="start"
+                            style="font-weight: 500; color: black; border-bottom: 1px solid #ddd;">Lični
+                            podaci</mat-card-subtitle>
+                        <app-input fxFlex="45" fxFlex.lt-sm="90" label="Ime"
+                            [formControl]="profileUpdate.get('firstName')">
+                        </app-input>
+                        <app-input fxFlex="45" fxFlex.lt-sm="90" label="Prezime"
+                            [formControl]="profileUpdate.get('lastName')">
+                        </app-input>
+                        <app-input fxFlex="45" fxFlex.lt-sm="90" label="Korisničko ime"
+                            [formControl]="profileUpdate.get('userName')">
+                        </app-input>
+                        <app-input fxFlex="45" fxFlex.lt-sm="90" label="Email" type="email"
+                            [formControl]="profileUpdate.get('email')">
+                        </app-input>
+                        <app-input fxFlex="45" fxFlex.lt-sm="90" label="Mobitel"
+                            [formControl]="profileUpdate.get('phoneNumber')">
+                        </app-input>
+                        <!-- <mat-form-field  fxFlex="45" fxFlex.lt-sm="90" appearance="outline" style="width: 100%;">
                                 <mat-label>Država</mat-label>
                                 <input type="text" matInput name="Država" placeholder="Država" value="Bosna i  Hercegovina" disabled>
                             </mat-form-field> -->
-                            <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                <mat-label>Grad</mat-label>
-                                <mat-select formControlName="cityId" placeholder="Grad">
-                                    <mat-option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</mat-option>
-                                </mat-select>
-                                <mat-error *ngIf="profileUpdate.get('cityId').invalid">Potrebno je da unesete grad</mat-error>
-                            </mat-form-field>
-                            <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                <mat-label>Spol</mat-label>
-                                <mat-select formControlName="gender" placeholder="Odaberite spol">
-                                    <mat-option *ngFor="let gender of genders" [value]="gender">{{ genderName(gender) }}</mat-option>
-                                </mat-select>
-                                <mat-error *ngIf="profileUpdate.get('gender').invalid">Potrebno je da unesete spol</mat-error>
-                            </mat-form-field>
-                            <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                <mat-label>Datum rođenja</mat-label>
-                                <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
-                                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                                <mat-datepicker touchUi #picker></mat-datepicker>
-                                <mat-error *ngIf="profileUpdate.get('dateOfBirth').invalid">Potrebno je da unesete datum rođenja
-                                </mat-error>
-                            </mat-form-field>
-                        
-                            <mat-card-subtitle fxFlex="95" fxLayoutAlign="start" style="font-weight: 500; color: black; border-bottom: 1px solid #ddd;">Dodatni podaci(neobavezno)</mat-card-subtitle>
-                            <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                <mat-label>Kategorija posla</mat-label>
-                                <mat-select formControlName="jobCategoryId" placeholder="Unesite kategoriju posla kojim se bavite ili biste se voljeli baviti">
-                                    <mat-option *ngFor="let jobCategory of jobCategories" [value]="jobCategory.id">{{ jobCategory.name }}</mat-option>
-                                </mat-select>
-                            </mat-form-field>
-                            <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                <mat-label>Tip posla</mat-label>
-                                <mat-select formControlName="jobTypeId" placeholder="Unesite tip posla kojim se bavite ili biste se voljeli baviti">
-                                    <mat-option *ngFor="let jobType of jobTypes" [value]="jobType.id">{{ jobType.name }}</mat-option>
-                                </mat-select>
-                            </mat-form-field>
+                        <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                            <mat-label>Grad</mat-label>
+                            <mat-select formControlName="cityId" placeholder="Grad">
+                                <mat-option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</mat-option>
+                            </mat-select>
+                            <mat-error *ngIf="profileUpdate.get('cityId').invalid">Potrebno je da unesete
+                                grad</mat-error>
+                        </mat-form-field>
+                        <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                            <mat-label>Spol</mat-label>
+                            <mat-select formControlName="gender" placeholder="Odaberite spol">
+                                <mat-option *ngFor="let gender of genders" [value]="gender">{{ genderName(gender)
+                                    }}</mat-option>
+                            </mat-select>
+                            <mat-error *ngIf="profileUpdate.get('gender').invalid">Potrebno je da unesete
+                                spol</mat-error>
+                        </mat-form-field>
+                        <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                            <mat-label>Datum rođenja</mat-label>
+                            <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
+                            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                            <mat-datepicker touchUi #picker></mat-datepicker>
+                            <mat-error *ngIf="profileUpdate.get('dateOfBirth').invalid">Potrebno je da unesete datum
+                                rođenja
+                            </mat-error>
+                        </mat-form-field>
 
-                            <mat-form-field fxFlex="95" appearance="outline" class="full-width">
-                                <mat-label>Pozicija</mat-label>
-                                <input matInput type="text" formControlName="position" placeholder="Unesite poziciju" required />
-                              </mat-form-field>
-                              
-                              <mat-form-field fxFlex="95" appearance="outline" class="full-width">
-                                <mat-label>Biografija</mat-label>
-                                <textarea matInput formControlName="biography" rows="4" placeholder="Unesite biografiju" required></textarea>
-                              </mat-form-field>
+                        <mat-card-subtitle fxFlex="95" fxLayoutAlign="start"
+                            style="font-weight: 500; color: black; border-bottom: 1px solid #ddd;">Dodatni
+                            podaci(neobavezno)</mat-card-subtitle>
+                        <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                            <mat-label>Kategorija posla</mat-label>
+                            <mat-select formControlName="jobCategoryId"
+                                placeholder="Unesite kategoriju posla kojim se bavite ili biste se voljeli baviti">
+                                <mat-option *ngFor="let jobCategory of jobCategories" [value]="jobCategory.id">{{
+                                    jobCategory.name }}</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                            <mat-label>Tip posla</mat-label>
+                            <mat-select formControlName="jobTypeId"
+                                placeholder="Unesite tip posla kojim se bavite ili biste se voljeli baviti">
+                                <mat-option *ngFor="let jobType of jobTypes" [value]="jobType.id">{{ jobType.name
+                                    }}</mat-option>
+                            </mat-select>
+                        </mat-form-field>
 
-                            <ng-container formArrayName="userEducations">
-                                <ng-container *ngFor="let education of userEducations.controls; let i = index" [formGroupName]="i">
-                                    <ng-container style="margin-top: 20px">
-                                        <h4 fxFlex="100">Obrazovanje {{ i + 1 }}</h4>
-                                        <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline" >
-                                            <mat-label>Univerzitet</mat-label>
-                                            <input matInput type="text" formControlName="university" placeholder="Unesite univerzitet" required>
-                                        </mat-form-field>
-                                        <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                            <mat-label>Fakultet</mat-label>
-                                            <input matInput type="text" formControlName="institutionName" placeholder="Unesite fakultet" required>
-                                        </mat-form-field>
-                                        <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                            <mat-label>Odsjek</mat-label>
-                                            <input matInput type="text" formControlName="fieldOfStudy" placeholder="Unesite odsjek" required>
-                                        </mat-form-field>
-                                        <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                            <mat-label>Zvanje</mat-label>
-                                            <input matInput type="text" formControlName="degree" placeholder="Unesite zvanje" required>
-                                        </mat-form-field>
-                                        <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                            <mat-label>Godina početka studija</mat-label>
-                                            <input matInput type="number" formControlName="educationStartYear" placeholder="Unesite godinu početka studija" required>
-                                        </mat-form-field>
-                                        <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                            <mat-label>Godina kraja studija (neobavezno)</mat-label>
-                                            <input matInput type="number" formControlName="educationEndYear" placeholder="Unesite godinu završetka studija">
-                                        </mat-form-field>
-                                    </ng-container>
-                                    <div fxFlex="100"></div>
-                                    <button style="margin-bottom: 20px;" fxFlex="45" fxFlex.lt-sm="90" mat-button type="button" (click)="openCancelConfirmationModal(i)" color="warn">Ukloni obrazovanje</button>
-                                    <div fxFlex="100"></div>
+                        <mat-form-field fxFlex="95" appearance="outline" class="full-width">
+                            <mat-label>Pozicija</mat-label>
+                            <input matInput type="text" formControlName="position" placeholder="Unesite poziciju"
+                                required />
+                        </mat-form-field>
+
+                        <mat-form-field fxFlex="95" appearance="outline" class="full-width">
+                            <mat-label>Biografija</mat-label>
+                            <textarea matInput formControlName="biography" rows="4" placeholder="Unesite biografiju"
+                                required></textarea>
+                        </mat-form-field>
+
+
+                        <div fxFlex="95" fxFlex.lt-sm="90" appearance="outline">
+                            <input type="file" (change)="onFileSelected($event)" accept="application/pdf" />
+                        </div>
+
+                        <div>
+                            <a href='C:/dev/web-shop/web-shop/API/uploads/EminDukic_CV.pdf' target="_blank">{{ user?.cvFilePath }}</a>
+                          </div>
+                          
+                          
+
+                        <ng-container formArrayName="userEducations">
+                            <ng-container *ngFor="let education of userEducations.controls; let i = index"
+                                [formGroupName]="i">
+                                <ng-container style="margin-top: 20px">
+                                    <h4 fxFlex="100">Obrazovanje {{ i + 1 }}</h4>
+                                    <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                                        <mat-label>Univerzitet</mat-label>
+                                        <input matInput type="text" formControlName="university"
+                                            placeholder="Unesite univerzitet" required>
+                                    </mat-form-field>
+                                    <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                                        <mat-label>Fakultet</mat-label>
+                                        <input matInput type="text" formControlName="institutionName"
+                                            placeholder="Unesite fakultet" required>
+                                    </mat-form-field>
+                                    <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                                        <mat-label>Odsjek</mat-label>
+                                        <input matInput type="text" formControlName="fieldOfStudy"
+                                            placeholder="Unesite odsjek" required>
+                                    </mat-form-field>
+                                    <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                                        <mat-label>Zvanje</mat-label>
+                                        <input matInput type="text" formControlName="degree"
+                                            placeholder="Unesite zvanje" required>
+                                    </mat-form-field>
+                                    <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                                        <mat-label>Godina početka studija</mat-label>
+                                        <input matInput type="number" formControlName="educationStartYear"
+                                            placeholder="Unesite godinu početka studija" required>
+                                    </mat-form-field>
+                                    <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                                        <mat-label>Godina kraja studija (neobavezno)</mat-label>
+                                        <input matInput type="number" formControlName="educationEndYear"
+                                            placeholder="Unesite godinu završetka studija">
+                                    </mat-form-field>
                                 </ng-container>
+                                <div fxFlex="100"></div>
+                                <button style="margin-bottom: 20px;" fxFlex="45" fxFlex.lt-sm="90" mat-button
+                                    type="button" (click)="openCancelConfirmationModal(i)" color="warn">Ukloni
+                                    obrazovanje</button>
+                                <div fxFlex="100"></div>
                             </ng-container>
-                            
-                            
-                            
-                               
-                            
+                        </ng-container>
 
-
-                            <div fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                <button mat-button type="button" color="primary" (click)="addEducation()">Dodaj obrazovanje</button>
-                            </div>
-                            <!-- <button mat-flat-button fxFlex="45" fxLayoutAlign="start" fxFlex.lt-sm="90" color="accent"
+                        <div fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                            <button mat-button type="button" color="primary" (click)="addEducation()">Dodaj
+                                obrazovanje</button>
+                        </div>
+                        <!-- <button mat-flat-button fxFlex="45" fxLayoutAlign="start" fxFlex.lt-sm="90" color="accent"
                                 type="submit">
                                 Dodaj obrazovanje
                             </button> -->

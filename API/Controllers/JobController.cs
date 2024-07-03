@@ -6,6 +6,7 @@ using API.PaginationEntities;
 using API.Services.UserOfferServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -48,16 +49,29 @@ namespace API.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateUserJobPost([FromBody]UserJobPostDto userJobPostDto)
+        public async Task<IActionResult> CreateUserJobPost([FromForm]UserJobPostDto userJobPostDto)
         {
 
-            userJobPostDto.SubmittingUserId = HttpContext.User.GetUserId(); ;
+            userJobPostDto.SubmittingUserId = HttpContext.User.GetUserId();
+            var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+            if (!Directory.Exists(uploadsDir))
+            {
+                Directory.CreateDirectory(uploadsDir);
+            }
+
+            var filePath = Path.Combine(uploadsDir, userJobPostDto.CvFile.FileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await userJobPostDto.CvFile.CopyToAsync(stream);
+            }
+            userJobPostDto.CvFilePath = filePath;
             var newItem = await _jobPostService.CreateUserJobPostAsync(userJobPostDto);
             return Ok(newItem);
         }
 
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateUserJobPost(int id, [FromBody]UserJobPostDto userJobPostDto)
+        public async Task<IActionResult> UpdateUserJobPost(int id, [FromForm] UserJobPostDto userJobPostDto)
         {
             userJobPostDto.SubmittingUserId = HttpContext.User.GetUserId(); ;
             var updatedItem = await _jobPostService.UpdateUserJobPostAsync(userJobPostDto);

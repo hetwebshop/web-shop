@@ -112,10 +112,10 @@ export class AccountService {
     });
   }
 
-  updateProfile(body) {
-    return this.http.post<any>(this.baseUrl + 'profile', body).pipe(
+  updateProfile(formData: FormData) {
+    return this.http.post<any>(this.baseUrl + 'profile', formData).pipe(
       map((response) => {
-        this.updateToken();
+        // Perform any additional actions on response if needed
         return response;
       })
     );

@@ -1,6 +1,7 @@
 ﻿using API.Entities;
 using API.Entities.JobPost;
 using API.Helpers;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 
@@ -29,6 +30,8 @@ namespace API.DTOs
         public string City { get; set; }
         public int SubmittingUserId { get; set; }
         public int AdvertisementTypeId { get; set; }
+        public IFormFile CvFile { get; set; }
+        public string CvFilePath { get; set; }
 
         public List<ApplicantEducationDto> ApplicantEducations { get; set; }
     }

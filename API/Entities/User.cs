@@ -23,6 +23,7 @@ namespace API.Entities
         public JobCategory JobCategory { get; set; }
         public string Position { get; set; }
         public string Biography { get; set; }
+        public string CvFilePath { get; set; }
         public ICollection<UserRole> UserRoles { get; set; }
         public ICollection<UserJobPost> UserJobPosts { get; set; }
         public ICollection<UserEducation> UserEducations { get; set; }

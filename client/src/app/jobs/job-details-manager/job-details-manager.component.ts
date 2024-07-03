@@ -37,7 +37,11 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
   selectAllId: number = 0;
   user: UserProfile;
   isJobAd: boolean = true;
-  
+  selectedFile: File;
+  existingFilePath: string | null = null;
+  selectedFileName: string | null = null;
+  populateFormWithUserProfileData: boolean = false;
+
   @ViewChild('allSelected', { static: true }) private allSelected: MatOption;
 
   constructor(private jobService: JobService, private locationService: LocationService, utility: UtilityService, 
@@ -51,25 +55,20 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.form = this.createForm();
-
-    this.accountService.user$.subscribe((user: UserProfile) => {
+    this.accountService.getProfile().subscribe((user: UserProfile) => {
       this.user = user;
+      if (this.user.cvFilePath) {
+        this.existingFilePath = this.user.cvFilePath;
+      }
       // if(this.user == null || this.user == undefined){
       //   this.router.navigateByUrl("")
       // }
-    });
-
-    this.accountService.getProfile().subscribe((user: UserProfile) => {
-      this.user = user;
     })
     this.loadCountries();
     this.loadCities();
     this.loadJobTypes();
     this.loadJobCategories();
     this.loadAdTypes();
-
-    this.trackCountryChanges();
-    this.trackCityChanges();
 
     this.route.params.subscribe(params => {
       if (params['id']) {
@@ -79,18 +78,13 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
           .subscribe({
             next: (response) => {
               this.job = response;
-              console.log("job cat" + JSON.stringify(this.job));
+              this.existingFilePath = this.job.cvFilePath;
               this.updateApplicantEducations(this.job?.applicantEducations);
               this.onCategoryChange(this.job.jobCategoryId);
-              //const categoryIds = this.job.userJobSubcategories.map(value => value.jobCategoryId);
-              // if(categoryIds.length == this.selectedCategory?.subcategories.length){
-              //   categoryIds.push(this.selectAllId);
-              // }
               this.form.patchValue({
                 id: this.job.id,
                 position: this.job.position,
                 biography: this.job.biography,
-                //skills: this.job.skills,
                 applicantFirstName: this.job.applicantFirstName,
                 applicantLastName: this.job.applicantLastName,
                 applicantEmail: this.job.applicantEmail,
@@ -102,7 +96,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
                 cityId: this.job.cityId,
                 countryId: this.job.countryId,
                 price: this.job.price,
-                //jobSubcategories: categoryIds
+                cvFile: this.job.cvFile
               });
               this.cdr.detectChanges();
             },
@@ -123,7 +117,6 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
       id: new FormControl(0),
       position: new FormControl('', Validators.required),
       biography: new FormControl(''),
-      //skills: new FormControl(''),
       applicantFirstName: new FormControl('', Validators.required),
       applicantLastName: new FormControl('', Validators.required),
       applicantEmail: new FormControl('', [Validators.required, Validators.email]),
@@ -135,25 +128,14 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
       cityId: new FormControl('', Validators.required),
       countryId: new FormControl({ value: null, disabled: true}, Validators.required),
       jobCategoryId: new FormControl('', Validators.required),
-      //jobSubcategories: new FormControl({value: [[]], disabled: true}, Validators.required),
       advertisementTypeId: new FormControl({ value: this.isJobAd ? this.AdvertisementTypeEnum.JobAd : this.AdvertisementTypeEnum.Service, disabled: true}, Validators.required),
-      price: new FormControl('')
+      price: new FormControl(''),
+      cvFile: new FormControl(null)
     });
   }
 
-  prepareModel(formData: any) : UserJobPost {
-    //const jobSubcategories: UserJobSubcategory[] = [];
+  prepareModel(data: any) : FormData {
     const applicantEducations: ApplicantEducation[] = [];
-    // formData.jobSubcategories.forEach(catId => {
-    //   if(catId != this.selectAllId){
-    //     const jobSubCat: UserJobSubcategory = {
-    //       //userJobPostId: 0,
-    //       jobCategoryId: catId
-    //     };
-    //     jobSubcategories.push(jobSubCat);
-    //   }
-    // });
-
     this.applicantEducations.controls.forEach(control => {
       const educationModel: ApplicantEducation = {
         degree: control.get('degree').value,
@@ -167,27 +149,45 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
     });
     
     const model: UserJobPost = {
-      id: formData.id,
-      position: formData.position || '',
-      biography: formData.biography || '',
-      //skills: formData.skills || '',
-      applicantFirstName: formData.applicantFirstName,
-      applicantLastName: formData.applicantLastName,
-      applicantEmail: formData.applicantEmail,
-      applicantPhoneNumber: formData.applicantPhoneNumber,
-      applicantGender: formData.applicantGender,
-      applicantDateOfBirth: formData.applicantDateOfBirth,
+      id: data.id,
+      position: data.position || '',
+      biography: data.biography || '',
+      applicantFirstName: data.applicantFirstName,
+      applicantLastName: data.applicantLastName,
+      applicantEmail: data.applicantEmail,
+      applicantPhoneNumber: data.applicantPhoneNumber,
+      applicantGender: data.applicantGender,
+      applicantDateOfBirth: data.applicantDateOfBirth,
       applicantEducations: applicantEducations,
-      jobTypeId: formData.jobTypeId,
-      cityId: formData.cityId,
-      countryId: formData.countryId,
-      jobCategoryId: formData.jobCategoryId,
+      jobTypeId: data.jobTypeId,
+      cityId: data.cityId,
+      countryId: data.countryId,
+      jobCategoryId: data.jobCategoryId,
       jobPostStatusId: JobPostStatus.Active,
-      //userJobSubcategories: jobSubcategories,
-      advertisementTypeId: formData.advertisementTypeId
+      advertisementTypeId: data.advertisementTypeId,
+      cvFile: data.cvFile
     };
-    console.log("MODEL IS", model);
-    return model;
+
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(model)) {
+        if (value instanceof Date) {
+          formData.append(key, value.toISOString());
+        } else if (Array.isArray(value)) {
+            value.forEach((item, index) => {
+                Object.entries(item).forEach(([itemKey, itemValue]) => {
+                  formData.append(`${key}[${index}].${itemKey}`, itemValue as string);
+                });
+            });
+        } else if (typeof value === 'object' && value !== null) {
+            Object.entries(value).forEach(([objKey, objValue]) => {
+              formData.append(`${key}.${objKey}`, objValue as string);
+            });
+        } else {
+          formData.append(key, value.toString());
+        }
+    }
+    formData.append('cvFile', model.cvFile);
+    return formData;
   }
 
 private updateApplicantEducations(educations: any[]): void {
@@ -196,27 +196,12 @@ private updateApplicantEducations(educations: any[]): void {
   this.applicantEducations.clear();
 
   educations.forEach(education => {
-    this.applicantEducations.push(this.createEducationFormGroup(education));
-  });
-}
-
-private createEducationFormGroup(education: any): FormGroup {
-  return this.fb.group({
-      degree: new FormControl(education.degree, Validators.required),
-      institutionName: new FormControl(education.institutionName, Validators.required),
-      fieldOfStudy: new FormControl(education.fieldOfStudy, Validators.required),
-      educationStartYear: new FormControl(education.educationStartYear, Validators.required),
-      educationEndYear: new FormControl(education.educationEndYear),
-      university: new FormControl(education.university, Validators.required)
+    this.applicantEducations.push(this.createEducation(education));
   });
 }
 
   onCategoryChange(categoryId: number): void {
     this.selectedCategory = this.jobCategories.find(category => category.id === categoryId);
-    // this.form.get('jobSubcategories').setValue([]);
-    // if(this.selectedCategory){
-    //   this.form.get('jobSubcategories').enable();
-    // }
   }
 
   onAdTypeChange(adTypeId: number): void {
@@ -242,13 +227,10 @@ private createEducationFormGroup(education: any): FormGroup {
     });
   }
   onSubmit(): void {
-    console.log(this.form.valid);
-    console.log("FORM VA", this.form.getRawValue());
-
     if (this.form.valid) {
       const formData = this.form.getRawValue();
       const model = this.prepareModel(formData);
-      //this.subscription = this.jobService.upsertJob(this.isEditMode, model).subscribe();
+      this.subscription = this.jobService.upsertJob(this.isEditMode, model).subscribe();
     } 
     else {
       this.logInvalidControls(this.form);
@@ -302,25 +284,6 @@ private createEducationFormGroup(education: any): FormGroup {
       });
   }
 
-  trackCountryChanges(): void {
-
-  }
-
-  trackCityChanges(): void {
-    this.form.get('cityId').valueChanges.subscribe(cityId => {
-      if (cityId) {
-        const selectedCity = this.cities.find(city => city.id === cityId);
-        if (selectedCity) {
-          this.form.get('countryId').setValue(selectedCity.countryId);
-        }
-      }
-    });
-  }
-
-  filterCitiesByCountry(countryId: number): void {
-    this.cities = this.cities.filter(city => city.countryId == countryId);
-  }
-
   createEducation(education?: ApplicantEducation): FormGroup {
     return this.fb.group({
       degree: new FormControl(education?.degree || '', Validators.required),
@@ -348,8 +311,7 @@ private createEducationFormGroup(education: any): FormGroup {
 
   onToggleUseUserDataChange(event): void {
     const checked = event.checked;
-    console.log("ISCHECKED", checked);
-    console.log("USER", this.user);
+    this.populateFormWithUserProfileData = checked;
     if (checked) {
       this.form.patchValue({
         applicantFirstName: this.user.firstName,
@@ -363,10 +325,24 @@ private createEducationFormGroup(education: any): FormGroup {
         applicantDateOfBirth: this.user.dateOfBirth,
         biography: this.user.biography,
         position: this.user.position,
+        //cvFile: this.user.cvFilePath
       });
       this.updateApplicantEducations(this.user.userEducations);
     } else {
       this.form.reset();
     }
+  }
+
+  onFileSelected(event): void {
+    this.selectedFile = (event.target as HTMLInputElement).files[0];
+    this.existingFilePath = null;
+    this.selectedFileName = this.selectedFile.name;
+    this.form.patchValue({ cvFile: this.selectedFile });
+    this.form.markAsDirty();
+  }
+
+  deleteExistingFile() {
+    this.existingFilePath = null;
+    // Optionally, handle the deletion on the backend
   }
 }

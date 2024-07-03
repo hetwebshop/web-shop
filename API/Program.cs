@@ -4,9 +4,11 @@ using API.Seed;
 using API.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System;
+using System.IO;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,6 +40,13 @@ app.UseSwaggerUI(c =>
 app.UseRouting();
 app.UseCors(options =>
 options.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://varunbr.github.io", "http://localhost:4200"));
+app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+          Path.Combine(Directory.GetCurrentDirectory(), "uploads")),
+    RequestPath = "/uploads"
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseDefaultFiles();

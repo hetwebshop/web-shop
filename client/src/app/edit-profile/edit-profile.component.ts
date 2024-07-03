@@ -27,6 +27,7 @@ export class EditProfileComponent implements OnInit {
   jobCategories: JobCategory[] = [];
   loading: string;
   cities: City[] = [];
+  selectedFile: File;
   //jobInfoForm: FormGroup;
   userEducations: FormArray;
 
@@ -119,7 +120,8 @@ export class EditProfileComponent implements OnInit {
       jobCategoryId: [this.user.jobCategoryId],
       userEducations: this.userEducations,
       position: [this.user.position],
-      biography: [this.user.biography]
+      biography: [this.user.biography],
+      cvFile: [null]
     });
   }
 
@@ -141,8 +143,44 @@ export class EditProfileComponent implements OnInit {
   }
 
   onSubmit() {
+    // const formData = new FormData();
+    // Object.keys(this.profileUpdate.controls).forEach(key => {
+    //   if (key !== 'cvFile') {
+    //     formData.append(key, this.profileUpdate.get(key).value);
+    //   }
+    // });
+
+    // if (this.selectedFile) {
+    //   //this.profileUpdate.get('cvFile').setValue(this.selectedFile);
+    //   formData.append('cvFile', this.selectedFile, this.selectedFile.name);
+    // }
+    const formData = new FormData();
+    console.log("FORM ", this.profileUpdate.value);
+    // Append form data fields
+    Object.keys(this.profileUpdate.value).forEach(key => {
+      if (key === 'userEducations') {
+        const userEducations = this.profileUpdate.get('userEducations') as FormArray;
+        userEducations.controls.forEach((educationGroup: FormGroup, index: number) => {
+          Object.keys(educationGroup.value).forEach(controlKey => {
+            formData.append(`userEducations[${index}].${controlKey}`, educationGroup.get(controlKey).value);
+          });
+        });
+      }
+      else if (key === 'dateOfBirth' && this.profileUpdate.get(key).value) {
+        formData.append(key, new Date(this.profileUpdate.get(key).value).toISOString());
+      } else {
+        formData.append(key, this.profileUpdate.get(key).value);
+      }
+    });
+
+    // Append cvFile if selected
+    if (this.selectedFile) {
+      formData.append('cvFile', this.selectedFile, this.selectedFile.name);
+    }
+
+
     this.accountService
-      .updateProfile(this.profileUpdate.value)
+      .updateProfile(formData)
       .subscribe((response) => {
         console.log("Update user profile");
         console.log(response);
@@ -154,6 +192,17 @@ export class EditProfileComponent implements OnInit {
   }
 
   updateAddress(form: NgForm) {
+  }
+
+  openFile() {
+    const filePath = this.user.cvFilePath;
+    console.log("FILE PATH", filePath);
+    // Ensure the path is a valid URL
+    if (filePath) {
+      window.open("C:/dev/web-shop/web-shop/API/uploads/EminDukic_CV.pdf", '_blank');
+    } else {
+      console.error('File path is not valid');
+    }
   }
 
   changePhoto(files: FileList) {
@@ -216,4 +265,11 @@ export class EditProfileComponent implements OnInit {
       }
     });
   }
+
+  onFileSelected(event): void {
+    this.selectedFile = (event.target as HTMLInputElement).files[0];
+    this.profileUpdate.patchValue({ cvFile: this.selectedFile });
+    this.profileUpdate.markAsDirty();
+  }
+
 }
