@@ -1,0 +1,2 @@
+For running backend navigate to .sln folder on your machine using cmd and run: dotnet restore or dotnet restore --interactive; Try to run services;
+For running frontend: using cmd navigate to client/src and run: npm install or npm install --force
