@@ -31,7 +31,8 @@
           <div fxFlex="grow">
             <h2>{{ job?.position }}</h2>
             <h4><strong>Tip oglasa -</strong> {{ getEnumName(job?.advertisementTypeId) }}</h4>
-            
+            <h4><strong>Datum početka objave -</strong> {{ job?.adStartDate | date: 'dd.MM.yyyy' }}</h4>
+            <h4><strong>Datum kraja objave -</strong> {{ job?.adEndDate | date: 'dd.MM.yyyy' }}</h4>            
           </div>
           <div fxFlex style="margin-right: 15px;">
             <mat-card-actions>

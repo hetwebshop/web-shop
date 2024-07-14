@@ -1,113 +1,185 @@
-
-<div class="job-details-container">
-    <div class="job-details-content">
-      <div fxLayout="row" fxLayoutAlign="space-between">
-        <button mat-button style="font-size: 14px; padding-left: 0px; margin-bottom: 10px; text-align: left;" backButton>
-          <mat-icon style="margin-right: 5px;">arrow_back</mat-icon>
-          <span>Nazad</span>
-        </button>
-        <!-- <button mat-button style="font-size: 14px; padding-left: 0px; margin-bottom: 10px; text-align: left;">
-          <span>Naprijed</span>
-          <mat-icon style="margin-left: 5px;">arrow_forward</mat-icon>
-        </button> -->
-        <div *ngIf="prevNextButtonVisible">
-          <span>{{ currentItemIndex + 1 }} od {{ totalItems }}</span>
-          <button mat-icon-button (click)="moveToPrevious()" [disabled]="currentItemIndex === 0">
-            <mat-icon>chevron_left</mat-icon>
-          </button>
-          <button mat-icon-button (click)="moveToNext()" [disabled]="currentItemIndex === totalItems - 1">
-            <mat-icon>chevron_right</mat-icon>
-          </button>
-          
+<div *ngIf="job" fxLayout="row" fxLayoutAlign="center" style="margin-top: 100px;">
+  <mat-card class="text-center" fxFlex="40" fxFlex.lt-sm="90" fxFlex.lt-md="60" fxFlex.lt-lg="50">
+    <mat-card-title class="my-4">
+      Uredi objavu
+    </mat-card-title>
+        <mat-card-content class="mt-5">
+      <form [formGroup]="adUpdateForm" (ngSubmit)="onSubmit()" fxLayout="column" fxLayoutAlign="center">
+        <div *ngIf="!isJobInStatusClosedOrDeleted" fxFlex="45" fxFlex.lt-sm="90" style="margin-bottom: 20px; display: flex; align-items: start;">
+          <button mat-raised-button color="warn" (click)="deleteAd($event)">Obriši objavu</button>
         </div>
-  
-      </div>
-      
-        <ng-container *ngIf="job != null && job != undefined">
-        <h1 *ngIf="job.advertisementTypeId == 1" style="font-weight: 500;">Detalji aplikanta</h1>
-        <h1 *ngIf="job.advertisementTypeId == 2" style="font-weight: 500;">Detalji servisa</h1>
-        <mat-card>
-          <mat-card-header fxLayout="row" fxLayoutAlign="space-between">
-            <div fxFlex="grow">
-              <h2>{{ job?.position }}</h2>
-              <h4><strong>Tip oglasa -</strong> {{ getEnumName(job?.advertisementTypeId) }}</h4>
-              
-            </div>
-          </mat-card-header>
-          
-          
-          
-          
-          <mat-divider></mat-divider>
-          <mat-card-content style="margin-top: 25px; padding-left: 34px;">
-            <div class="job-info">
-              <h2 style="border-bottom: 1px solid #ddd;">Osnovni podaci</h2>
-              <p>
-                <ng-container>
-                  <strong style="font-weight: 500;">Ime i prezime:</strong> {{ job?.applicantFirstName }} {{ job?.applicantLastName }} &nbsp; &nbsp;
-                </ng-container>
-                <ng-container *ngIf="getFormattedDate(job?.applicantDateOfBirth) !== ''">
-                  <strong style="font-weight: 500;">Datum rođenja:</strong> {{ getFormattedDate(job?.applicantDateOfBirth) }} &nbsp; &nbsp;
-                </ng-container>
-                <ng-container *ngIf="getFormattedDate(job?.applicantDateOfBirth) === ''">
-                  <strong style="font-weight: 500;">Datum rođenja:</strong> Nije unešeno &nbsp; &nbsp;
-                </ng-container>
-              
-                <ng-container *ngIf="job?.applicantGender !== ''">
-                  <strong style="font-weight: 500;">Spol:</strong> {{ job?.applicantGender }} &nbsp; &nbsp;
-                </ng-container>
-                <ng-container *ngIf="job?.applicantGender === ''">
-                  <strong style="font-weight: 500;">Spol:</strong> Nije unešeno &nbsp; &nbsp;
-                </ng-container>
-              
-                <ng-container *ngIf="job?.applicantEmail !== ''">
-                  <strong style="font-weight: 500;">Email:</strong> {{ job?.applicantEmail }} &nbsp; &nbsp;
-                </ng-container>
-                <ng-container *ngIf="job?.applicantEmail === ''">
-                  <strong style="font-weight: 500;">Email:</strong> Nije unešeno &nbsp; &nbsp;
-                </ng-container>
-              
-                <ng-container *ngIf="job?.applicantPhoneNumber !== ''">
-                  <strong style="font-weight: 500;">Broj telefona:</strong> {{ job?.applicantPhoneNumber }} &nbsp; &nbsp;
-                </ng-container>
-                <ng-container *ngIf="job?.applicantPhoneNumber === ''">
-                  <strong style="font-weight: 500;">Broj telefona:</strong> Nije unešeno &nbsp; &nbsp;
-                </ng-container>
-              </p>
-            </div>
-            <div class="job-biography">
-              <h2 style="border-bottom: 1px solid #ddd;">Biografija</h2>
-              <p>{{ job?.biography }}</p>
-            </div>
-            <h2 style="border-bottom: 1px solid #ddd;">Obrazovanja</h2>
-            <div *ngIf="job?.applicantEducations && job?.applicantEducations.length > 0; else noEducation">
-              <div *ngFor="let education of job?.applicantEducations; let i = index">
-                  <div>
-                      <h4><strong style="font-weight: 500;">Obrazovanje {{ i + 1 }}</strong></h4>
-                      <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
-                        <p><strong style="font-weight: 500;">Univerzitet:</strong> {{ education.university }}</p>
-                        <p><strong style="font-weight: 500;">Fakultet:</strong> {{ education.institutionName }}</p>
-                        <p><strong style="font-weight: 500;">Odsjek:</strong> {{ education.fieldOfStudy }}</p>
-                        <p><strong style="font-weight: 500;">Zvanje:</strong> {{ education.degree }}</p>
-                        <p>
-                            <strong style="font-weight: 500;">Period obrazovanja:</strong>
-                            {{ education.educationStartYear }} -
-                            {{ education.educationEndYear ? education.educationEndYear : 'U toku' }}
-                        </p>                      
-                      </div>
-                      <mat-divider style="margin-bottom: 15px;"></mat-divider>
-                  </div>
-              </div>
+        <div *ngIf="!isJobInStatusClosedOrDeleted" fxFlex="45" fxFlex.lt-sm="90" style="margin-bottom: 20px; display: flex; align-items: start;">
+          <button mat-raised-button color="primary" (click)="closeAd($event)">Završi objavu</button>
+        </div>
+        <div *ngIf="canJobBeReactivated" fxFlex="45" fxFlex.lt-sm="90" style="margin-bottom: 20px; display: flex; align-items: start;">
+          <button mat-raised-button color="primary" (click)="reactivateAd($event)">Reaktiviraj objavu</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+          <div style="display: flex; text-align: start;">
+            <span style="font-weight: bold; margin-right: 10px; width: 200px;">Status oglasa:</span>
+            <span>{{ getEnumStatusValue(job.jobPostStatusId) }}</span>
           </div>
-          
-            <ng-template #noEducation>
-              <p>Nema obrazovanja</p>
-            </ng-template>        
-            
-          </mat-card-content>
-        </mat-card>
-      </ng-container>
-  
-    </div>
-  </div>
-  
+          <div style="display: flex; text-align: start;">
+            <span style="font-weight: bold; margin-right: 10px; width: 200px;">Period trajanja oglasa:</span>
+            <span>{{ job.adDuration }} dana</span>
+          </div>
+          <div style="display: flex; text-align: start;">
+            <span style="font-weight: bold; margin-right: 10px; width: 200px;">Datum početka objave:</span>
+            <span>{{ job.adStartDate | date: 'dd.MM.yyyy' }}</span>
+          </div>
+          <div style="display: flex; text-align: start;">
+            <span style="font-weight: bold; margin-right: 10px; width: 200px;">Datum isteka objave:</span>
+            <span>{{ job.adEndDate | date: 'dd.MM.yyyy' }}</span>
+          </div>
+        </div>
+
+        <input type="hidden" formControlName="id">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Tip oglasa</mat-label>
+          <mat-select formControlName="advertisementTypeId" placeholder="Odaberite tip oglasa">
+            <mat-option *ngFor="let adType of advertisementTypes" [value]="adType?.id">{{ adType?.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Details about user -->
+        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+          <mat-form-field appearance="outline" fxFlex class="flex-item full-width">
+            <mat-label>Ime</mat-label>
+            <input matInput type="text" formControlName="applicantFirstName" placeholder="Unesite ime" required />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" fxFlex class="flex-item full-width">
+            <mat-label>Prezime</mat-label>
+            <input matInput type="text" formControlName="applicantLastName" placeholder="Unesite prezime" required />
+          </mat-form-field>
+        </div>
+        
+        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+          <mat-form-field appearance="outline" fxFlex class="flex-item full-width">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" formControlName="applicantEmail" placeholder="Unesite email" required />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" fxFlex class="flex-item full-width">
+            <mat-label>Broj telefona</mat-label>
+            <input matInput type="tel" formControlName="applicantPhoneNumber" placeholder="Unesite broj telefona" required />
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Spol</mat-label>
+          <mat-select formControlName="applicantGender" placeholder="Odaberite spol">
+            <mat-option *ngFor="let gender of genders" [value]="gender">{{ gender }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>Datum rođenja</mat-label>
+          <input matInput [matDatepicker]="dobPicker" formControlName="applicantDateOfBirth">
+          <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+          <mat-datepicker #dobPicker></mat-datepicker>
+        </mat-form-field>
+        
+        <div formArrayName="applicantEducations">
+          <div *ngFor="let education of applicantEducations.controls; let i = index" [formGroupName]="i" class="education-group">
+            <h3>Obrazovanje {{ i + 1 }}</h3>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Univerzitet</mat-label>
+              <input matInput type="text" formControlName="university" placeholder="Unesite univerzitet" required>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Fakultet</mat-label>
+              <input matInput type="text" formControlName="institutionName" placeholder="Unesite fakultet" required>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Odsjek</mat-label>
+              <input matInput type="text" formControlName="fieldOfStudy" placeholder="Unesite odsjek" required>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Zvanje</mat-label>
+              <input matInput type="text" formControlName="degree" placeholder="Unesite zvanje" required>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Godina početka studija</mat-label>
+              <input matInput type="number" formControlName="educationStartYear" placeholder="Unesite godinu početka studija" required>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Godina kraja studija</mat-label>
+              <input matInput type="number" formControlName="educationEndYear" placeholder="Unesite godinu kraja studija">
+            </mat-form-field>
+            <button *ngIf="!isJobInStatusClosedOrDeleted" mat-button type="button" color="warn" (click)="removeEducation(i)">Ukloni obrazovanje</button>
+          </div>
+        </div>
+        <button *ngIf="!isJobInStatusClosedOrDeleted" mat-raised-button color="primary" type="button" style="margin-bottom: 25px;" (click)="addEducation()">Dodaj obrazovanje</button>
+        
+        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Država</mat-label>
+            <mat-select formControlName="countryId" placeholder="Odaberite državu">
+              <mat-option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Grad</mat-label>
+            <mat-select formControlName="cityId" placeholder="Odaberite grad">
+              <mat-option *ngFor="let city of cities" [value]="city?.id">{{ city?.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Details about job and skills -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Pozicija</mat-label>
+          <input matInput type="text" formControlName="position" placeholder="Unesite poziciju" required />
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Biografija</mat-label>
+          <textarea matInput formControlName="biography" rows="4" placeholder="Unesite biografiju" required></textarea>
+        </mat-form-field>
+
+        <div fxFlex="95" fxFlex.lt-sm="90" appearance="outline" style="margin-bottom: 20px;">
+          <!-- If there is no existing file, show file input -->
+          <div *ngIf="(!existingFilePath || !populateFormWithUserProfileData) && !isJobInStatusClosedOrDeleted">
+            <input type="file" (change)="onFileSelected($event)" accept="application/pdf" />
+          </div>
+        
+          <!-- If there is an existing file, show file details and delete option -->
+          <div *ngIf="existingFilePath && populateFormWithUserProfileData">
+            <p>Existing file: <a [href]="existingFilePath" target="_blank">View file</a></p>
+            <button mat-button (click)="deleteExistingFile()">Delete existing file</button>
+          </div>
+        
+          <!-- Show selected file name if a new file is selected -->
+          <div *ngIf="selectedFileName">
+            Selected file: {{ selectedFileName }}
+          </div>
+        </div>
+
+        <mat-form-field *ngIf="selectedAdvertisementType == AdvertisementTypeEnum.Service" appearance="outline" class="full-width">
+          <mat-label>Cijena usluge</mat-label>
+          <input matInput type="number" formControlName="price" placeholder="Unesite cijenu" />
+        </mat-form-field>
+        
+        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start stretch">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Kategorija posla</mat-label>
+            <mat-select formControlName="jobCategoryId" (selectionChange)="onCategoryChange($event.value)">
+              <mat-option *ngFor="let category of jobCategories" [value]="category?.id">{{ category?.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Tip posla</mat-label>
+          <mat-select formControlName="jobTypeId" placeholder="Odaberite tip posla">
+            <mat-option *ngFor="let jobType of jobTypes" [value]="jobType?.id">{{ jobType?.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button *ngIf="!isJobInStatusClosedOrDeleted" mat-raised-button color="primary" type="submit">Uredi objavu</button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

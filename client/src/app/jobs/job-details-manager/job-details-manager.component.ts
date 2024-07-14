@@ -11,6 +11,7 @@ import { AdvertisementTypeEnum, Gender, JobPostStatus } from 'src/app/models/enu
 import { MatOption } from '@angular/material/core';
 import { User, UserInfo, UserProfile } from 'src/app/modal/user';
 import { AccountService } from 'src/app/services/account.service';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-job-details-manager',
@@ -130,7 +131,8 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
       jobCategoryId: new FormControl('', Validators.required),
       advertisementTypeId: new FormControl({ value: this.isJobAd ? this.AdvertisementTypeEnum.JobAd : this.AdvertisementTypeEnum.Service, disabled: true}, Validators.required),
       price: new FormControl(''),
-      cvFile: new FormControl(null)
+      cvFile: new FormControl(null),
+      adDuration: new FormControl(null, Validators.required)
     });
   }
 
@@ -147,7 +149,8 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
       };
       applicantEducations.push(educationModel);
     });
-    
+
+    let now = moment();
     const model: UserJobPost = {
       id: data.id,
       position: data.position || '',
@@ -165,25 +168,33 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
       jobCategoryId: data.jobCategoryId,
       jobPostStatusId: JobPostStatus.Active,
       advertisementTypeId: data.advertisementTypeId,
-      cvFile: data.cvFile
+      cvFile: data.cvFile,
+      adDuration: data.adDuration,
+      adStartDate: now,
+      adEndDate: moment(now).add(data.adDuration, 'days')
     };
 
     const formData = new FormData();
     for (const [key, value] of Object.entries(model)) {
-        if (value instanceof Date) {
-          formData.append(key, value.toISOString());
+        if (value instanceof Date || moment.isMoment(value)) {
+          formData.append(key, moment(value).toISOString());
         } else if (Array.isArray(value)) {
             value.forEach((item, index) => {
                 Object.entries(item).forEach(([itemKey, itemValue]) => {
                   formData.append(`${key}[${index}].${itemKey}`, itemValue as string);
                 });
             });
-        } else if (typeof value === 'object' && value !== null) {
-            Object.entries(value).forEach(([objKey, objValue]) => {
-              formData.append(`${key}.${objKey}`, objValue as string);
-            });
-        } else {
-          formData.append(key, value.toString());
+        } 
+        // else if (typeof value === 'object' && value !== null) {
+        //     Object.entries(value).forEach(([objKey, objValue]) => {
+        //       formData.append(`${key}.${objKey}`, objValue as string);
+        //     });
+        //} 
+        else {
+          console.log("KEY", key, value);
+          if(key !== 'cvFile' && value != null){
+            formData.append(key, value.toString());
+          }
         }
     }
     formData.append('cvFile', model.cvFile);

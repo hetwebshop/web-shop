@@ -1,12 +1,13 @@
 export enum Gender {
-    Male = 'Male',
-    Female = 'Female',
-    Other = 'Other'
+    Male = 'Muško',
+    Female = 'Žensko',
+    Other = 'Ostali'
 }
 
 export enum JobPostStatus {
     Active = 1,
-    Closed = 2
+    Closed = 2,
+    Deleted = 3
 }
 
 export enum AdvertisementTypeEnum {

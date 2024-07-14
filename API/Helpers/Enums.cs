@@ -25,7 +25,8 @@ namespace API.Helpers
     public enum JobPostStatus
     {
         Active = 1,
-        Closed = 2
+        Closed = 2,
+        Deleted = 3,
     }
 
     public enum LocationType

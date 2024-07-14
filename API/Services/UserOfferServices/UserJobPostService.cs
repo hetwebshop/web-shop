@@ -66,5 +66,32 @@ namespace API.Services.UserOfferServices
             var myAds = await userJobPostRepository.GetMyAdsAsync(userId);
             return myAds.ToDto();
         }
+
+        public async Task<bool> DeleteUserJobPostByIdAsync(int userId, int jobPostId)
+        {
+            var jobPost = await userJobPostRepository.GetUserJobPostByIdAsync(jobPostId);
+            if (jobPost.SubmittingUserId != userId)
+                return false;
+            var deleted = await userJobPostRepository.DeleteUserJobPostByIdAsync(jobPostId);
+            return deleted;
+        }
+
+        public async Task<bool> CloseUserJobPostByIdAsync(int userId, int jobPostId)
+        {
+            var jobPost = await userJobPostRepository.GetUserJobPostByIdAsync(jobPostId);
+            if (jobPost.SubmittingUserId != userId)
+                return false;
+            var closed = await userJobPostRepository.CloseUserJobPostByIdAsync(jobPostId);
+            return closed;
+        }
+
+        public async Task<bool> ReactivateUserJobPostByIdAsync(int userId, int jobPostId)
+        {
+            var jobPost = await userJobPostRepository.GetUserJobPostByIdAsync(jobPostId);
+            if (jobPost.SubmittingUserId != userId)
+                return false;
+            var reactivated = await userJobPostRepository.ReactivateUserJobPostByIdAsync(jobPostId);
+            return reactivated;
+        }
     }
 }

@@ -52,6 +52,12 @@ export class HttpService {
     });
   }
 
+  patch<T>(url: string, body = {}, { background = false } = {}) {
+    return this.http.patch<T>(url, body, {
+      headers: { Background: background.toString() },
+    });
+  }
+
   delete<T>(url: string, body = {}, { background = false } = {}) {
     return this.http.delete<T>(url, {
       body,

@@ -17,5 +17,8 @@ namespace API.Data.IUserOfferRepository
         Task<List<JobType>> GetAllJobTypesAsync();
         Task<List<AdvertisementType>> GetAllAdvertisementTypesAsync();
         Task<List<UserJobPost>> GetMyAdsAsync(int userId);
+        Task<bool> DeleteUserJobPostByIdAsync(int id);
+        Task<bool> CloseUserJobPostByIdAsync(int id);
+        Task<bool> ReactivateUserJobPostByIdAsync(int id);
     }
 }

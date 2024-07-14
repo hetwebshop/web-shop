@@ -1,3 +1,5 @@
+import { Moment } from "moment";
+
 export interface UserJobPost {
     id: number;
     position: string;
@@ -19,6 +21,10 @@ export interface UserJobPost {
     advertisementTypeId: number;
     cvFile?: File;
     cvFilePath?: string;
+    adDuration: number;
+    adStartDate: Moment;
+    adEndDate: Moment;
+    isDeleted?: boolean;
 }
 
 export interface AdvertisementType {

@@ -32,6 +32,10 @@ namespace API.DTOs
         public int AdvertisementTypeId { get; set; }
         public IFormFile CvFile { get; set; }
         public string CvFilePath { get; set; }
+        public int AdDuration { get; set; }
+        public DateTime AdStartDate { get; set; }
+        public DateTime AdEndDate { get; set; }
+        public bool IsDeleted { get; set; } = false;
 
         public List<ApplicantEducationDto> ApplicantEducations { get; set; }
     }

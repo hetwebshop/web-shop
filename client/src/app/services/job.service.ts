@@ -78,14 +78,28 @@ export class JobService {
   }
 
   getJobById(id: number): Observable<UserJobPost> {
-    console.log("Job by id ");
     var entity = this.adsQuery.getEntity(id);
-    console.log(entity);
     if (entity) {
       return of(entity);
     } else {
-      console.log("http request");
       return this.http.get<UserJobPost>(`${this.baseUrl}user-job/${id}`).pipe(
+        tap((response) => {
+          this.adsStore.add(response);
+          this.adsStore.setActive(response.id);
+          setLoading(this.adsStore);
+
+          return response;
+        })
+      );
+    }
+  }
+
+  getMyJobById(id: number): Observable<UserJobPost> {
+    var entity = this.adsQuery.getEntity(id);
+    if (entity) {
+      return of(entity);
+    } else {
+      return this.http.get<UserJobPost>(`${this.baseUrl}my-ad/${id}`).pipe(
         tap((response) => {
           this.adsStore.add(response);
           this.adsStore.setActive(response.id);
@@ -146,5 +160,17 @@ export class JobService {
 
   getAdTypes(): Observable<JobCategory[]> {
     return this.http.get<JobCategory[]>(this.baseUrl + "adtypes");
+  }
+
+  deleteAd(jobPostId: number): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.baseUrl}delete/${jobPostId}`);
+  }
+
+  closeAd(jobPostId: number): Observable<boolean> {
+    return this.http.patch<boolean>(`${this.baseUrl}close/${jobPostId}`);
+  }
+
+  reactivateAd(jobPostId: number): Observable<boolean> {
+    return this.http.patch<boolean>(`${this.baseUrl}reactivate/${jobPostId}`);
   }
 }

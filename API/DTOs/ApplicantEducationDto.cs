@@ -7,6 +7,6 @@
         public string InstitutionName { get; set; }
         public string FieldOfStudy { get; set; }
         public int EducationStartYear { get; set; }
-        public int EducationEndYear { get; set; }
+        public int? EducationEndYear { get; set; }
     }
 }

@@ -10,7 +10,7 @@ import { FiltersStore } from 'src/app/store/filters/filters.store';
 //import { getCategoryName, getEnumName, getEnumValue, getFormattedDate } from '../helpers/helpers';
 import { DatePipe } from '@angular/common';
 import { JobCategoryQuery } from 'src/app/store/jobsHelpers/job-category.query';
-import { AdvertisementTypeEnum } from 'src/app/models/enums';
+import { AdvertisementTypeEnum, JobPostStatus } from 'src/app/models/enums';
 
 @Component({
   selector: 'app-my-ads',
@@ -59,7 +59,6 @@ export class MyAdsComponent {
     this.allJobs$ = this.jobService.getMyAds(this.paginationParameters).pipe(
       map(response => {
         this.paginationResponse = response;
-        console.log("RESPONESEEE", response)
         return response.items;
       })
     );
@@ -72,11 +71,25 @@ export class MyAdsComponent {
     return AdvertisementTypeEnum[name as keyof typeof AdvertisementTypeEnum];
   }
 
+  getStatusEnumValue(value: number): string {
+    return value == JobPostStatus.Active ? "Aktivan Oglas" : value == JobPostStatus.Closed ? "Istekao Oglas" : "Obrisan Oglas";
+  }
+
   getEnumName(value: number): string {
     return value === AdvertisementTypeEnum.JobAd ? "Posao" : "Servis";
   }
 
   getFormattedDate(datePipe: DatePipe, date: Date): string {
     return this.datePipe.transform(date, 'dd.MM.yyyy');
+  }
+
+  onPageChange(pageNumber: number) {
+    this.paginationParameters = { ...this.paginationParameters, pageNumber: pageNumber };
+    this.fetchPaginatedItems(this.paginationParameters);
+  }
+
+  onPageSizeChange(pageSize: number) {
+    this.paginationParameters = { ...this.paginationParameters, pageSize: pageSize };
+    this.fetchPaginatedItems(this.paginationParameters);
   }
 }

@@ -18,5 +18,8 @@ namespace API.Services.UserOfferServices
         Task<List<JobType>> GetAllJobTypesAsync();
         Task<List<AdvertisementType>> GetAllAdvertisementTypesAsync();
         Task<List<UserJobPostDto>> GetMyAdsAsync(int userId);
+        Task<bool> DeleteUserJobPostByIdAsync(int userId, int jobPostId);
+        Task<bool> CloseUserJobPostByIdAsync(int userId, int jobPostId);
+        Task<bool> ReactivateUserJobPostByIdAsync(int userId, int jobPostId);
     }
 }

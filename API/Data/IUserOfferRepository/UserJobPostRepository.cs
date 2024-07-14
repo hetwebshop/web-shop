@@ -38,6 +38,7 @@ namespace API.Data.IUserOfferRepository
         public async Task<PagedList<UserJobPost>> GetJobPostsAsync(AdsPaginationParameters adsParameters)
         {
             var userJobPosts = FindByCondition(u =>
+                (u.AdEndDate >= DateTime.UtcNow) && 
                 (adsParameters.UserId == null || adsParameters.UserId == u.SubmittingUserId) &&
                 (adsParameters.cityIds == null || adsParameters.cityIds.Contains(u.CityId)) &&
                 (adsParameters.jobCategoryIds == null || adsParameters.jobCategoryIds.Contains(u.JobCategoryId)) &&
@@ -145,6 +146,43 @@ namespace API.Data.IUserOfferRepository
         {
             var adTypes = await DataContext.AdvertisementTypes.ToListAsync();
             return adTypes;
+        }
+
+        public async Task<bool> DeleteUserJobPostByIdAsync(int id)
+        {
+            var userJobPost = await DataContext.UserJobPosts.FindAsync(id);
+            if(userJobPost != null)
+            {
+                userJobPost.IsDeleted = true;
+                userJobPost.JobPostStatusId = (int)Helpers.JobPostStatus.Deleted;
+                await DataContext.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> CloseUserJobPostByIdAsync(int id)
+        {
+            var userJobPost = await DataContext.UserJobPosts.FindAsync(id);
+            if (userJobPost != null)
+            {
+                userJobPost.JobPostStatusId = (int)Helpers.JobPostStatus.Closed;
+                await DataContext.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> ReactivateUserJobPostByIdAsync(int id)
+        {
+            var userJobPost = await DataContext.UserJobPosts.FindAsync(id);
+            if (userJobPost != null)
+            {
+                userJobPost.JobPostStatusId = (int)Helpers.JobPostStatus.Active;
+                await DataContext.SaveChangesAsync();
+                return true;
+            }
+            return false;
         }
     }
 }

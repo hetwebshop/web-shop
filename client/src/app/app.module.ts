@@ -64,6 +64,8 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MyAdComponent } from './jobs/my-ads/my-ad/my-ad.component';
 import { MyAdsWrapper } from './jobs/my-ads/my-ads-wrapper.component';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatRadioModule } from '@angular/material/radio';
 
 @Injectable()
 export class HammerConfig extends HammerGestureConfig {
@@ -132,7 +134,9 @@ export class HammerConfig extends HammerGestureConfig {
     MatDialogModule,
     TruncateModule,
     MatButtonToggleModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    MatCheckboxModule,
+    MatRadioModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },

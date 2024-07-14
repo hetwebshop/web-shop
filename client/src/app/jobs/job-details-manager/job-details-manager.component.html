@@ -15,6 +15,13 @@
             <mat-option *ngFor="let adType of advertisementTypes" [value]="adType.id">{{ adType.name }}</mat-option>
           </mat-select>
         </mat-form-field>
+        <mat-radio-group formControlName="adDuration"  class="duration-radio-group" appearance="outline">
+          <mat-label style="font-weight: bold; margin-right: 20px;">Odaberite period trajanja oglasa:</mat-label>
+          <mat-radio-button value="7" class="duration-radio-button">7 dana</mat-radio-button>
+          <mat-radio-button value="15" class="duration-radio-button">15 dana</mat-radio-button>
+          <mat-radio-button value="30" class="duration-radio-button">30 dana</mat-radio-button>
+        </mat-radio-group>
+
 
         <!-- Details about user -->
         <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">

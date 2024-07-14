@@ -10,7 +10,6 @@ namespace API.Entities.JobPost
         public int Id { get; set; }
         public string Position { get; set; }
         public string Biography { get; set; }
-        //public string Skills { get; set; }
         public string ApplicantFirstName { get; set; }
         public string ApplicantLastName { get; set; }
         public string ApplicantEmail { get; set; }
@@ -18,7 +17,6 @@ namespace API.Entities.JobPost
         public DateTime ApplicantDateOfBirth { get; set; }
         public Gender ApplicantGender { get; set; }
         public decimal? Price { get; set; }
-        //public string Tags { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public int SubmittingUserId { get; set; }
@@ -34,8 +32,10 @@ namespace API.Entities.JobPost
         public int AdvertisementTypeId { get; set; }
         public AdvertisementType AdvertisementType { get; set; }
         public string CvFilePath { get; set; }
-        //public int AddressId { get; set; }
-        //public UserAddress Address { get; set; }
+        public DateTime AdStartDate { get; set; }
+        public DateTime AdEndDate { get; set; }
+        public int AdDuration { get; set; }
+        public bool IsDeleted { get; set; } = false;
 
         public ICollection<ApplicantEducation> ApplicantEducations { get; set; }
     }
