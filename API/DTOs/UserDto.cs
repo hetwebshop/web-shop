@@ -9,6 +9,10 @@
         public int CityId { get; set; }
         public string PhotoUrl { get; set; }
         public string Email { get; set; }
+        public bool IsCompany { get; set; } = false;
+        public string CompanyName { get; set; }
+        public string CompanyAddress { get; set; }
+        public string CompanyPhoneNumber { get; set; }
     }
 
     public class UserInfoDto

@@ -30,9 +30,6 @@ namespace API.Mappers
             this.CreateMap<ApplicantEducation, ApplicantEducationDto>();
             this.CreateMap<ApplicantEducationDto, ApplicantEducation>();
 
-            this.CreateMap<UserJobSubcategory, UserJobSubcategoryDto>();
-            this.CreateMap<UserJobSubcategoryDto, UserJobSubcategory>();
-
             CreateMap(typeof(PagedList<>), typeof(PagedList<>)).ConvertUsing(typeof(PagedListConverter<,>));
 
             this.CreateMap<PagedList<UserJobPostDto>, PagedResponse<UserJobPostDto>>()

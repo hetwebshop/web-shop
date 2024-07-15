@@ -1,6 +1,6 @@
 export interface Company {
     id: number;
-    name: string;
+    companyName: string;
     userName: string;
     token: string;
     photoUrl: string;

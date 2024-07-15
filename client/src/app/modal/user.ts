@@ -16,6 +16,8 @@ export interface User {
   jobCategoryId: number;
   dateOfBirth: Date;
   userEducations: UserEducation[];
+
+  isCompany: boolean;
 }
 
 export interface UserInfo {
@@ -45,4 +47,10 @@ export interface UserProfile {
   biography: string;
   cvFilePath: string;
   userEducations: UserEducation[];
+
+  isCompany: boolean;
+  companyName?: string;
+  companyAddress?: string;
+  companyPhoneNumber?: string;
+  aboutCompany?: string;
 }

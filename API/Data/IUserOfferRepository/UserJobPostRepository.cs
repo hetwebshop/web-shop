@@ -89,11 +89,6 @@ namespace API.Data.IUserOfferRepository
 
             if (existingUserJobPost != null)
             {
-                var userJobSubcategories = await DataContext.UserJobSubcategories.Where(r => r.UserJobPostId == updatedUserJobPost.Id).ToListAsync();
-                if (userJobSubcategories.Any())
-                {
-                    DataContext.UserJobSubcategories.RemoveRange(userJobSubcategories);
-                }
                 var applicantEducations = await DataContext.ApplicantEducations.Where(r => r.UserJobPostId == updatedUserJobPost.Id).ToListAsync();
                 if (applicantEducations.Any())
                 {
@@ -112,7 +107,6 @@ namespace API.Data.IUserOfferRepository
                 //existingUserJobPost.Tags = updatedUserJobPost.Tags;
                 existingUserJobPost.CreatedAt = updatedUserJobPost.CreatedAt;
                 existingUserJobPost.UpdatedAt = updatedUserJobPost.UpdatedAt;
-                existingUserJobPost.SubmittingUserId = updatedUserJobPost.SubmittingUserId;
                 existingUserJobPost.JobTypeId = updatedUserJobPost.JobTypeId;
                 existingUserJobPost.JobCategoryId = updatedUserJobPost.JobCategoryId;
                 existingUserJobPost.JobPostStatusId = updatedUserJobPost.JobPostStatusId;

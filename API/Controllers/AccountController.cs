@@ -70,6 +70,40 @@ namespace API.Controllers
             };
         }
 
+        [HttpPost("register-company")]
+        [AllowAnonymous]
+        public async Task<ActionResult<UserDto>> RegisterCompany(CompanyRegisterDto registerDto)
+        {
+            if (await UserNameExist(registerDto.UserName))
+                return BadRequest("Username is taken.");
+            if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
+                return BadRequest("Email is already registered.");
+
+            var user = _mapper.Map<User>(registerDto);
+            user.LastActive = DateTime.UtcNow;
+            user.Photo = new Photo();
+
+            var result = await _userManager.CreateAsync(user, registerDto.Password);
+            if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
+
+            result = await _userManager.AddToRoleAsync(user, RoleType.Company.ToString());
+            if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
+
+            var token = await _tokenService.CreateToken(user);
+
+            return new UserDto
+            {
+                CompanyName = user.Company.CompanyName,
+                CityId = user.CityId,
+                UserName = user.UserName,
+                Token = token,
+                PhotoUrl = user.Photo?.Url,
+                Email = user.Email,
+                IsCompany = true,
+                CompanyAddress = user.Company.Address,
+            };
+        }
+
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
@@ -96,6 +130,7 @@ namespace API.Controllers
                 Token = token,
                 PhotoUrl = user.Photo?.Url,
                 Email = user.Email,
+                IsCompany = user.IsCompany
             };
         }
 
@@ -118,7 +153,8 @@ namespace API.Controllers
                 UserName = user.UserName,
                 Token = token,
                 PhotoUrl = user.Photo?.Url,
-                Email = user.Email
+                Email = user.Email,
+                IsCompany = user.IsCompany
             };
         }
 
@@ -140,7 +176,8 @@ namespace API.Controllers
         public async Task<ActionResult> GetUserProfile()
         {
             var id = HttpContext.User.GetUserId();
-            return Ok(await _uow.UserRepository.GetProfile(id));
+            var up = await _uow.UserRepository.GetProfile(id);
+            return Ok(up);
         }
 
         [HttpPost("profile")]
@@ -183,6 +220,40 @@ namespace API.Controllers
 
             _mapper.Map(user, profileDto);
             return profileDto;
+        }
+
+        [HttpPost("company-profile")]
+        public async Task<ActionResult<UserProfileDto>> UpdateCompanyProfile([FromBody] CompanyProfileDto companyDto)
+        {
+            companyDto.UserId = HttpContext.User.GetUserId();
+
+            if (await _userManager.Users.AnyAsync(u => u.Id != companyDto.UserId &&
+                                                       u.NormalizedUserName == companyDto.UserName.ToUpper()))
+                return BadRequest("Username is taken.");
+            if (await _userManager.Users.AnyAsync(u => u.Id != companyDto.UserId &&
+                                                       u.NormalizedEmail == companyDto.UserName.ToUpper()))
+                return BadRequest("Email is already registered.");
+            if (HttpContext.User.GetUserName() == Constants.TestUser && companyDto.UserName.ToLower() != Constants.TestUser)
+                return BadRequest("Test User cannot change username.");
+
+            var user = await _userManager.Users.Include(r => r.Company).SingleAsync(u => u.Id == companyDto.UserId);
+            user.Company.Address = companyDto.CompanyAddress;
+            user.Company.PhoneNumber = companyDto.CompanyPhone;
+            user.Company.AboutUs = companyDto.AboutCompany;
+            user.Company.CompanyName = companyDto.CompanyName;
+            user.Company.Email = companyDto.UserName;
+            user.Company.CityId = companyDto.CityId;
+            user.Email = companyDto.UserName;
+            user.UserName = companyDto.UserName;
+            user.CityId = companyDto.CityId;
+            user.PhoneNumber = companyDto.CompanyPhone;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded) return BadRequest("Failed to update.");
+
+            UserProfileDto userProfile = _mapper.Map<UserProfileDto>(user);
+            return userProfile;
         }
 
         [HttpPost("change-photo")]

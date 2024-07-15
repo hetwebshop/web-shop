@@ -66,6 +66,15 @@ import { MyAdComponent } from './jobs/my-ads/my-ad/my-ad.component';
 import { MyAdsWrapper } from './jobs/my-ads/my-ads-wrapper.component';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
+import { EditCompanyProfileComponent } from './edit-company-profile/edit-company-profile.component';
+import { CompanyCreateJobComponent } from './jobs/company-create-job/company-create-job.component';
+import { CompanyJobAdsWrapperComponent } from './jobs/company-job-ads/company-job-ads-wrapper.component';
+import { CompanyJobAdsComponent } from './jobs/company-job-ads/company-job-ads/company-job-ads.component';
+import { SubmitApplicationModalComponent } from './modal/submit-application-modal/submit-application-modal.component';
+import { CompanyJobPreviewComponent } from './jobs/company-job-ads/company-job-preview/company-job-preview.component';
+import { CompanyMyAdsComponent } from './jobs/company-my-ads/company-my-ads.component';
+import { CompanyMyAdsWrapperComponent } from './jobs/company-my-ads/company-my-ads-wrapper.component';
+import { CompanyMyAdManagerComponent } from './jobs/company-my-ads/company-my-ad-manager/company-my-ad-manager.component';
 
 @Injectable()
 export class HammerConfig extends HammerGestureConfig {
@@ -120,7 +129,16 @@ export class HammerConfig extends HammerGestureConfig {
     UserJobsComponent,
     BackButtonDirective,
     MyAdComponent,
-    MyAdsWrapper
+    MyAdsWrapper,
+    EditCompanyProfileComponent,
+    CompanyCreateJobComponent,
+    CompanyJobAdsWrapperComponent,
+    CompanyJobAdsComponent,
+    SubmitApplicationModalComponent,
+    CompanyJobPreviewComponent,
+    CompanyMyAdsComponent,
+    CompanyMyAdsWrapperComponent,
+    CompanyMyAdManagerComponent
   ],
   imports: [
     BrowserModule,

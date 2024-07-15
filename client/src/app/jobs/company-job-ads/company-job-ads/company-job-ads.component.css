@@ -1,0 +1,50 @@
+.job-card {
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.job-card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.job-card.mat-card.dark-theme {
+    background-color: #333;
+    color: #fff;
+}
+
+.job-card.mat-card.dark-theme mat-card-header {
+    background-color: #555;
+}
+
+.job-info, .job-details {
+    padding: 10px;
+    padding-left: 16px;
+}
+
+.job-info h4, .job-details h4 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.job-info p, .job-details p {
+    margin-bottom: 10px;
+}
+
+.job-details, .job-info {
+    border-top: 1px solid #ddd;
+}
+
+.job-link {
+    /* Your custom styles for the <a> tag */
+    color: black; /* Change the color */
+    text-decoration: none; /* Remove underline */
+}
+
+:host ::ng-deep .mat-card-header-text {
+    margin: 8px !important;
+}
+:host ::ng-deep .mat-card-content {
+    margin-bottom: 0px !important;
+}
+    

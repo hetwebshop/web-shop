@@ -1,0 +1,40 @@
+<div class="container-fluid">
+    <div fxLayout="row" fxLayoutGap="10px" fxLayoutGap.xs="5px" fxLayoutAlign="start stretch" fxLayoutWrap>
+      
+      <!-- User Ads Filter -->
+      <div fxFlex="14%" fxHide.lt-md fxFlex.xs="100%" fxFlex.sm="100%" fxFlex.md="25%" fxFlex.lg="20%" fxLayoutAlign="start">
+        <app-user-ads-filter (filterSubmitted)="fetchPaginatedItems($event)"></app-user-ads-filter>
+      </div>
+  
+      <!-- Job Cards -->
+      <div fxFlex fxFlex.xs="100%" fxFlex.sm="100%" fxFlex.md="75%" fxFlex.lg="80%" fxLayout="column" fxLayoutAlign="start stretch">
+        <app-pagination *ngIf="paginationResponse" 
+          [listSize]="paginationResponse.pageSize" 
+          [totalPages]="paginationResponse.totalPages"
+          [page]="paginationResponse.currentPage"
+          (pageChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)">
+        </app-pagination>
+        
+        <div *ngFor="let job of allJobs$ | async" class="job-link" style="margin-bottom: 10px;">
+          <mat-card class="job-card">
+            <a class="job-link" [routerLink]="['/company-job-ads', job.id]">
+              <mat-card-header fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
+                <div fxFlex="grow">
+                  <mat-card-title>{{ job.adName }}</mat-card-title>
+                  <p><span style="font-size: 17px; font-weight: 500;">Pozicija:</span> {{ job.position }}</p>
+                  <p><span style="font-size: 17px; font-weight: 500;">Kategorija:</span> {{ getCategoryName(job.jobCategoryId) }}</p>
+                  <p><span style="font-size: 17px; font-weight: 500;">Tip posla:</span> {{ getJobType(job.jobTypeId) }}</p>
+                  <p><span style="font-size: 17px; font-weight: 500;">Opis posla:</span> {{ job.jobDescription }}</p>
+                </div>
+              </mat-card-header>
+            </a>
+            <div class="job-details">
+              <button *ngIf="job.emailForReceivingApplications" mat-raised-button (click)="openSubmitApplicationModal(job.emailForReceivingApplications)" color="accent">Prijavi se</button>
+            </div>
+          </mat-card>
+        </div>
+      </div>
+    </div>
+  </div>
+  

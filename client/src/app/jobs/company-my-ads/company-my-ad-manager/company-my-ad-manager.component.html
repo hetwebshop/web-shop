@@ -1,0 +1,100 @@
+<div *ngIf="job" fxLayout="row" fxLayoutAlign="center" style="margin-top: 100px;">
+    <mat-card class="text-center" fxFlex="40" fxFlex.lt-sm="90" fxFlex.lt-md="60" fxFlex.lt-lg="50">
+      <mat-card-title class="my-4">
+        Uredi objavu
+      </mat-card-title>
+          <mat-card-content class="mt-5">
+        <form [formGroup]="adUpdateForm" (ngSubmit)="onSubmit()" fxLayout="column" fxLayoutAlign="center">
+          <div *ngIf="!isJobInStatusClosedOrDeleted" fxFlex="45" fxFlex.lt-sm="90" style="margin-bottom: 20px; display: flex; align-items: start;">
+            <button mat-raised-button color="warn" (click)="deleteAd($event)">Obriši objavu</button>
+          </div>
+          <div *ngIf="!isJobInStatusClosedOrDeleted" fxFlex="45" fxFlex.lt-sm="90" style="margin-bottom: 20px; display: flex; align-items: start;">
+            <button mat-raised-button color="primary" (click)="closeAd($event)">Završi objavu</button>
+          </div>
+          <div *ngIf="canJobBeReactivated" fxFlex="45" fxFlex.lt-sm="90" style="margin-bottom: 20px; display: flex; align-items: start;">
+            <button mat-raised-button color="primary" (click)="reactivateAd($event)">Reaktiviraj objavu</button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+            <div style="display: flex; text-align: start;">
+              <span style="font-weight: bold; margin-right: 10px; width: 200px;">Status oglasa:</span>
+              <span>{{ getEnumStatusValue(job.jobPostStatusId) }}</span>
+            </div>
+            <div style="display: flex; text-align: start;">
+              <span style="font-weight: bold; margin-right: 10px; width: 200px;">Period trajanja oglasa:</span>
+              <span>{{ job.adDuration }} dana</span>
+            </div>
+            <div style="display: flex; text-align: start;">
+              <span style="font-weight: bold; margin-right: 10px; width: 200px;">Datum početka objave:</span>
+              <span>{{ job.adStartDate | date: 'dd.MM.yyyy' }}</span>
+            </div>
+            <div style="display: flex; text-align: start;">
+              <span style="font-weight: bold; margin-right: 10px; width: 200px;">Datum isteka objave:</span>
+              <span>{{ job.adEndDate | date: 'dd.MM.yyyy' }}</span>
+            </div>
+          </div>
+  
+          <input type="hidden" formControlName="id"> 
+          <!-- Details about user -->
+          <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+            <mat-form-field appearance="outline" fxFlex class="flex-item full-width">
+              <mat-label>Naslov oglasa</mat-label>
+              <input matInput type="text" formControlName="adName" placeholder="Unesite naslov oglasa" required />
+            </mat-form-field>
+          </div>
+
+          <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+            <mat-form-field appearance="outline" fxFlex class="flex-item full-width">
+                <mat-label>Pozicija</mat-label>
+                <input matInput type="text" formControlName="position" placeholder="Unesite poziciju" required />
+              </mat-form-field>
+        </div>
+          
+          <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+            <mat-form-field appearance="outline" fxFlex class="flex-item full-width">
+              <mat-label>Email za primanje aplikacija</mat-label>
+              <input matInput type="email" formControlName="emailForReceivingApplications" placeholder="Unesite email za primanje aplikacija" required />
+            </mat-form-field>
+          </div>          
+          <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Država</mat-label>
+              <mat-select formControlName="countryId" placeholder="Odaberite državu">
+                <mat-option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+  
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Grad</mat-label>
+              <mat-select formControlName="cityId" placeholder="Odaberite grad">
+                <mat-option *ngFor="let city of cities" [value]="city?.id">{{ city?.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+   
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Detalji oglasa za posao</mat-label>
+            <textarea matInput formControlName="jobDescription" rows="7" placeholder="Unesite detalje oglasa za posao" required></textarea>
+          </mat-form-field>
+           
+          <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start stretch">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Kategorija posla</mat-label>
+              <mat-select formControlName="jobCategoryId" (selectionChange)="onCategoryChange($event.value)">
+                <mat-option *ngFor="let category of jobCategories" [value]="category?.id">{{ category?.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+  
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Tip posla</mat-label>
+            <mat-select formControlName="jobTypeId" placeholder="Odaberite tip posla">
+              <mat-option *ngFor="let jobType of jobTypes" [value]="jobType?.id">{{ jobType?.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+  
+          <button *ngIf="!isJobInStatusClosedOrDeleted" mat-raised-button color="primary" type="submit">Uredi objavu</button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  

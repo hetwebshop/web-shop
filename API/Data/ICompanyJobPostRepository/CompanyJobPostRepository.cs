@@ -1,0 +1,139 @@
+﻿using API.Data.Pagination;
+using API.Entities.CompanyJobPost;
+using API.PaginationEntities;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace API.Data.ICompanyJobPostRepository
+{
+    public class CompanyJobPostRepository : RepositoryBase<CompanyJobPost>, ICompanyJobPostRepository
+    {
+        ISortHelper<CompanyJobPost> _sortHelper;
+
+        public CompanyJobPostRepository(DataContext dataContext, ISortHelper<CompanyJobPost> sortHelper)
+            : base(dataContext)
+        {
+            _sortHelper = sortHelper;
+        }
+
+        private IQueryable<CompanyJobPost> GetCompanyJobPostBaseQuery()
+        {
+            return DataContext.CompanyJobPosts.
+                Include(r => r.JobCategory).
+                Include(r => r.JobPostStatus).
+                Include(r => r.JobType).
+                Include(r => r.User).
+                Include(r => r.City).
+                ThenInclude(r => r.Country);
+        }
+
+        public async Task<PagedList<CompanyJobPost>> GetJobPostsAsync(AdsPaginationParameters adsParameters)
+        {
+            var companyJobPosts = FindByCondition(u =>
+                (u.AdEndDate >= DateTime.UtcNow) &&
+                (adsParameters.CompanyId == null || adsParameters.CompanyId == u.User.CompanyId) &&
+                (adsParameters.cityIds == null || adsParameters.cityIds.Contains(u.CityId)) &&
+                (adsParameters.jobCategoryIds == null || adsParameters.jobCategoryIds.Contains(u.JobCategoryId)) &&
+                (adsParameters.jobTypeIds == null || adsParameters.jobTypeIds.Contains(u.JobTypeId)) &&
+                (
+                    (adsParameters.fromDate == null && adsParameters.toDate == null) ||
+                    (adsParameters.fromDate.HasValue && !adsParameters.toDate.HasValue && u.CreatedAt.Date >= adsParameters.fromDate.Value.Date) ||
+                    (adsParameters.fromDate.HasValue && adsParameters.toDate.HasValue && u.CreatedAt.Date >= adsParameters.fromDate.Value.Date && u.CreatedAt.Date <= adsParameters.toDate.Value.Date) ||
+                    (!adsParameters.fromDate.HasValue && adsParameters.toDate.HasValue && u.CreatedAt.Date <= adsParameters.toDate.Value.Date))
+                );
+
+            //Add method to search by keyword here
+
+            companyJobPosts = _sortHelper.ApplySort(companyJobPosts, adsParameters.OrderBy);
+            return await PagedList<CompanyJobPost>.ToPagedListAsync(companyJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
+        }
+
+        public async Task<List<CompanyJobPost>> GetCompanyAdsAsync(int companyId)
+        {
+            var userJobPosts = await GetCompanyJobPostBaseQuery().Where(r => r.User.CompanyId == companyId).ToListAsync();
+            return userJobPosts;
+        }
+
+        public async Task<CompanyJobPost> GetCompanyJobPostByIdAsync(int id)
+        {
+            var userJobPost = await GetCompanyJobPostBaseQuery().FirstOrDefaultAsync(r => r.Id == id);
+            return userJobPost;
+        }
+
+        public async Task<CompanyJobPost> CreateCompanyJobPostAsync(CompanyJobPost newCompanyJobPost)
+        {
+            try
+            {
+                await DataContext.CompanyJobPosts.AddAsync(newCompanyJobPost);
+                await DataContext.SaveChangesAsync();
+                return newCompanyJobPost;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<CompanyJobPost> UpdateCompanyJobPostAsync(CompanyJobPost updatedCompanyJobPost)
+        {
+            var existingCompanyJobPost = await DataContext.CompanyJobPosts.FindAsync(updatedCompanyJobPost.Id);
+
+            if (existingCompanyJobPost != null)
+            {
+                existingCompanyJobPost.JobDescription = updatedCompanyJobPost.JobDescription;
+                existingCompanyJobPost.CreatedAt = updatedCompanyJobPost.CreatedAt;
+                existingCompanyJobPost.UpdatedAt = updatedCompanyJobPost.UpdatedAt;
+                existingCompanyJobPost.JobTypeId = updatedCompanyJobPost.JobTypeId;
+                existingCompanyJobPost.JobCategoryId = updatedCompanyJobPost.JobCategoryId;
+                existingCompanyJobPost.JobPostStatusId = updatedCompanyJobPost.JobPostStatusId;
+                existingCompanyJobPost.CityId = updatedCompanyJobPost.CityId;
+                existingCompanyJobPost.Position = updatedCompanyJobPost.Position;
+                existingCompanyJobPost.AdName = updatedCompanyJobPost.AdName;
+
+                await DataContext.SaveChangesAsync();
+            }
+
+            var updatedItem = await DataContext.CompanyJobPosts.FindAsync(updatedCompanyJobPost.Id);
+            return updatedItem;
+        }
+        public async Task<bool> DeleteCompanyJobPostByIdAsync(int id)
+        {
+            var companyJobPost = await DataContext.CompanyJobPosts.FindAsync(id);
+            if (companyJobPost != null)
+            {
+                companyJobPost.IsDeleted = true;
+                companyJobPost.JobPostStatusId = (int)Helpers.JobPostStatus.Deleted;
+                await DataContext.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> CloseCompanyJobPostByIdAsync(int id)
+        {
+            var companyJobPost = await DataContext.CompanyJobPosts.FindAsync(id);
+            if (companyJobPost != null)
+            {
+                companyJobPost.JobPostStatusId = (int)Helpers.JobPostStatus.Closed;
+                await DataContext.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> ReactivateCompanyJobPostByIdAsync(int id)
+        {
+            var companyJobPost = await DataContext.CompanyJobPosts.FindAsync(id);
+            if (companyJobPost != null)
+            {
+                companyJobPost.JobPostStatusId = (int)Helpers.JobPostStatus.Active;
+                await DataContext.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+    }
+}

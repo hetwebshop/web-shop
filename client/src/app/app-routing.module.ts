@@ -19,6 +19,14 @@ import { UserJobsComponent } from './jobs/user-jobs/user-jobs.component';
 import { ContactUsComponent } from './contactUs/contactus.component';
 import { MyAdComponent } from './jobs/my-ads/my-ad/my-ad.component';
 import { MyAdsWrapper } from './jobs/my-ads/my-ads-wrapper.component';
+import { EditCompanyProfileComponent } from './edit-company-profile/edit-company-profile.component';
+import { CompanyCreateJobComponent } from './jobs/company-create-job/company-create-job.component';
+import { CompanyJobAdsWrapperComponent } from './jobs/company-job-ads/company-job-ads-wrapper.component';
+import { CompanyJobAdsComponent } from './jobs/company-job-ads/company-job-ads/company-job-ads.component';
+import { CompanyJobPreviewComponent } from './jobs/company-job-ads/company-job-preview/company-job-preview.component';
+import { CompanyMyAdsWrapperComponent } from './jobs/company-my-ads/company-my-ads-wrapper.component';
+import { CompanyMyAdsComponent } from './jobs/company-my-ads/company-my-ads.component';
+import { CompanyMyAdManagerComponent } from './jobs/company-my-ads/company-my-ad-manager/company-my-ad-manager.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent, data: { breadcrumb: {alias: 'Uredi oglas 1'}} },
@@ -27,19 +35,31 @@ const routes: Routes = [
   { path: 'about', component: AboutComponent, data: { breadcrumb: {alias: 'Uredi oglas 4'}} },
   { path: 'contact-us', component: ContactUsComponent, data: { breadcrumb: {alias: 'Uredi oglas 4'}} },
   { path: 'edit-profile', component: EditProfileComponent, data: { breadcrumb: {alias: 'Uredi oglas 5'} } },
+  { path: 'edit-company-profile', component: EditCompanyProfileComponent, data: { breadcrumb: {alias: 'Uredi oglas 5'} } },
   { path: 'ads', component: UserJobsComponent, data: { breadcrumb: {alias: 'Uredi oglas6'} }, 
   children: [
     { path: '', component: UserJobsListComponent },
     { path: ':id', component: JobDetailsPreviewComponent}
   ]},
+  { path: 'company-job-ads', component: CompanyJobAdsWrapperComponent, data: { breadcrumb: {alias: 'Uredi oglas6'} }, 
+  children: [
+    { path: '', component: CompanyJobAdsComponent },
+    { path: ':id', component: CompanyJobPreviewComponent}
+  ]},
   //{ path: 'user-job-details-preview/:id', component: JobDetailsPreviewComponent, data: { breadcrumb: {alias: 'Uredi oglas7'} }},
   { path: 'user-job-details/:id', component: JobDetailsManagerComponent,  data: { breadcrumb: {alias: 'Uredi oglas8'} }},
   { path: 'create-job-ad', component: JobDetailsManagerComponent, data: { breadcrumb: {alias: 'Uredi oglas9'}  }},
+  { path: 'company-create-job-ad', component: CompanyCreateJobComponent, data: { breadcrumb: {alias: 'Uredi oglas9'}  }},
   { path: 'create-service-ad', component: JobDetailsManagerComponent, data: { breadcrumb: {alias: 'Uredi oglas9'}  }},
   { path: 'my-ads', component: MyAdsWrapper, data: {breadcrumb: {alias: 'Uredi oglas91'} },
   children: [
     { path: '', component: MyAdsComponent },
     { path: ':id', component: MyAdComponent}
+  ]},
+  { path: 'company-my-ads', component: CompanyMyAdsWrapperComponent, data: {breadcrumb: {alias: 'Uredi oglas91'} },
+  children: [
+    { path: '', component: CompanyMyAdsComponent },
+    { path: ':id', component: CompanyMyAdManagerComponent}
   ]},
   // {
   //   path: '',

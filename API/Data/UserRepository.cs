@@ -24,6 +24,7 @@ namespace API.Data
             var user = await DataContext.Users
                 .Include(u => u.City)
                 .Include(u => u.UserEducations)
+                .Include(u => u.Company)
                 .Where(u => u.Id == id)
                 .ProjectTo<UserProfileDto>(Mapper.ConfigurationProvider)
                 .AsNoTracking()
@@ -69,6 +70,11 @@ namespace API.Data
                     return true;
             }
             return false;
+        }
+
+        public async Task<User> GetUserByIdAsync(int userId)
+        {
+            return DataContext.Users.Where(r => r.Id == userId).FirstOrDefault();
         }
     }
 }

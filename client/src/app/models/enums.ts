@@ -1,6 +1,6 @@
 export enum Gender {
-    Male = 'Muško',
-    Female = 'Žensko',
+    Male = 'Muškarac',
+    Female = 'Žena',
     Other = 'Ostali'
 }
 

@@ -30,6 +30,8 @@ export class NavComponent implements OnInit {
     private route: ActivatedRoute,
   ) {
     this.accountService.user$.subscribe((u) => (this.user = u));
+
+    console.log("USER US ", this.accountService.user$);
   }
 
   @ViewChild('sidenav') sidenav: MatSidenav;

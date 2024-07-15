@@ -1,0 +1,66 @@
+/* .job-details-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  } */
+
+  .job-details-content {
+    flex-grow: 1;
+  }
+  
+  .job-info, .job-biography {
+    margin-bottom: 20px;
+  }
+  
+  .job-info p, .job-biography p {
+    margin-bottom: 5px;
+  }
+  
+  .readonly-input {
+    border: none;
+    background-color: transparent;
+    cursor: default; /* Prevent cursor change */
+    pointer-events: none;
+  }
+  
+
+  /* Add this CSS to your styles.scss or component-specific CSS file */
+
+.mat-form-field-disabled .mat-form-field-wrapper {
+    background-color: transparent; /* Change background color */
+  }
+  
+  .mat-form-field-disabled .mat-form-field-label {
+    color: black; /* Change label color */
+  }
+  
+  .mat-form-field-disabled .mat-form-field-underline {
+    background-color: #2196F3; /* Change underline color */
+  }
+  
+  .readonly-input {
+    cursor: default; /* Prevent cursor change */
+  }
+  .job-details-container {
+    width: 85%;
+    margin: 0 auto; /* Center the container horizontally */
+  }
+  
+
+  /* mat-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .title {
+    margin-left: 0;
+    margin-right: auto;
+  }
+  
+  .actions {
+    margin-right: 0;
+    margin-left: auto;
+  } */
+
+  

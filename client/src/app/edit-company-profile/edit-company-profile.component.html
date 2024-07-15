@@ -1,0 +1,72 @@
+<div *ngIf="company" fxLayout="column" fxLayoutGap="20px" fxLayoutAlign="center center" style="margin-top: 50px;">
+    <div fxLayoutAlign="center center">
+        <mat-card *ngIf="(accountService.user$ | async) as userInfo" class="text-center" fxFlex="200px">
+            <div class="edit-photo">
+                <img src="{{userInfo.photoUrl || './assets/images/profile.png'}}" alt="" class="rounded-circle"
+                    width="128">
+                <button color="primary" [matMenuTriggerFor]="menu" mat-mini-fab>
+                    <mat-icon>edit</mat-icon>
+                </button>
+            </div>
+            <input type="file" #file style="display:none" accept=".jpg,.png,.gif"
+                (change)="changePhoto($event.target.files)">
+            <mat-menu #menu="matMenu">
+                <button mat-menu-item (click)="file.click()">
+                    Promijeni
+                </button>
+                <button [disabled]="!userInfo.photoUrl" mat-menu-item (click)="removePhoto()">
+                    Ukloni
+                </button>
+            </mat-menu>
+        </mat-card>
+    </div>
+    <div fxLayoutAlign="center center">
+        <mat-card class="text-center" fxFlex="60" fxFlex.lt-sm="90" fxFlex.lt-md="80" fxFlex.lt-lg="70"
+            style="margin-bottom: 2px;">
+            <h2>Uredi Kompaniju</h2>
+            <mat-card-content class="mt-3">
+                <form [formGroup]="companyProfileUpdate" (ngSubmit)="onSubmit()" autocomplete="off">
+                    <div style="border-bottom: 1px solid #ddd; margin-bottom: 20px;" fxLayout="row wrap"
+                        fxLayoutAlign="space-around center">
+                        <mat-card-subtitle fxFlex="95" fxLayoutAlign="start"
+                            style="font-weight: 500; color: black; border-bottom: 1px solid #ddd;">Podaci Kompanije
+                        </mat-card-subtitle>
+                        <app-input fxFlex="45" fxFlex.lt-sm="90" label="Naziv kompanije"
+                            [formControl]="companyProfileUpdate.get('companyName')">
+                        </app-input>
+                        <app-input fxFlex="45" fxFlex.lt-sm="90" label="Korisničko ime"
+                            [formControl]="companyProfileUpdate.get('userName')">
+                        </app-input>
+                        <app-input fxFlex="45" fxFlex.lt-sm="90" label="Email" type="email"
+                            [formControl]="companyProfileUpdate.get('email')">
+                        </app-input>
+                        <app-input fxFlex="45" fxFlex.lt-sm="90" label="Broj telefona"
+                            [formControl]="companyProfileUpdate.get('companyPhone')">
+                        </app-input>
+                        <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                            <mat-label>Grad</mat-label>
+                            <mat-select formControlName="cityId" placeholder="Grad">
+                                <mat-option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</mat-option>
+                            </mat-select>
+                            <mat-error *ngIf="companyProfileUpdate.get('cityId').invalid">Potrebno je da unesete
+                                grad</mat-error>
+                        </mat-form-field>
+                        <app-input fxFlex="45" fxFlex.lt-sm="90" label="Adresa"
+                        [formControl]="companyProfileUpdate.get('companyAddress')">
+                    </app-input>
+                        <mat-form-field fxFlex="95" appearance="outline" class="full-width">
+                            <mat-label>O nama</mat-label>
+                            <textarea matInput formControlName="aboutCompany" rows="4" placeholder="Opišite kompaniju"
+                                required></textarea>
+                        </mat-form-field>
+
+                    </div>
+                    <button mat-flat-button [disabled]="!companyProfileUpdate.valid || companyProfileUpdate.pristine" color="primary"
+                        type="submit">
+                        Ažuriraj
+                    </button>
+                </form>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>

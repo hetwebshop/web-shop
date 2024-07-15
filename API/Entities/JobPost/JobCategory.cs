@@ -7,10 +7,7 @@ namespace API.Entities.JobPost
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public int? ParentId { get; set; }
-        [JsonIgnore]
-        public JobCategory ParentCategory { get; set; }
-        public ICollection<JobCategory> Subcategories { get; set; }
         public ICollection<UserJobPost> UserJobPosts { get; set; }
+        public ICollection<CompanyJobPost.CompanyJobPost> CompanyJobPosts { get; set; }
     }
 }

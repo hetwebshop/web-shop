@@ -13,6 +13,8 @@ using System.Text;
 using API.Services.UserOfferServices;
 using API.Data.IUserOfferRepository;
 using API.Data.Pagination;
+using API.Services.CompanyJobPostServices;
+using API.Data.ICompanyJobPostRepository;
 
 namespace API.Extensions
 {
@@ -43,6 +45,8 @@ namespace API.Extensions
             //jobPosts
             services.AddScoped<IUserJobPostService, UserJobPostService>();
             services.AddScoped<IUserJobPostRepository, UserJobPostRepository>();
+            services.AddScoped<ICompanyJobPostService, CompanyJobPostService>();
+            services.AddScoped<ICompanyJobPostRepository, CompanyJobPostRepository>();
 
             //locations
             services.AddScoped<ILocationRepository, LocationRepository>();

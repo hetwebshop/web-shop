@@ -1,0 +1,25 @@
+<h2 mat-dialog-title>Pošaljite Email</h2>
+<div mat-dialog-content fxLayout="column" fxLayoutGap="10px">
+  <mat-form-field>
+    <input matInput placeholder="Pošiljatelj" [(ngModel)]="fromEmail">
+  </mat-form-field>
+  <mat-form-field>
+    <input matInput placeholder="Primalac" [(ngModel)]="toEmail" disabled>
+  </mat-form-field>
+  <mat-form-field>
+    <input matInput placeholder="Naslov" [(ngModel)]="title" disabled>
+  </mat-form-field>
+  <mat-form-field fxFlex>
+    <textarea matInput placeholder="Motivaciono pismo" [(ngModel)]="coverLetter" rows="7"></textarea>
+  </mat-form-field>
+  <div fxFlex>
+    <label for="file-upload" class="custom-file-upload">
+      <input type="file" id="file-upload" (change)="onFileChange($event)" />
+      Upload CV
+    </label>
+  </div>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="openCancelConfirmationModal()">Otkaži</button>
+  <button mat-button color="primary" (click)="submitApplication()">Apliciraj</button>
+</div>

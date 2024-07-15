@@ -2,13 +2,17 @@
   <mat-sidenav-content>
     <mat-toolbar>
       <mat-toolbar-row>
-        <div fxLayout="row" fxLayoutGap="2%" fxFlexFill fxLayoutAlign="space-between center">
+        <div fxLayout="row" fxLayoutGap="1%" fxFlexFill fxLayoutAlign="space-between center">
           <div>
             <span class="brand" routerLink="/">ZaposliMe</span>
           </div>
-          <div fxLayout="row" fxLayoutGap="2%" class="pe-4">
+          <div fxLayout="row" fxLayoutGap="1%" class="pe-4">
             <div>
               <span class="brand" [routerLink]="['/create-job-ad']">Kreiraj Oglas</span>
+            </div>
+            <span class="separator">|</span>
+            <div>
+              <span class="brand" [routerLink]="['/company-create-job-ad']">Kreiraj Oglas za Posao</span>
             </div>
             <span class="separator">|</span>
             <div>
@@ -24,12 +28,16 @@
             </div>
             <span class="separator">|</span>
             <div>
+              <span class="brand" [routerLink]="['/company-job-ads']">Pretraži oglase od kompanija</span>
+            </div>
+            <!-- <span class="separator">|</span>
+            <div>
               <span class="brand" routerLink="/about">O nama</span>
             </div>
             <span class="separator">|</span>
             <div>
               <span class="brand" routerLink="/contact-us">Kontakt</span>
-            </div>
+            </div> -->
           </div>
           
           
@@ -47,8 +55,11 @@
             </button>
 
             <mat-menu #navMenu="matMenu">
-              <button mat-menu-item routerLink="/my-ads">Moje objave</button>
-              <button mat-menu-item routerLink="/edit-profile">Uredi profil</button>
+              <button mat-menu-item [routerLink]="user?.roles.includes('Company') ? '/company-my-ads' : '/my-ads'">{{ user?.roles.includes('Company') ? 'Objave kompanije' : 'Moje objave' }}</button>
+              <button mat-menu-item [routerLink]="user?.roles.includes('Company') ? '/edit-company-profile' : '/edit-profile'">
+                {{ user?.roles.includes('Company') ? 'Uredi profil kompanije' : 'Uredi profil' }}
+              </button>
+              
               <button mat-menu-item (click)="logout()">Odjavi se</button>
             </mat-menu>
           </div>

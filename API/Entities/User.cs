@@ -24,8 +24,15 @@ namespace API.Entities
         public string Position { get; set; }
         public string Biography { get; set; }
         public string CvFilePath { get; set; }
+
+        public bool IsCompany { get; set; }
+        public int? CompanyId { get; set; }
+        public Company Company { get; set; }
+
         public ICollection<UserRole> UserRoles { get; set; }
         public ICollection<UserJobPost> UserJobPosts { get; set; }
         public ICollection<UserEducation> UserEducations { get; set; }
+
+        public ICollection<CompanyJobPost.CompanyJobPost> CompanyJobPosts { get; set; }
     }
 }

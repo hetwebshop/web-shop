@@ -46,6 +46,113 @@ namespace API.Migrations
                     b.ToTable("Cities");
                 });
 
+            modelBuilder.Entity("API.Entities.Company", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("AboutUs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CompanyName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.ToTable("Companies");
+                });
+
+            modelBuilder.Entity("API.Entities.CompanyJobPost.CompanyJobPost", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("AdDuration")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("AdEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AdName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("AdStartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CityId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
+
+                    b.Property<string>("EmailForReceivingApplications")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("JobCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("JobDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("JobPostStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("JobTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Position")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SubmittingUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("JobCategoryId");
+
+                    b.HasIndex("JobPostStatusId");
+
+                    b.HasIndex("JobTypeId");
+
+                    b.HasIndex("SubmittingUserId");
+
+                    b.ToTable("CompanyJobPosts");
+                });
+
             modelBuilder.Entity("API.Entities.Country", b =>
                 {
                     b.Property<int>("Id")
@@ -125,12 +232,7 @@ namespace API.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ParentId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("ParentId");
 
                     b.ToTable("JobCategories");
                 });
@@ -264,21 +366,6 @@ namespace API.Migrations
                     b.ToTable("UserJobPosts");
                 });
 
-            modelBuilder.Entity("API.Entities.JobPost.UserJobSubcategory", b =>
-                {
-                    b.Property<int>("UserJobPostId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("JobCategoryId")
-                        .HasColumnType("int");
-
-                    b.HasKey("UserJobPostId", "JobCategoryId");
-
-                    b.HasIndex("JobCategoryId");
-
-                    b.ToTable("UserJobSubcategories");
-                });
-
             modelBuilder.Entity("API.Entities.Photo", b =>
                 {
                     b.Property<int>("Id")
@@ -345,6 +432,9 @@ namespace API.Migrations
                     b.Property<int>("CityId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
@@ -367,6 +457,9 @@ namespace API.Migrations
 
                     b.Property<int>("Gender")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsCompany")
+                        .HasColumnType("bit");
 
                     b.Property<int?>("JobCategoryId")
                         .HasColumnType("int");
@@ -422,6 +515,8 @@ namespace API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CityId");
+
+                    b.HasIndex("CompanyId");
 
                     b.HasIndex("JobCategoryId");
 
@@ -592,6 +687,60 @@ namespace API.Migrations
                     b.Navigation("Country");
                 });
 
+            modelBuilder.Entity("API.Entities.Company", b =>
+                {
+                    b.HasOne("API.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("City");
+                });
+
+            modelBuilder.Entity("API.Entities.CompanyJobPost.CompanyJobPost", b =>
+                {
+                    b.HasOne("API.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("API.Entities.JobPost.JobCategory", "JobCategory")
+                        .WithMany("CompanyJobPosts")
+                        .HasForeignKey("JobCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("API.Entities.JobPost.JobPostStatus", "JobPostStatus")
+                        .WithMany()
+                        .HasForeignKey("JobPostStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("API.Entities.JobPost.JobType", "JobType")
+                        .WithMany()
+                        .HasForeignKey("JobTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("API.Entities.User", "User")
+                        .WithMany("CompanyJobPosts")
+                        .HasForeignKey("SubmittingUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("City");
+
+                    b.Navigation("JobCategory");
+
+                    b.Navigation("JobPostStatus");
+
+                    b.Navigation("JobType");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("API.Entities.JobPost.ApplicantEducation", b =>
                 {
                     b.HasOne("API.Entities.JobPost.UserJobPost", "UserJobPost")
@@ -600,15 +749,6 @@ namespace API.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("UserJobPost");
-                });
-
-            modelBuilder.Entity("API.Entities.JobPost.JobCategory", b =>
-                {
-                    b.HasOne("API.Entities.JobPost.JobCategory", "ParentCategory")
-                        .WithMany("Subcategories")
-                        .HasForeignKey("ParentId");
-
-                    b.Navigation("ParentCategory");
                 });
 
             modelBuilder.Entity("API.Entities.JobPost.UserJobPost", b =>
@@ -662,25 +802,6 @@ namespace API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("API.Entities.JobPost.UserJobSubcategory", b =>
-                {
-                    b.HasOne("API.Entities.JobPost.JobCategory", "JobCategory")
-                        .WithMany()
-                        .HasForeignKey("JobCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("API.Entities.JobPost.UserJobPost", "UserJobPost")
-                        .WithMany()
-                        .HasForeignKey("UserJobPostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("JobCategory");
-
-                    b.Navigation("UserJobPost");
-                });
-
             modelBuilder.Entity("API.Entities.User", b =>
                 {
                     b.HasOne("API.Entities.City", "City")
@@ -688,6 +809,11 @@ namespace API.Migrations
                         .HasForeignKey("CityId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("API.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("API.Entities.JobPost.JobCategory", "JobCategory")
                         .WithMany()
@@ -705,6 +831,8 @@ namespace API.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("City");
+
+                    b.Navigation("Company");
 
                     b.Navigation("JobCategory");
 
@@ -791,7 +919,7 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Entities.JobPost.JobCategory", b =>
                 {
-                    b.Navigation("Subcategories");
+                    b.Navigation("CompanyJobPosts");
 
                     b.Navigation("UserJobPosts");
                 });
@@ -813,6 +941,8 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Entities.User", b =>
                 {
+                    b.Navigation("CompanyJobPosts");
+
                     b.Navigation("UserEducations");
 
                     b.Navigation("UserJobPosts");

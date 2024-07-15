@@ -5,13 +5,8 @@ namespace API.Helpers
     public enum RoleType
     {
         Admin,
-        StoreModerator,
-        TrackModerator,
-        TrackAgent,
-        TrackAdmin,
-        StoreAdmin,
-        StoreAgent,
-        User
+        User,
+        Company
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]

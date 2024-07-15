@@ -51,7 +51,7 @@ export class AccountService {
   }
 
   registerCompany(model) {
-    model.userName = model.emal;
+    model.userName = model.email;
     return this.http.post<User>(this.baseUrl + 'register-company', model).pipe(
       map((user: User) => {
         if (user) {
@@ -116,6 +116,15 @@ export class AccountService {
     return this.http.post<any>(this.baseUrl + 'profile', formData).pipe(
       map((response) => {
         // Perform any additional actions on response if needed
+        return response;
+      })
+    );
+  }
+
+  updateCompanyProfile(formData: FormData) {
+    console.log("COMPANY IS", formData);
+    return this.http.post<any>(this.baseUrl + 'company-profile', formData).pipe(
+      map((response) => {
         return response;
       })
     );

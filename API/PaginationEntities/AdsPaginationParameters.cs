@@ -17,5 +17,6 @@ namespace API.PaginationEntities
         public DateTime? fromDate { get; set; }
         public DateTime? toDate { get; set; }
         public int? UserId { get; set; }
+        public int? CompanyId { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using API.Entities;
+using API.Entities.CompanyJobPost;
 using API.Entities.JobPost;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -23,12 +24,10 @@ namespace API.Data
         public DbSet<JobCategory> JobCategories { get; set; }
         public DbSet<JobPostStatus> JobPostStatuses { get; set; }
         public DbSet<ApplicantEducation> ApplicantEducations { get; set; }
-        public DbSet<UserJobSubcategory> UserJobSubcategories { get; set; }
         public DbSet<AdvertisementType> AdvertisementTypes { get; set; }
         public DbSet<UserEducation> UserEducations { get; set; }
-
-        //public DbSet<Canton> Cantons { get; set; }
-        //public DbSet<Municipality> Municipalities { get; set; }
+        public DbSet<Company> Companies { get; set; }
+        public DbSet<CompanyJobPost> CompanyJobPosts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -37,6 +36,42 @@ namespace API.Data
             RegisterUserRolesTables(builder);
             RegisterAddressTables(builder);
             RegisterJobPostTables(builder);
+            RegisterCompanyJobPostTables(builder);
+        }
+
+        private void RegisterCompanyJobPostTables(ModelBuilder builder)
+        {
+            builder.Entity<CompanyJobPost>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETDATE()");
+                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETDATE()");
+
+                entity.HasOne(e => e.User)
+                      .WithMany(u => u.CompanyJobPosts)
+                      .HasForeignKey(e => e.SubmittingUserId)
+                      .IsRequired()
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.JobType)
+                      .WithMany()
+                      .HasForeignKey(e => e.JobTypeId)
+                      .IsRequired()
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.JobCategory)
+                      .WithMany(c => c.CompanyJobPosts)
+                      .HasForeignKey(e => e.JobCategoryId)
+                      .IsRequired()
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.City)
+                      .WithMany()
+                      .HasForeignKey(e => e.CityId)
+                      .OnDelete(DeleteBehavior.NoAction);
+                entity.Property(c => c.CityId).HasDefaultValue(1);
+            });;
         }
 
         private void RegisterJobPostTables(ModelBuilder builder)
@@ -54,12 +89,6 @@ namespace API.Data
                       .HasForeignKey(e => e.SubmittingUserId)
                       .IsRequired()
                       .OnDelete(DeleteBehavior.Restrict);
-
-                //entity.HasOne(e => e.Address)
-                //      .WithOne()
-                //      .HasForeignKey<UserJobPost>(e => e.AddressId)
-                //      .IsRequired(false)
-                //      .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(e => e.JobType)
                       .WithMany()
@@ -99,33 +128,25 @@ namespace API.Data
                 entity.HasKey(e => e.Id);
             });
 
+            //builder.Entity<JobCategory>(entity =>
+            //{
+            //    entity.HasKey(e => e.Id);
+
+            //    entity.HasOne(c => c.ParentCategory) // Each category has one parent category
+            //        .WithMany(c => c.Subcategories) // Each category can have multiple subcategories
+            //        .HasForeignKey(c => c.ParentId) // Foreign key property
+            //        .IsRequired(false); // ParentId is nullable to allow top-level categories
+            //});
+
             builder.Entity<JobCategory>(entity =>
             {
                 entity.HasKey(e => e.Id);
-
-                entity.HasOne(c => c.ParentCategory) // Each category has one parent category
-                    .WithMany(c => c.Subcategories) // Each category can have multiple subcategories
-                    .HasForeignKey(c => c.ParentId) // Foreign key property
-                    .IsRequired(false); // ParentId is nullable to allow top-level categories
             });
 
             builder.Entity<JobPostStatus>(entity =>
             {
                 entity.HasKey(e => e.Id);
             });
-
-            builder.Entity<UserJobSubcategory>()
-                .HasKey(uc => new { uc.UserJobPostId, uc.JobCategoryId });
-
-            //builder.Entity<UserJobSubcategory>()
-            //    .HasOne(uc => uc.UserJobPost)
-            //    .WithMany(ujp => ujp.UserJobSubcategories)
-            //    .HasForeignKey(uc => uc.UserJobPostId);
-
-            builder.Entity<UserJobSubcategory>()
-                .HasOne(uc => uc.JobCategory)
-                .WithMany()
-                .HasForeignKey(uc => uc.JobCategoryId);
         }
 
         private void RegisterUserRolesTables(ModelBuilder builder)
@@ -150,6 +171,11 @@ namespace API.Data
                 .WithOne(p => p.User)
                 .HasForeignKey<User>(u => u.PhotoId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<User>()
+                .HasOne(u => u.Company)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Role>()
                 .HasMany(ar => ar.UserRoles)

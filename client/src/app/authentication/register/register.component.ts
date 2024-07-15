@@ -104,6 +104,7 @@ export class RegisterComponent implements OnInit {
       phoneNumber: ['', Validators.required],
       email: ['', [Validators.email, Validators.required]],
       cityId: [null, Validators.required],
+      address: [null, Validators.required],
       password: [
         '',
         [
@@ -138,7 +139,9 @@ export class RegisterComponent implements OnInit {
   }
 
   onSubmit() {
-    this.accountService.register(this.registerForm.value).subscribe(() => {
+    const formData = this.registerForm.value;
+    formData.gender = Gender[formData.gender];
+    this.accountService.register(formData).subscribe(() => {
       location.reload();
     });
   }
