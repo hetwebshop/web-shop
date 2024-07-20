@@ -1,34 +1,31 @@
-version: "3.4"
-
-networks:
-  shopping-cart:
-    driver: bridge
+version: '3.4'
 
 services:
-  database:
-    image: postgres
-    ports:
-      - 5432:5432
+  db:
+    image: mcr.microsoft.com/mssql/server
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-    networks:
-      - shopping-cart
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+      - ./db-init-script.sql:/var/opt/mssql/db-init-script.sql
+    command: >
+      /bin/bash -c "/opt/mssql/bin/sqlservr & sleep 30s && /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong!Passw0rd -d master -i /var/opt/mssql/db-init-script.sql && wait"
 
-  app:
-    image: shopping-cart
+
+  web:
+    image: web-shop
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 5000:5000
-    environment:
-      - ASPNETCORE_ENVIRONMENT=${ENVIRONMENT}
-      - TokenKey=${TokenKey}
-      - AdminPassword=${AdminPassword}
-      - ConnectionStrings:DefaultConnection=${DefaultConnection}
+      - "80:5000"
     depends_on:
-      - database
-    networks:
-      - shopping-cart
+      - db
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=db;Database=HireMeDB;User=sa;Password=YourStrong!Passw0rd;"
+
+volumes:
+  sql_data:
