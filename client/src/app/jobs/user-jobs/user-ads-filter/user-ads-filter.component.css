@@ -1,21 +1,25 @@
-.filter-card {
-    margin-bottom: 20px; /* Add margin at the bottom of the card */
-  }
-  
+
   .filter-container {
     padding-top: 20px; /* Add padding inside the card to separate the fields */
     padding-bottom: 20px;
+  }
+
+  .filter-card {
+    border-radius: 4px;
+    box-shadow: none;
   }
   
   .filter-field {
     margin-bottom: 10px; /* Add margin between filter fields */
   }
   
-  .filter-fixed {
-    position: fixed;
-  }
-
   .bold-label {
     font-weight: bold;
   }
-  
+  /* .mat-card {
+    padding: 0px !important;
+    padding-bottom: 16px !important;
+  }
+  .mat-card-title {
+    margin-bottom: 0px !important;
+  } */

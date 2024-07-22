@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AdvertisementTypeEnum } from 'src/app/models/enums';
 import { JobCategory, UserJobPost } from 'src/app/models/userJobPost';
@@ -15,6 +15,8 @@ import { PagedResponse } from 'src/app/models/pagedResponse';
 import { FiltersStore } from 'src/app/store/filters/filters.store';
 import { FiltersQuery } from 'src/app/store/filters/filters.query';
 import { JobCategoryQuery } from 'src/app/store/jobsHelpers/job-category.query';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { MatDrawer } from '@angular/material/sidenav';
 @Component({
   selector: 'app-user-jobs',
   templateUrl: './user-jobs-list.component.html',
@@ -29,16 +31,26 @@ export class UserJobsListComponent {
   filters = this.filtersQuery.getAll();
   jobCategories: JobCategory[];
   jobCategories$ = this.jobCategoryQuery.selectAll();
+  isLargeScreen = true;
 
+  
   constructor(private jobService: JobService, utility: UtilityService, private route: ActivatedRoute,
     private router: Router, private datePipe: DatePipe, public dialog: MatDialog,
     private accountService: AccountService, private filtersStore: FiltersStore,
-    private filtersQuery: FiltersQuery, private jobCategoryQuery: JobCategoryQuery) {
+    private filtersQuery: FiltersQuery, private jobCategoryQuery: JobCategoryQuery, private breakpointObserver: BreakpointObserver) {
     utility.setTitle('Oglasi');
     this.accountService.user$.subscribe((u) => (this.user = u));
   }
 
   ngOnInit(): void {
+    this.breakpointObserver.observe([
+      "(min-width: 768px)"
+    ]).subscribe(result => {
+      if(result.matches)
+        this.isLargeScreen = true;
+      else 
+        this.isLargeScreen = false;
+    });
     this.jobCategories$.subscribe((jobCategories) => {
       this.jobCategories = jobCategories;
     })
@@ -73,7 +85,7 @@ export class UserJobsListComponent {
   getFormattedDate(date: Date): string {
     return this.datePipe.transform(date, 'dd.MM.yyyy');
   }
-
+  
   fetchPaginatedItems(filterCriteria?: AdsPaginationParameters): void {  
     if(filterCriteria) {
       this.paginationParameters = filterCriteria;

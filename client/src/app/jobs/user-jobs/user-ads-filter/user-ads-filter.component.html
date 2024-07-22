@@ -1,61 +1,81 @@
-<mat-card class="filter-card filter-fixed">
+<mat-card class="filter-card">
   <mat-card-title style="font-size: 20px;" class="bold-label">Dodatna pretraga</mat-card-title>
-  <mat-divider></mat-divider> <!-- Add separator here -->
+  <mat-divider></mat-divider>
   <mat-card-content style="margin-top: 25px;">
     <form [formGroup]="form" (ngSubmit)="onSubmit()" #filterForm="ngForm" fxLayout="column" fxLayoutAlign="center">
-      <!-- Label before Ključna riječ -->
-      <mat-label class="bold-label">Ključna riječ</mat-label>
-      <mat-form-field appearance="outline" class="filter-field">
-        <input type="text" formControlName="searchKeyword" matInput placeholder="Unesite ključnu riječ">
-      </mat-form-field>
+      <div fxLayout="row wrap" fxLayoutGap="10px" fxLayout.lt-sm="column" fxLayoutAlign="space-between">
+        <div fxFlex="30%" fxFlex.lt-md="45%">
+          <div fxLayout="column">
+            <mat-label class="bold-label">Ključna riječ</mat-label>
+            <mat-form-field appearance="outline" class="filter-field">
+              <input type="text" formControlName="searchKeyword" matInput placeholder="Unesite ključnu riječ">
+            </mat-form-field>
+          </div>
+        </div>
 
-      <!-- Label before Grad -->
-      <mat-label class="bold-label">Grad</mat-label>
-      <mat-form-field appearance="outline">
-        <mat-select formControlName="cityIds" placeholder="Odaberite grad" multiple>
-          <mat-option #allCitiesSelected (click)="toggleAllSelection('cityIds')" [value]="selectAllId">Sve</mat-option>
-          <mat-option *ngFor="let city of cities" [value]="city.id" (click)="tosslePerOne('cityIds')">{{ city.name }}</mat-option>
-        </mat-select>
-      </mat-form-field>
+        <div fxFlex="30%" fxFlex.lt-md="45%">
+          <div fxLayout="column">
+            <mat-label class="bold-label">Grad</mat-label>
+            <mat-form-field appearance="outline">
+              <mat-select formControlName="cityIds" placeholder="Odaberite grad" multiple>
+                <mat-option #allCitiesSelected (click)="toggleAllSelection('cityIds')" [value]="selectAllId">Sve</mat-option>
+                <mat-option *ngFor="let city of cities" [value]="city.id" (click)="tosslePerOne('cityIds')">{{ city.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
 
-      <!-- Label before Kategorija -->
-      <mat-label class="bold-label">Kategorija</mat-label>
-      <mat-form-field appearance="outline" class="form-field" fxFlex fxFlexFill>
-        <mat-select formControlName="jobCategoryIds" placeholder="Odaberite kategoriju" multiple>
-          <mat-option #allJobCategoriesSelected (click)="toggleAllSelection('jobCategoryIds')" [value]="selectAllId">Sve</mat-option>
-          <mat-option *ngFor="let category of jobCategories" [value]="category.id" (click)="tosslePerOne('jobCategoryIds')">{{ category.name }}</mat-option>
-        </mat-select>
-      </mat-form-field>
+        <div fxFlex="30%" fxFlex.lt-md="45%">
+          <div fxLayout="column">
+            <mat-label class="bold-label">Kategorija</mat-label>
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-select formControlName="jobCategoryIds" placeholder="Odaberite kategoriju" multiple>
+                <mat-option #allJobCategoriesSelected (click)="toggleAllSelection('jobCategoryIds')" [value]="selectAllId">Sve</mat-option>
+                <mat-option *ngFor="let category of jobCategories" [value]="category.id" (click)="tosslePerOne('jobCategoryIds')">{{ category.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+        <div fxFlex="30%" fxFlex.lt-md="45%">
+          <div fxLayout="column">
+            <mat-label class="bold-label">Tip Posla</mat-label>
+            <mat-form-field appearance="outline">
+              <mat-select formControlName="jobTypeIds" placeholder="Odaberite tip posla" multiple>
+                <mat-option #allJobTypesSelected (click)="toggleAllSelection('jobTypeIds')" [value]="selectAllId">Sve</mat-option>
+                <mat-option *ngFor="let jobType of jobTypes" [value]="jobType.id" (click)="tosslePerOne('jobTypeIds')">{{ jobType.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
 
-      <!-- Label before Tip Posla -->
-      <mat-label class="bold-label">Tip Posla</mat-label>
-      <mat-form-field appearance="outline">
-        <mat-select formControlName="jobTypeIds" placeholder="Odaberite tip posla" multiple>
-          <mat-option #allJobTypesSelected (click)="toggleAllSelection('jobTypeIds')" [value]="selectAllId">Sve</mat-option>
-          <mat-option *ngFor="let jobType of jobTypes" [value]="jobType.id" (click)="tosslePerOne('jobTypeIds')">{{ jobType.name }}</mat-option>
-        </mat-select>
-      </mat-form-field>
+        <div fxFlex="30%" fxFlex.lt-md="45%">
+          <div fxLayout="column">
+            <mat-label class="bold-label">Period od</mat-label>
+            <mat-form-field appearance="outline">
+              <input matInput [matDatepicker]="startDatePicker" formControlName="fromDate" placeholder="Odaberite datum">
+              <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #startDatePicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
 
-      <!-- Label before Period od -->
-      <mat-label class="bold-label">Period od</mat-label>
-      <mat-form-field appearance="outline">
-        <input matInput [matDatepicker]="startDatePicker" formControlName="fromDate" placeholder="Odaberite datum">
-        <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
-        <mat-datepicker #startDatePicker></mat-datepicker>
-      </mat-form-field>
+        <div fxFlex="30%" fxFlex.lt-md="45%">
+          <div fxLayout="column">
+            <mat-label class="bold-label">Period do</mat-label>
+            <mat-form-field appearance="outline">
+              <input matInput [matDatepicker]="endDatePicker" formControlName="toDate" placeholder="Odaberite datum">
+              <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #endDatePicker></mat-datepicker>
+              <mat-error *ngIf="form.get('toDate').hasError('toDateGreaterThanFromDate')">
+                Period do mora biti veći ili jednak periodu od.
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+        <button mat-raised-button color="primary" type="submit" fxFlex="30%" fxFlex.lt-md="45%" style="height: 50px; background-color: #006064;">Traži</button>
 
-      <!-- Label before Period do -->
-      <mat-label class="bold-label">Period do</mat-label>
-      <mat-form-field appearance="outline">
-        <input matInput [matDatepicker]="endDatePicker" formControlName="toDate" placeholder="Odaberite datum">
-        <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
-        <mat-datepicker #endDatePicker></mat-datepicker>
-        <mat-error *ngIf="form.get('toDate').hasError('toDateGreaterThanFromDate')">
-          Period do mora biti veći ili jednak periodu od.
-        </mat-error>
-      </mat-form-field>
+      </div>
 
-      <button mat-raised-button color="primary" type="submit">Traži</button>
     </form>
   </mat-card-content>
 </mat-card>
