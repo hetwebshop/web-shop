@@ -45,8 +45,11 @@
     width: 85%;
     margin: 0 auto; /* Center the container horizontally */
   }
-  
 
+  .full-width {
+    width: 100%;
+  }
+  
   /* mat-card-header {
     display: flex;
     justify-content: space-between;

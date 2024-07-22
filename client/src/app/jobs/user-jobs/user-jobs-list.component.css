@@ -3,7 +3,7 @@
     margin-bottom: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
-    border: 1px solid #00ACC1; /* Vibrant teal border */
+    border: 1px solid #004D40; /* Vibrant teal border */
     background-color: #FFFFFF; /* White background */
 }
 
@@ -13,8 +13,8 @@
 }
 
 .job-card mat-card-header {
-    background-color: #E0F7FA; /* Light teal background for the header */
-    color: #006064; /* Dark teal text for contrast */
+    background-color: #004D40; /* Light teal background for the header */
+    color: white; /* Dark teal text for contrast */
 }
 
 .job-info, .job-details {
@@ -36,11 +36,11 @@
 }
 
 .job-details, .job-info {
-    border-top: 1px solid #B2DFDB; /* Light teal border */
+    border-top: 1px solid #004D40; /* Light teal border */
 }
 
 .job-link {
-    color: #039BE5; /* Bright blue color for links */
+    color: #004D40; /* Bright blue color for links */
     text-decoration: none;
 }
 

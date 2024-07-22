@@ -1,0 +1,32 @@
+.pagination-container {
+    padding: 10px;
+}
+
+.page-size-container {
+    margin-left: auto;
+    max-width: 200px;
+}
+
+button {
+    margin: 4px; /* Space between buttons */
+}
+
+.mat-form-field {
+    width: 100%; /* Full width for the form field */
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .pagination-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .page-size-container {
+        margin-top: 10px; /* Space above the page size selector */
+    }
+
+    button {
+        margin: 2px; /* Smaller margin for smaller screens */
+    }
+}

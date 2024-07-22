@@ -1,39 +1,39 @@
-
 <div class="job-details-container">
-    <div class="job-details-content">
-      <div fxLayout="row" fxLayoutAlign="space-between">
-        <button mat-button style="font-size: 14px; padding-left: 0px; margin-bottom: 10px; text-align: left;" backButton>
-          <mat-icon style="margin-right: 5px;">arrow_back</mat-icon>
-          <span>Nazad</span>
-        </button>
-      </div>
-      
-        <ng-container *ngIf="job != null && job != undefined">
-        <mat-card>
-          <mat-card-header fxLayout="row" fxLayoutAlign="space-between">
-            <div fxFlex="grow">
-                <h2>{{ job?.adName }}</h2>
-              <h2>{{ job?.position }}</h2>
-              <h4><strong>Kategorija posla -</strong> {{ getCategoryName(job?.jobCategoryId) }}</h4>
-              <h4><strong>Tip posla -</strong> {{ getJobType(job?.jobTypeId) }}</h4>
-              <p>Opis posla -<span>{{job.jobDescription}}</span></p>
-              <h4><strong>Datum početka objave -</strong> {{ job?.adStartDate | date: 'dd.MM.yyyy' }}</h4>
-              <h4><strong>Datum kraja objave -</strong> {{ job?.adEndDate | date: 'dd.MM.yyyy' }}</h4>            
-            </div>
-            <div fxFlex style="margin-right: 15px;">
-              <mat-card-actions>
-                <button *ngIf="job?.emailForReceivingApplications" mat-raised-button color="accent" (click)="openSubmitApplicationModal(job?.emailForReceivingApplications)">Apliciraj na oglas</button>
-              </mat-card-actions>
-            </div>
-          </mat-card-header>
-  
-          <mat-divider></mat-divider>
-          <mat-card-actions style="padding-left: 34px;">
-            <button *ngIf="job?.emailForReceivingApplications" mat-raised-button color="accent" (click)="openSubmitApplicationModal(job?.emailForReceivingApplications)">Apliciraj na oglas</button>
-        </mat-card-actions>
-        </mat-card>
-      </ng-container>
-  
+  <div class="job-details-content">
+    <div fxLayout="row" fxLayoutAlign="space-between" class="top-buttons">
+      <button mat-button class="back-button" backButton>
+        <mat-icon class="icon">arrow_back</mat-icon>
+        <span>Nazad</span>
+      </button>
     </div>
+
+    <ng-container *ngIf="job != null && job != undefined">
+      <div style="display: flex; justify-content: center;">
+        <h1 class="section-title">Detalji oglasa za posao</h1>
+      </div>
+      <mat-card class="main-card" style="border: 1px solid #00ACC1">
+        <mat-card-header>
+          <h2>{{ job?.adName }}</h2>
+          <h2>{{ job?.position }}</h2>
+        </mat-card-header>
+        <mat-card-content fxLayout="row" fxLayoutAlign="space-between" class="header-content">
+          <div fxFlex="grow">
+            <h4><strong>Kategorija posla -</strong> {{ getCategoryName(job?.jobCategoryId) }}</h4>
+            <h4><strong>Tip posla -</strong> {{ getJobType(job?.jobTypeId) }}</h4>
+            <p><strong>Opis posla -</strong> <span>{{ job?.jobDescription }}</span></p>
+            <h4><strong>Datum početka objave -</strong> {{ job?.adStartDate | date: 'dd.MM.yyyy' }}</h4>
+            <h4><strong>Datum kraja objave -</strong> {{ job?.adEndDate | date: 'dd.MM.yyyy' }}</h4>
+          </div>
+          <div fxFlex class="apply-button">
+            <mat-card-actions>
+              <button *ngIf="job?.emailForReceivingApplications" mat-raised-button color="primary" (click)="openSubmitApplicationModal(job?.emailForReceivingApplications)">Apliciraj na oglas</button>
+            </mat-card-actions>
+          </div>
+        </mat-card-content>
+        <mat-card-actions class="bottom-apply-button">
+          <button *ngIf="job?.emailForReceivingApplications" mat-raised-button color="primary" (click)="openSubmitApplicationModal(job?.emailForReceivingApplications)">Apliciraj na oglas</button>
+        </mat-card-actions>
+      </mat-card>
+    </ng-container>
   </div>
-  
+</div>

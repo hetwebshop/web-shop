@@ -1,14 +1,25 @@
 <div class="container">
   <div fxLayout="column">
-
+    <mat-card *ngIf="isJobAd" style="border:1px solid #004D40; margin-bottom: 30px; margin-top: 20px; display: flex; text-align: center; justify-content: center;">
+      <h1 style="color: #004D40; font-weight: 500;">Pretraga osoba u potrazi za poslom</h1>
+    </mat-card>
+    <mat-card *ngIf="!isJobAd" style="border:1px solid #004D40; margin-bottom: 30px; margin-top: 20px; display: flex; text-align: center; justify-content: center;">
+      <h1 style="color: #004D40; font-weight: 500;">Pretraga usluga</h1>
+    </mat-card>
+    <!-- <mat-card style="margin-bottom: 20px; background-color: #B2DFDB; color: black;">
+      <p>U ovoj sekciji se nalaze svi oglasi iz kategorije "Oglasi".</p>
+    </mat-card> -->
     <!-- User Ads Filter -->
     <div>
       <app-user-ads-filter (filterSubmitted)="fetchPaginatedItems($event)"></app-user-ads-filter>
     </div>
 
-    <!-- Job Cards -->
-    <mat-card fxFlex fxLayout="column" fxLayoutAlign="start stretch" style="margin-top: 50px; margin-left: 10px; margin-right: 10px; background-color: #f0f8f7;">
 
+    <!-- Job Cards -->
+    <div fxFlex fxLayout="column" fxLayoutAlign="start stretch" style="margin-top: 50px;">
+      <div style="margin-bottom: 20px; margin-top: 20px; display: flex; text-align: center; justify-content: center;">
+        <h1 style="color: #004D40; font-weight: 500;">Rezultati pretrage</h1>
+      </div>
       <div *ngFor="let job of allJobs$ | async" class="job-link" style="margin-bottom: 10px;">
         <mat-card class="job-card">
           <a class="job-link" [routerLink]="['/ads', job.id]">
@@ -68,9 +79,9 @@
             </mat-card-content>
           </a>
           <div class="job-details">
-            <button *ngIf="job.applicantEmail" mat-raised-button (click)="openEmailModal(job.applicantEmail)"
+            <button *ngIf="job.applicantEmail" mat-raised-button style="background-color: #B2DFDB; color: #004D40;" (click)="openEmailModal(job.applicantEmail)"
               color="accent">Kontaktiraj mailom</button>
-            <button *ngIf="!job.applicantEmail" mat-raised-button color="warn" disabled>Korisnik nema email</button>
+            <button *ngIf="!job.applicantEmail" mat-raised-button disabled>Korisnik nema email</button>
           </div>
         </mat-card>
       </div>
@@ -80,6 +91,6 @@
       (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)">
     </app-pagination>
 
-    </mat-card>
+    </div>
   </div>
 </div>

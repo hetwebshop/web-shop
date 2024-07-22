@@ -22,7 +22,8 @@ import { UserProfile } from '../modal/user';
 export class EditProfileComponent implements OnInit {
   user: UserProfile;
   profileUpdate: UntypedFormGroup;
-  genders = Object.values(Gender);
+  genders = Object.keys(Gender) as Array<keyof typeof Gender>;
+  genderMap = Gender; 
   jobTypes: JobType[] = [];
   jobCategories: JobCategory[] = [];
   loading: string;
@@ -168,7 +169,11 @@ export class EditProfileComponent implements OnInit {
       }
       else if (key === 'dateOfBirth' && this.profileUpdate.get(key).value) {
         formData.append(key, new Date(this.profileUpdate.get(key).value).toISOString());
-      } else {
+      } 
+      else if (key === 'gender'){
+        
+      }
+      else {
         formData.append(key, this.profileUpdate.get(key).value);
       }
     });
@@ -221,16 +226,10 @@ export class EditProfileComponent implements OnInit {
     });
   }
 
-  genderName(gender: Gender) {
-    if(gender == Gender.Male){
-      return "Muškarac";
-    }
-    else if(gender == Gender.Female){
-      return "Žena";
-    }
-    else 
-      return "Ostali";
+  genderName(gender: Gender): string {
+    return this.genderMap[gender] || 'Ostali';
   }
+  
 
   createEducation(education?: UserEducation): FormGroup {
     return this.fb.group({

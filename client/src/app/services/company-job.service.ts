@@ -60,6 +60,7 @@ export class CompanyJobService {
       pageNumber: adsFilter?.pageNumber ?? 1,
       pageSize: adsFilter?.pageSize ?? 10,
       orderBy: adsFilter?.orderBy ?? "",
+      adStatus: adsFilter?.adStatus ?? null,
       //advertisementTypeId: adsFilter?.advertisementTypeId,
       // fromDate: this.datePipe.transform(adsFilter?.fromDate, 'yyyy-MM-dd') ?? "",
       // toDate: this.datePipe.transform(adsFilter?.toDate, 'yyyy-MM-dd') ?? ""

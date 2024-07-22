@@ -1,3 +1,5 @@
+import { JobPostStatus } from "./enums";
+
 export interface PaginationParameters {
     pageNumber?: number;
     pageSize?: number;
@@ -12,4 +14,5 @@ export interface AdsPaginationParameters extends PaginationParameters {
     fromDate?: Date;
     toDate?: Date;
     advertisementTypeId?: number;
+    adStatus?: JobPostStatus
 }

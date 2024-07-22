@@ -341,6 +341,9 @@ private updateApplicantEducations(educations: any[]): void {
       this.updateApplicantEducations(this.user.userEducations);
     } else {
       this.form.reset();
+      this.form.patchValue({
+        advertisementTypeId: this.isJobAd ? this.AdvertisementTypeEnum.JobAd : this.AdvertisementTypeEnum.Service,
+      })
     }
   }
 

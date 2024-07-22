@@ -1,46 +1,131 @@
-<mat-sidenav-container class="sidenav-container" style="min-height: 100vh;">
+<!-- <mat-sidenav-container class="sidenav-container" style="min-height: 100vh;">
   <mat-sidenav-content>
-    <mat-toolbar>
+    <mat-toolbar style="background-color: #004D40; color: white;">
       <mat-toolbar-row>
         <div fxLayout="row" fxLayoutGap="1%" fxFlexFill fxLayoutAlign="space-between center">
           <div>
             <span class="brand" routerLink="/">ZaposliMe</span>
           </div>
-          <div fxLayout="row" fxLayoutGap="1%" class="pe-4">
-            <div>
-              <span class="brand" [routerLink]="['/create-job-ad']">Kreiraj Oglas</span>
+          <div fxLayout="row" fxLayoutGap="3%" class="pe-4" style="min-width: 70%;">
+            <div *ngIf="!user?.roles.includes('Company')">
+              <span class="brand" [routerLink]="['/create-job-ad']" routerLinkActive="active-link">Kreiraj Oglas</span>
             </div>
-            <span class="separator">|</span>
-            <div>
-              <span class="brand" [routerLink]="['/company-create-job-ad']">Kreiraj Oglas za Posao</span>
+            <div *ngIf="user?.roles.includes('Company')">
+              <span class="brand" [routerLink]="['/company-create-job-ad']" routerLinkActive="active-link">Kreiraj Oglas za Posao</span>
             </div>
-            <span class="separator">|</span>
-            <div>
-              <span class="brand" [routerLink]="['/create-service-ad']">Kreiraj Uslugu</span>
+            <div *ngIf="!user?.roles.includes('Company')"> 
+              <span class="brand" [routerLink]="['/create-service-ad']" routerLinkActive="active-link">Kreiraj Uslugu</span>
             </div>
-            <span class="separator">|</span>
             <div>
-              <span class="brand" [routerLink]="['/ads']" [queryParams]="{ type: getEnumName(AdvertisementTypeEnum.JobAd) }">Pretraži Oglase</span>
+              <span class="brand" routerLinkActive="active-link" [routerLink]="['/ads']" [queryParams]="{ type: getEnumName(AdvertisementTypeEnum.JobAd) }">Pretraži Oglase</span>
             </div>
-            <span class="separator">|</span>
             <div>
-              <span class="brand" [routerLink]="['/ads']" [queryParams]="{ type: getEnumName(AdvertisementTypeEnum.Service) }">Pretraži Usluge</span>
+              <span class="brand"  routerLinkActive="active-link" [routerLink]="['/ads']" [queryParams]="{ type: getEnumName(AdvertisementTypeEnum.Service) }">Pretraži Usluge</span>
             </div>
-            <span class="separator">|</span>
             <div>
-              <span class="brand" [routerLink]="['/company-job-ads']">Pretraži oglase od kompanija</span>
+              <span class="brand" routerLinkActive="active-link" [routerLink]="['/company-job-ads']">Pretraži oglase od kompanija</span>
             </div>
-            <!-- <span class="separator">|</span>
             <div>
-              <span class="brand" routerLink="/about">O nama</span>
+              <span class="brand" [routerLink]="['/about']" routerLinkActive="active-link">O nama</span>
             </div>
-            <span class="separator">|</span>
             <div>
-              <span class="brand" routerLink="/contact-us">Kontakt</span>
-            </div> -->
+              <span class="brand" routerLinkActive="active-link" [routerLink]="['/contact-us']">Kontakt</span>
+            </div>
           </div>
           
           
+          <div fxLayout="row" fxLayoutGap="2%" class="pe-4">
+            <span *ngIf="!user" class="nav-item brand" routerLink="/login">
+              Prijavi se
+            </span>
+            <span class="separator" *ngIf="!user">|</span>
+            <span *ngIf="!user" class="nav-item brand" routerLink="/register">
+              Registracija
+            </span>
+            <button *ngIf="user" mat-icon-button [matMenuTriggerFor]="navMenu">
+              <img class="profile" src="{{user.photoUrl || './assets/images/profile.png'}}" alt="Profile">
+              <mat-icon>arrow_drop_down</mat-icon>
+            </button>
+
+            <mat-menu #navMenu="matMenu">
+              <button mat-menu-item [routerLink]="user?.roles.includes('Company') ? '/company-my-ads' : '/my-ads'">{{ user?.roles.includes('Company') ? 'Objave kompanije' : 'Moje objave' }}</button>
+              <button mat-menu-item [routerLink]="user?.roles.includes('Company') ? '/edit-company-profile' : '/edit-profile'">
+                {{ user?.roles.includes('Company') ? 'Uredi profil kompanije' : 'Uredi profil' }}
+              </button>
+              
+              <button mat-menu-item (click)="logout()">Odjavi se</button>
+            </mat-menu>
+          </div>
+        </div>
+      </mat-toolbar-row>
+    </mat-toolbar>
+    <ng-content></ng-content>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+<app-scroll-to-top></app-scroll-to-top>
+ -->
+
+<mat-sidenav-container class="sidenav-container" style="min-height: 100vh;">
+  <mat-sidenav #sidenav mode="side">
+    <mat-nav-list>
+      <a mat-list-item routerLink="/">ZaposliMe</a>
+      <a mat-list-item routerLinkActive="active-link" style="color:#004D40;"*ngIf="!user?.roles.includes('Company')" [routerLink]="['/create-job-ad']">Kreiraj Oglas</a>
+      <a mat-list-item  routerLinkActive="active-link" style="color:#004D40;" *ngIf="user?.roles.includes('Company')" [routerLink]="['/company-create-job-ad']">Kreiraj Oglas za Posao</a>
+      <a mat-list-item routerLinkActive="active-link" style="color:#004D40;" *ngIf="!user?.roles.includes('Company')" [routerLink]="['/create-service-ad']">Kreiraj Uslugu</a>
+      <a mat-list-item routerLinkActive="active-link" style="color:#004D40;" [routerLink]="['/ads']" [queryParams]="{ type: getEnumName(AdvertisementTypeEnum.JobAd) }">Pretraži Oglase</a>
+      <a mat-list-item routerLinkActive="active-link" style="color:#004D40;" [routerLink]="['/ads']" [queryParams]="{ type: getEnumName(AdvertisementTypeEnum.Service) }">Pretraži Usluge</a>
+      <a mat-list-item routerLinkActive="active-link" style="color:#004D40;" [routerLink]="['/company-job-ads']">Pretraži oglase od kompanija</a>
+      <a mat-list-item routerLinkActive="active-link" style="color:#004D40;" [routerLink]="['/about']">O nama</a>
+      <a mat-list-item routerLinkActive="active-link" style="color:#004D40;" [routerLink]="['/contact-us']">Kontakt</a>
+      <a mat-list-item routerLinkActive="active-link" style="color:#004D40;" *ngIf="!user" routerLink="/login">Prijavi se</a>
+      <a mat-list-item routerLinkActive="active-link" style="color:#004D40;" *ngIf="!user" routerLink="/register">Registracija</a>
+      <ng-container *ngIf="user">
+        <a mat-list-item routerLinkActive="active-link" style="color:#004D40;" [routerLink]="user?.roles.includes('Company') ? '/company-my-ads' : '/my-ads'">
+          {{ user?.roles.includes('Company') ? 'Objave kompanije' : 'Moje objave' }}
+        </a>
+        <a mat-list-item routerLinkActive="active-link" style="color:#004D40;" [routerLink]="user?.roles.includes('Company') ? '/edit-company-profile' : '/edit-profile'">
+          {{ user?.roles.includes('Company') ? 'Uredi profil kompanije' : 'Uredi profil' }}
+        </a>
+        <a mat-list-item routerLinkActive="active-link" style="color:#004D40;" (click)="logout()">Odjavi se</a>
+      </ng-container>
+    </mat-nav-list>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <mat-toolbar style="background-color: #004D40; color: white;">
+      <mat-toolbar-row>
+        <div fxLayout="row" fxLayoutGap="1%" fxFlexFill fxLayoutAlign="space-between center">
+          <button *ngIf="!isLargeScreen" mat-icon-button (click)="sidenav.toggle()">
+            <mat-icon>menu</mat-icon>
+          </button>
+          <div>
+            <span class="brand" routerLink="/">ZaposliMe</span>
+          </div>
+          <div fxLayout="row" fxLayoutGap="3%" class="pe-4" style="min-width: 70%;" *ngIf="isLargeScreen">
+            <div *ngIf="!user?.roles.includes('Company')">
+              <span class="brand" [routerLink]="['/create-job-ad']" routerLinkActive="active-link">Kreiraj Oglas</span>
+            </div>
+            <div *ngIf="user?.roles.includes('Company')">
+              <span class="brand" [routerLink]="['/company-create-job-ad']" routerLinkActive="active-link">Kreiraj Oglas za Posao</span>
+            </div>
+            <div *ngIf="!user?.roles.includes('Company')"> 
+              <span class="brand" [routerLink]="['/create-service-ad']" routerLinkActive="active-link">Kreiraj Uslugu</span>
+            </div>
+            <div>
+              <span class="brand" routerLinkActive="active-link" [routerLink]="['/ads']" [queryParams]="{ type: getEnumName(AdvertisementTypeEnum.JobAd) }">Pretraži Oglase</span>
+            </div>
+            <div>
+              <span class="brand"  routerLinkActive="active-link" [routerLink]="['/ads']" [queryParams]="{ type: getEnumName(AdvertisementTypeEnum.Service) }">Pretraži Usluge</span>
+            </div>
+            <div>
+              <span class="brand" routerLinkActive="active-link" [routerLink]="['/company-job-ads']">Pretraži oglase od kompanija</span>
+            </div>
+            <div>
+              <span class="brand" [routerLink]="['/about']" routerLinkActive="active-link">O nama</span>
+            </div>
+            <div>
+              <span class="brand" routerLinkActive="active-link" [routerLink]="['/contact-us']">Kontakt</span>
+            </div>
+          </div>
           <div fxLayout="row" fxLayoutGap="2%" class="pe-4">
             <span *ngIf="!user" class="nav-item brand" routerLink="/login">
               Prijavi se

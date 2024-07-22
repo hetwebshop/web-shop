@@ -32,6 +32,7 @@ export class UserJobsListComponent {
   jobCategories: JobCategory[];
   jobCategories$ = this.jobCategoryQuery.selectAll();
   isLargeScreen = true;
+  isJobAd: boolean;
 
   
   constructor(private jobService: JobService, utility: UtilityService, private route: ActivatedRoute,
@@ -60,6 +61,10 @@ export class UserJobsListComponent {
         if(this.adType != AdvertisementTypeEnum.JobAd && this.adType != AdvertisementTypeEnum.Service){
           this.router.navigateByUrl('/not-found');
         }
+        if(this.adType == AdvertisementTypeEnum.JobAd)
+          this.isJobAd = true;
+        else
+          this.isJobAd = false;
         if(this.filters && this.filters.length > 0){
           this.fetchPaginatedItems(this.filters[0]);
         }

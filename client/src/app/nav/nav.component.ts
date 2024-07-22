@@ -11,6 +11,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { User } from '../modal/user';
 import { AccountService } from '../services/account.service';
 import { AdvertisementTypeEnum } from '../models/enums';
+import { Observable, map, shareReplay } from 'rxjs';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
 @Component({
   selector: 'app-nav',
@@ -23,20 +25,32 @@ export class NavComponent implements OnInit {
   @Output() changeTheme = new EventEmitter<boolean>();
   user: User;
   AdvertisementTypeEnum = AdvertisementTypeEnum;
-  
+  isLargeScreen: boolean = false;
+
   constructor(
     public accountService: AccountService,
     private router: Router,
     private route: ActivatedRoute,
+    private breakpointObserver: BreakpointObserver
   ) {
     this.accountService.user$.subscribe((u) => (this.user = u));
-
-    console.log("USER US ", this.accountService.user$);
   }
 
   @ViewChild('sidenav') sidenav: MatSidenav;
 
   ngOnInit(): void {
+    this.breakpointObserver.observe([
+      "(min-width: 1400px)"
+    ]).subscribe(result => {
+      if(result.matches)
+      {
+          this.isLargeScreen = true;
+          if(this.sidenav?.opened)
+            this.sidenav.close();
+      }
+      else 
+        this.isLargeScreen = false;
+    });
     this.route.queryParamMap.subscribe((params) => {
       this.value = params.get('q');
     });

@@ -1,66 +1,75 @@
-/* .job-details-container {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-  } */
 
-  .job-details-content {
-    flex-grow: 1;
-  }
-  
-  .job-info, .job-biography {
-    margin-bottom: 20px;
-  }
-  
-  .job-info p, .job-biography p {
-    margin-bottom: 5px;
-  }
-  
-  .readonly-input {
-    border: none;
-    background-color: transparent;
-    cursor: default; /* Prevent cursor change */
-    pointer-events: none;
-  }
-  
 
-  /* Add this CSS to your styles.scss or component-specific CSS file */
+.job-details-content {
+  flex-grow: 1;
+}
+
+.back-button {
+  font-size: 14px;
+  padding-left: 0;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.icon {
+  margin-right: 5px;
+}
+
+.navigation-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-title {
+  font-weight: 500;
+  color: #004D40;
+}
+
+.contact-buttons {
+  margin-right: 15px;
+}
+
+.job-card-content {
+  margin-top: 25px;
+  padding-left: 34px;
+}
+
+.job-info,
+.job-biography {
+  margin-bottom: 20px;
+}
+
+.job-info p,
+.job-biography p {
+  margin-bottom: 5px;
+}
+
+.subsection-title {
+  border-bottom: 1px solid #ddd;
+  color: #004D40;
+}
+
+.education-divider {
+  margin-bottom: 15px;
+}
+
+.bottom-contact-buttons {
+  padding-left: 34px;
+}
 
 .mat-form-field-disabled .mat-form-field-wrapper {
-    background-color: transparent; /* Change background color */
-  }
-  
-  .mat-form-field-disabled .mat-form-field-label {
-    color: black; /* Change label color */
-  }
-  
-  .mat-form-field-disabled .mat-form-field-underline {
-    background-color: #2196F3; /* Change underline color */
-  }
-  
-  .readonly-input {
-    cursor: default; /* Prevent cursor change */
-  }
-  .job-details-container {
-    width: 85%;
-    margin: 0 auto; /* Center the container horizontally */
-  }
-  
+  background-color: transparent; /* Change background color */
+}
 
-  /* mat-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .title {
-    margin-left: 0;
-    margin-right: auto;
-  }
-  
-  .actions {
-    margin-right: 0;
-    margin-left: auto;
-  } */
+.mat-form-field-disabled .mat-form-field-label {
+  color: black; /* Change label color */
+}
 
-  
+.mat-form-field-disabled .mat-form-field-underline {
+  background-color: #2196F3; /* Change underline color */
+}
+
+.readonly-input {
+  cursor: default; /* Prevent cursor change */
+}

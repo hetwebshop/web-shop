@@ -26,3 +26,18 @@
 .brand {
   cursor: pointer;
 }
+
+.active-link {
+  text-decoration: underline;
+}
+
+.mat-list-item.active-link {
+  background-color: #004D40;
+  color: white !important;
+  text-decoration: none;
+}
+
+/* Optional: Ensure text color is white when active */
+.mat-list-item.active-link a {
+  color: white;
+}

@@ -26,14 +26,14 @@
     </div>
     <div fxLayoutAlign="center center">
         <mat-card class="text-center" fxFlex="60" fxFlex.lt-sm="90" fxFlex.lt-md="80" fxFlex.lt-lg="70"
-            style="margin-bottom: 2px;">
-            <h2>Uredi Profil</h2>
+            style="margin-bottom: 2px; border: 1px solid #004D40;">
+            <h2 style="color: #004D40;">Uredi Profil</h2>
             <mat-card-content class="mt-3">
                 <form [formGroup]="profileUpdate" (ngSubmit)="onSubmit()" autocomplete="off">
-                    <div style="border-bottom: 1px solid #ddd; margin-bottom: 20px;" fxLayout="row wrap"
+                    <div style="border-bottom: 1px solid #004D40; margin-bottom: 20px; padding-bottom: 20px;" fxLayout="row wrap"
                         fxLayoutAlign="space-around center">
                         <mat-card-subtitle fxFlex="95" fxLayoutAlign="start"
-                            style="font-weight: 500; color: black; border-bottom: 1px solid #ddd;">Lični
+                            style="font-weight: 500; color: #004D40; border-bottom: 1px solid #004D40;">Lični
                             podaci</mat-card-subtitle>
                         <app-input fxFlex="45" fxFlex.lt-sm="90" label="Ime"
                             [formControl]="profileUpdate.get('firstName')">
@@ -82,7 +82,7 @@
                         </mat-form-field>
 
                         <mat-card-subtitle fxFlex="95" fxLayoutAlign="start"
-                            style="font-weight: 500; color: black; border-bottom: 1px solid #ddd;">Dodatni
+                            style="font-weight: 500; color: #004D40; border-bottom: 1px solid #004D40;">Dodatni
                             podaci(neobavezno)</mat-card-subtitle>
                         <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
                             <mat-label>Kategorija posla</mat-label>
@@ -169,7 +169,7 @@
                         </ng-container>
 
                         <div fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                            <button mat-button type="button" color="primary" (click)="addEducation()">Dodaj
+                            <button mat-stroked-button type="button" style="border-color: #004D40; color: #004D40;" (click)="addEducation()">Dodaj
                                 obrazovanje</button>
                         </div>
                         <!-- <button mat-flat-button fxFlex="45" fxLayoutAlign="start" fxFlex.lt-sm="90" color="accent"
@@ -177,10 +177,13 @@
                                 Dodaj obrazovanje
                             </button> -->
                     </div>
-                    <button mat-flat-button [disabled]="!profileUpdate.valid || profileUpdate.pristine" color="primary"
-                        type="submit">
-                        Ažuriraj
-                    </button>
+                    <button mat-flat-button
+                    [disabled]="!profileUpdate.valid || profileUpdate.pristine"
+                    [ngStyle]="{'background-color': !profileUpdate.valid || profileUpdate.pristine ? '' : '#004D40', 'color': !profileUpdate.valid || profileUpdate.pristine ? '' : 'white'}"
+                    type="submit">
+                Ažuriraj
+            </button>
+            
                 </form>
             </mat-card-content>
         </mat-card>

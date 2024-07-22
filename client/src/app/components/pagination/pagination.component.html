@@ -1,31 +1,33 @@
-<div fxLayout="row" fxLayoutAlign="start start">
-    <div fxLayout="row" fxLayoutAlign="start start" fxFlex>
-        <button mat-icon-button [matTooltipShowDelay]="1000" matTooltip="First page" (click)="onClick(1)"
+<div fxLayout="row wrap" fxLayoutAlign="start center" class="pagination-container">
+    <!-- Pagination Buttons -->
+    <div fxLayout="row" fxLayoutAlign="start center" fxFlex="auto">
+        <button mat-icon-button [matTooltipShowDelay]="1000" matTooltip="Prva stranica" (click)="onClick(1)"
             [disabled]="selected === 1">
             <mat-icon>first_page</mat-icon>
         </button>
-        <button mat-icon-button [matTooltipShowDelay]="1000" matTooltip="Previous page" (click)="onClick(selected - 1)"
+        <button mat-icon-button [matTooltipShowDelay]="1000" matTooltip="Prethodna stranice" (click)="onClick(selected - 1)"
             [disabled]="selected === 1">
             <mat-icon>navigate_before</mat-icon>
         </button>
-        <div *ngFor="let item of range;index as i;">
-            <button *ngIf="selected===item" mat-mini-fab color="accent">
+        <div *ngFor="let item of range; index as i;">
+            <button *ngIf="selected === item" mat-mini-fab style="color: white; background-color: #004D40;">
                 {{item}}
             </button>
-            <button *ngIf="selected!==item" mat-icon-button (click)="onClick(item)">
+            <button *ngIf="selected !== item" mat-icon-button (click)="onClick(item)">
                 {{item}}
             </button>
         </div>
-        <button mat-icon-button [matTooltipShowDelay]="1000" matTooltip="Next page" (click)="onClick(selected + 1)"
+        <button mat-icon-button [matTooltipShowDelay]="1000" matTooltip="Sljedeća stranica" (click)="onClick(selected + 1)"
             [disabled]="selected === _totalPages">
             <mat-icon>navigate_next</mat-icon>
         </button>
-        <button mat-icon-button [matTooltipShowDelay]="1000" matTooltip="Last page" (click)="onClick(_totalPages)"
-            [disabled]="selected === _totalPages || _totalPages==null">
+        <button mat-icon-button [matTooltipShowDelay]="1000" matTooltip="Posljednja stranica" (click)="onClick(_totalPages)"
+            [disabled]="selected === _totalPages || _totalPages == null">
             <mat-icon>last_page</mat-icon>
         </button>
     </div>
-    <div fxLayoutAlign="end center" fxFlex="auto">
+    <!-- Page Size Selector -->
+    <div fxLayoutAlign="end center" fxFlex="auto" class="page-size-container">
         <mat-form-field appearance="outline">
             <mat-label>Veličina stranice</mat-label>
             <mat-select [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange($event)">

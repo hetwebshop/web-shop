@@ -1,6 +1,7 @@
 .job-card {
     margin-bottom: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #00ACC1;
+    margin-top: 20px;
 }
 
 .job-card:hover {
@@ -40,3 +41,4 @@
     color: black; /* Change the color */
     text-decoration: none; /* Remove underline */
 }
+

@@ -22,6 +22,7 @@ import { JobTypeQuery } from 'src/app/store/jobsHelpers/job-type.query';
 })
 export class CompanyMyAdsComponent {
   allJobs$: Observable<CompanyJobPost[]>;
+  completedJobs$: Observable<CompanyJobPost[]>;
   filters = this.filtersQuery.getAll();
   paginationResponse: PagedResponse<CompanyJobPost>;
   paginationParameters: AdsPaginationParameters;
@@ -29,6 +30,7 @@ export class CompanyMyAdsComponent {
   jobCategories$ = this.jobCategoryQuery.selectAll();
   jobTypes: JobType[];
   jobTypes$ = this.jobTypeQuery.selectAll();
+  selectedTabIndex = 0;//AKTIVNI OGLASI TAB
 
   constructor(private jobService: JobService, private companyJobService: CompanyJobService, utility: UtilityService, private filtersQuery: FiltersQuery,
     private filtersStore: FiltersStore, private datePipe: DatePipe, private jobCategoryQuery: JobCategoryQuery,
@@ -45,14 +47,14 @@ export class CompanyMyAdsComponent {
       this.jobTypes = jobTypes;
     });
     if (this.filters && this.filters.length > 0) {
-      this.fetchPaginatedItems(this.filters[0]);
+      this.fetchPaginatedItems(this.selectedTabIndex, this.filters[0]);
     }
     else {
-      this.fetchPaginatedItems();
+      this.fetchPaginatedItems(this.selectedTabIndex);
     }
   }
 
-  fetchPaginatedItems(filterCriteria?: AdsPaginationParameters): void {
+  fetchPaginatedItems(selectedTab: number, filterCriteria?: AdsPaginationParameters): void {
     if (filterCriteria) {
       this.paginationParameters = filterCriteria;
       this.filtersStore.set([this.paginationParameters]);
@@ -64,19 +66,33 @@ export class CompanyMyAdsComponent {
         orderBy: "",
       };
     }
-    this.allJobs$ = this.companyJobService.getCompanyAds(this.paginationParameters).pipe(
-      map(response => {
-        this.paginationResponse = response;
-        return response.items;
-      })
-    );
+    if(selectedTab == 0)//Aktivni oglasi
+      this.allJobs$ = this.companyJobService.getCompanyAds({...this.paginationParameters, adStatus: JobPostStatus.Active}).pipe(
+        map(response => {
+          this.paginationResponse = response;
+          return response.items;
+        })
+      );
+    else 
+      this.completedJobs$ = this.companyJobService.getCompanyAds({...this.paginationParameters, adStatus: JobPostStatus.Closed}).pipe(
+        map(response => {
+          this.paginationResponse = response;
+          return response.items;
+        })
+      );
   }
 
-  getCategoryName(jobCategories: JobCategory[], jobCategoryId: number): string | undefined {
-    return jobCategories?.find(r => r.id === jobCategoryId)?.name;
+  onTabChange(index: number): void {
+    this.selectedTabIndex = index;
+    this.fetchPaginatedItems(this.selectedTabIndex);
   }
-  getJobType(jobTypes: JobType[], jobTypeId: number): string {
-    return jobTypes?.find(r => r.id === jobTypeId)?.name;
+
+  getCategoryName(jobCategoryId: number): string | undefined {
+    console.log("JOBCATEGORY", jobCategoryId);
+    return this.jobCategories?.find(r => r.id === jobCategoryId)?.name;
+  }
+  getJobType(jobTypeId: number): string {
+    return this.jobTypes?.find(r => r.id === jobTypeId)?.name;
   }
 
   getStatusEnumValue(value: number): string {
@@ -89,11 +105,38 @@ export class CompanyMyAdsComponent {
 
   onPageChange(pageNumber: number) {
     this.paginationParameters = { ...this.paginationParameters, pageNumber: pageNumber };
-    this.fetchPaginatedItems(this.paginationParameters);
+    this.fetchPaginatedItems(this.selectedTabIndex, this.paginationParameters);
   }
 
   onPageSizeChange(pageSize: number) {
     this.paginationParameters = { ...this.paginationParameters, pageSize: pageSize };
-    this.fetchPaginatedItems(this.paginationParameters);
+    this.fetchPaginatedItems(this.selectedTabIndex, this.paginationParameters);
+  }
+
+  deleteAd(event, jobId: number): void {
+    event.preventDefault();
+    this.companyJobService.deleteAd(jobId).subscribe((response) => {
+      if(response == true) {
+        this.fetchPaginatedItems(this.selectedTabIndex);
+      }
+    });
+  }
+
+  closeAd(event, jobId: number): void {
+    event.preventDefault();
+    this.companyJobService.closeAd(jobId).subscribe((response) => {
+      if(response == true) {
+        this.fetchPaginatedItems(this.selectedTabIndex);
+      }
+    });
+  }
+
+  reactivateAd(event, jobId): void {
+    event.preventDefault();
+    this.companyJobService.reactivateAd(jobId).subscribe((response) => {
+      if(response == true) {
+        this.fetchPaginatedItems(this.selectedTabIndex);
+      }
+    });
   }
 }

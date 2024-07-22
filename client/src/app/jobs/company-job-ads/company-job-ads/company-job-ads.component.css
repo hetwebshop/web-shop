@@ -1,50 +1,76 @@
+/* Job Card Styles */
 .job-card {
     margin-bottom: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    border: 1px solid #004D40; /* Vibrant teal border */
+    background-color: #FFFFFF; /* White background */
 }
 
 .job-card:hover {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    border-color: #00838F; /* Darker teal border on hover */
 }
 
-.job-card.mat-card.dark-theme {
-    background-color: #333;
-    color: #fff;
-}
-
-.job-card.mat-card.dark-theme mat-card-header {
-    background-color: #555;
+.job-card mat-card-header {
+    background-color: #004D40; /* Light teal background for the header */
+    color: white; /* Dark teal text for contrast */
 }
 
 .job-info, .job-details {
-    padding: 10px;
-    padding-left: 16px;
+    padding: 15px;
+    padding-left: 0px;
+    color: #333; /* Dark grey text for readability */
 }
 
 .job-info h4, .job-details h4 {
     margin-top: 0;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     font-weight: bold;
+    color: #004D40; /* Dark teal for headings */
 }
 
 .job-info p, .job-details p {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    line-height: 1.6; /* Improved line height for readability */
 }
 
 .job-details, .job-info {
-    border-top: 1px solid #ddd;
+    border-top: 1px solid #B2DFDB; /* Light teal border */
 }
 
 .job-link {
-    /* Your custom styles for the <a> tag */
-    color: black; /* Change the color */
-    text-decoration: none; /* Remove underline */
+    color: #004D40; /* Bright blue color for links */
+    text-decoration: none;
+}
+
+.job-link:hover {
+    text-decoration: underline;
 }
 
 :host ::ng-deep .mat-card-header-text {
     margin: 8px !important;
 }
+
 :host ::ng-deep .mat-card-content {
     margin-bottom: 0px !important;
 }
-    
+
+/* Filter Drawer */
+.filter-drawer {
+    width: 250px;
+}
+
+.mat-card-header {
+    background-color: #B2EBF2; /* Lighter teal */
+    border-radius: 4px 4px 0 0; /* Rounded corners on top */
+    padding: 16px; /* Adjust as needed */
+}
+
+.mat-card-header-content {
+    margin: 0; /* Adjust if needed */
+}
+
+.mat-card-header {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}

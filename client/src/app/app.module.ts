@@ -66,6 +66,7 @@ import { MyAdComponent } from './jobs/my-ads/my-ad/my-ad.component';
 import { MyAdsWrapper } from './jobs/my-ads/my-ads-wrapper.component';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatTabsModule } from '@angular/material/tabs';
 import { EditCompanyProfileComponent } from './edit-company-profile/edit-company-profile.component';
 import { CompanyCreateJobComponent } from './jobs/company-create-job/company-create-job.component';
 import { CompanyJobAdsWrapperComponent } from './jobs/company-job-ads/company-job-ads-wrapper.component';
@@ -154,7 +155,8 @@ export class HammerConfig extends HammerGestureConfig {
     MatButtonToggleModule,
     MatSlideToggleModule,
     MatCheckboxModule,
-    MatRadioModule
+    MatRadioModule,
+    MatTabsModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },

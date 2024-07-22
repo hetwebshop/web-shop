@@ -147,3 +147,29 @@ img {
     object-fit: contain;
   }
 }
+.mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
+  color: #004D40 !important;
+}
+.mat-form-field.mat-focused .mat-form-field-label {
+  color: #004D40 !important;
+}
+.mat-focused .mat-form-field-required-marker{
+  color: #004D40 !important;
+}
+.mat-radio-button.mat-accent .mat-radio-ripple .mat-ripple-element {
+  background-color: #004D40 !important;
+}
+
+.mat-radio-button.mat-accent .mat-radio-inner-circle {
+  background-color: #004D40!important;   /*inner circle color change*/
+}
+
+.mat-radio-button.mat-accent.mat-radio-checked .mat-radio-outer-circle {
+ border-color:#004D40!important; /*outer ring color change*/
+}
+.mat-slide-toggle.mat-primary.mat-checked .mat-slide-toggle-bar {
+  background-color:#00b496!important;
+}
+.mat-slide-toggle.mat-primary.mat-checked .mat-slide-toggle-thumb {
+  background-color:#004D40!important;
+}

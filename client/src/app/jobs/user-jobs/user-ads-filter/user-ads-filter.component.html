@@ -1,6 +1,6 @@
-<mat-card class="filter-card">
-  <mat-card-title style="font-size: 20px;" class="bold-label">Dodatna pretraga</mat-card-title>
-  <mat-divider></mat-divider>
+<mat-card class="filter-card" style="border: 1px solid #004D40;">
+  <mat-card-title style="font-size: 20px; color: #004D40; font-weight: 500;">Dodatna pretraga</mat-card-title>
+  <mat-divider style="background-color: #004D40;"></mat-divider>
   <mat-card-content style="margin-top: 25px;">
     <form [formGroup]="form" (ngSubmit)="onSubmit()" #filterForm="ngForm" fxLayout="column" fxLayoutAlign="center">
       <div fxLayout="row wrap" fxLayoutGap="10px" fxLayout.lt-sm="column" fxLayoutAlign="space-between">

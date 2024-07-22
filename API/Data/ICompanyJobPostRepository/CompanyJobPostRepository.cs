@@ -35,9 +35,11 @@ namespace API.Data.ICompanyJobPostRepository
             var companyJobPosts = FindByCondition(u =>
                 (u.AdEndDate >= DateTime.UtcNow) &&
                 (adsParameters.CompanyId == null || adsParameters.CompanyId == u.User.CompanyId) &&
+                (adsParameters.adStatus == null || (int)adsParameters.adStatus == u.JobPostStatusId) &&
                 (adsParameters.cityIds == null || adsParameters.cityIds.Contains(u.CityId)) &&
                 (adsParameters.jobCategoryIds == null || adsParameters.jobCategoryIds.Contains(u.JobCategoryId)) &&
                 (adsParameters.jobTypeIds == null || adsParameters.jobTypeIds.Contains(u.JobTypeId)) &&
+                u.IsDeleted == false &&
                 (
                     (adsParameters.fromDate == null && adsParameters.toDate == null) ||
                     (adsParameters.fromDate.HasValue && !adsParameters.toDate.HasValue && u.CreatedAt.Date >= adsParameters.fromDate.Value.Date) ||
@@ -92,6 +94,7 @@ namespace API.Data.ICompanyJobPostRepository
                 existingCompanyJobPost.CityId = updatedCompanyJobPost.CityId;
                 existingCompanyJobPost.Position = updatedCompanyJobPost.Position;
                 existingCompanyJobPost.AdName = updatedCompanyJobPost.AdName;
+                existingCompanyJobPost.EmailForReceivingApplications = updatedCompanyJobPost.EmailForReceivingApplications;
 
                 await DataContext.SaveChangesAsync();
             }

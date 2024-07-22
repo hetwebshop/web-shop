@@ -20,7 +20,7 @@ import { UtilityService } from 'src/app/services/utility.service';
   styleUrls: ['./company-my-ad-manager.component.css']
 })
 export class CompanyMyAdManagerComponent {
-  isEditMode: boolean = false;
+  isEditMode: boolean = true;
   jobId: number;
   job: CompanyJobPost;
   private subscription: Subscription;

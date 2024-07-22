@@ -1,4 +1,5 @@
-﻿using System;
+﻿using API.Helpers;
+using System;
 using System.Collections.Generic;
 
 namespace API.PaginationEntities
@@ -18,5 +19,6 @@ namespace API.PaginationEntities
         public DateTime? toDate { get; set; }
         public int? UserId { get; set; }
         public int? CompanyId { get; set; }
+        public JobPostStatus? adStatus { get; set; }
     }
 }
