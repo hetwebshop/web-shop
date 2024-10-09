@@ -25,6 +25,12 @@ namespace API.Services.UserOfferServices
             return userJobPosts.ToDto();
         }
 
+        public async Task<PagedList<UserJobPostDto>> GetUserJobPostsAsync(AdsPaginationParameters adsParameters)
+        {
+            var userJobPosts = await userJobPostRepository.GetUserJobPostsAsync(adsParameters);
+            return userJobPosts.ToDto();
+        }
+
         public async Task<UserJobPostDto> GetUserJobPostByIdAsync(int id)
         {
             var userJobPost = await userJobPostRepository.GetUserJobPostByIdAsync(id);

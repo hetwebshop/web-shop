@@ -53,6 +53,14 @@ namespace API.Data.ICompanyJobPostRepository
             return await PagedList<CompanyJobPost>.ToPagedListAsync(companyJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }
 
+        public async Task<PagedList<CompanyJobPost>> GetCompanyJobPostsAsync(AdsPaginationParameters adsParameters)
+        {
+            var companyJobPosts = FindByCondition(u => u.SubmittingUserId == adsParameters.UserId
+                                && u.JobPostStatusId == (int)adsParameters.adStatus);
+            companyJobPosts = _sortHelper.ApplySort(companyJobPosts, adsParameters.OrderBy);
+            return await PagedList<CompanyJobPost>.ToPagedListAsync(companyJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
+        }
+
         public async Task<List<CompanyJobPost>> GetCompanyAdsAsync(int companyId)
         {
             var userJobPosts = await GetCompanyJobPostBaseQuery().Where(r => r.User.CompanyId == companyId).ToListAsync();

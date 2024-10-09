@@ -32,7 +32,8 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
   advertisementTypes: AdvertisementType[] = [];
   selectedCategory: any;
   applicantEducations: FormArray;
-  genders = Object.values(Gender);
+  genders = Object.keys(Gender) as Array<keyof typeof Gender>;
+  genderMap = Gender; 
   selectedAdvertisementType: any;
   AdvertisementTypeEnum = AdvertisementTypeEnum;
   selectAllId: number = 0;
@@ -109,6 +110,10 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
         this.isEditMode = false;
       }
     });
+  }
+
+  genderName(gender: Gender): string {
+    return this.genderMap[gender] || 'Ostali';
   }
 
   private createForm(): FormGroup {

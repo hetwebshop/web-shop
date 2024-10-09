@@ -52,7 +52,7 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Spol</mat-label>
           <mat-select formControlName="applicantGender" placeholder="Odaberite spol">
-            <mat-option *ngFor="let gender of genders" [value]="gender">{{ gender }}</mat-option>
+            <mat-option *ngFor="let gender of genders" [value]="gender">{{ genderName(gender) }}</mat-option>
           </mat-select>
         </mat-form-field>
 

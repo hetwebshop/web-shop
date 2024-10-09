@@ -24,7 +24,7 @@ import { AdsStore } from 'src/app/store/jobs/ads.store';
   styleUrls: ['./my-ad.component.css']
 })
 export class MyAdComponent {
-  isEditMode: boolean = false;
+  isEditMode: boolean = true;
   jobId: number;
   job: UserJobPost;
   private subscription: Subscription;
@@ -37,7 +37,8 @@ export class MyAdComponent {
   advertisementTypes: AdvertisementType[] = [];
   selectedCategory: any;
   applicantEducations: FormArray;
-  genders = Object.values(Gender);
+  genders = Object.keys(Gender) as Array<keyof typeof Gender>;
+  genderMap = Gender; 
   selectedAdvertisementType: any;
   AdvertisementTypeEnum = AdvertisementTypeEnum;
   selectAllId: number = 0;
@@ -55,6 +56,10 @@ export class MyAdComponent {
     private route: ActivatedRoute, private cdr: ChangeDetectorRef, 
     private fb: FormBuilder, private accountService: AccountService, private router: Router) {
     utility.setTitle('Detalji oglasa');
+  }
+
+  genderName(gender: Gender): string {
+    return this.genderMap[gender] || 'Ostali';
   }
 
   ngOnInit(): void {
@@ -163,7 +168,8 @@ export class MyAdComponent {
     const formData = new FormData();
     for (const [key, value] of Object.entries(model)) {
         if (value instanceof Date || moment.isMoment(value)) {
-          formData.append(key, moment(value).toISOString());
+          const dateOfBirth = moment(value).format('YYYY-MM-DD');
+          formData.append(key, dateOfBirth);
         } else if (Array.isArray(value)) {
             value.forEach((item, index) => {
                 Object.entries(item).forEach(([itemKey, itemValue]) => {

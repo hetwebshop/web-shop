@@ -27,7 +27,7 @@ namespace API.Entities
 
         public bool IsCompany { get; set; }
         public int? CompanyId { get; set; }
-        public Company Company { get; set; }
+        public Company? Company { get; set; }
 
         public ICollection<UserRole> UserRoles { get; set; }
         public ICollection<UserJobPost> UserJobPosts { get; set; }

@@ -39,7 +39,7 @@ namespace API.Controllers
             if (user == null || user.CompanyId == null)
                 return NotFound("Ne pripadata niti jednoj kompaniji.");
             adsParameters.CompanyId = user.CompanyId;
-            var myAds = await _jobPostService.GetJobPostsAsync(adsParameters);
+            var myAds = await _jobPostService.GetCompanyJobPostsAsync(adsParameters);
             var pagedResponse = myAds.ToPagedResponse();
             return Ok(pagedResponse);
         }

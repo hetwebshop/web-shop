@@ -175,6 +175,7 @@ namespace API.Data
             builder.Entity<User>()
                 .HasOne(u => u.Company)
                 .WithMany()
+                .HasForeignKey(u => u.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Role>()

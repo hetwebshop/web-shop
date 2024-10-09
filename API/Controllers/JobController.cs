@@ -37,7 +37,7 @@ namespace API.Controllers
         {
             var currentUserId = HttpContext.User.GetUserId();
             adsParameters.UserId = currentUserId;
-            var myAds = await _jobPostService.GetJobPostsAsync(adsParameters);
+            var myAds = await _jobPostService.GetUserJobPostsAsync(adsParameters);
             var pagedResponse = myAds.ToPagedResponse();
             return Ok(pagedResponse);
         }

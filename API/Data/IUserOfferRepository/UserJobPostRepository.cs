@@ -38,7 +38,7 @@ namespace API.Data.IUserOfferRepository
         public async Task<PagedList<UserJobPost>> GetJobPostsAsync(AdsPaginationParameters adsParameters)
         {
             var userJobPosts = FindByCondition(u =>
-                (u.AdEndDate >= DateTime.UtcNow) && 
+                (u.AdEndDate >= DateTime.UtcNow) && u.JobPostStatusId == (int)Helpers.JobPostStatus.Active &&
                 (adsParameters.UserId == null || adsParameters.UserId == u.SubmittingUserId) &&
                 (adsParameters.cityIds == null || adsParameters.cityIds.Contains(u.CityId)) &&
                 (adsParameters.jobCategoryIds == null || adsParameters.jobCategoryIds.Contains(u.JobCategoryId)) &&
@@ -46,13 +46,32 @@ namespace API.Data.IUserOfferRepository
                 (adsParameters.advertisementTypeId == null || u.AdvertisementTypeId == adsParameters.advertisementTypeId) &&
                 (
                     (adsParameters.fromDate == null && adsParameters.toDate == null) ||
-                    (adsParameters.fromDate.HasValue && !adsParameters.toDate.HasValue && u.CreatedAt.Date >= adsParameters.fromDate.Value.Date) ||
-                    (adsParameters.fromDate.HasValue  && adsParameters.toDate.HasValue && u.CreatedAt.Date >= adsParameters.fromDate.Value.Date && u.CreatedAt.Date <= adsParameters.toDate.Value.Date) ||
-                    (!adsParameters.fromDate.HasValue && adsParameters.toDate.HasValue && u.CreatedAt.Date <= adsParameters.toDate.Value.Date))
+                    (adsParameters.fromDate.HasValue && !adsParameters.toDate.HasValue && u.AdStartDate.Date >= adsParameters.fromDate.Value.Date) ||
+                    (adsParameters.fromDate.HasValue  && adsParameters.toDate.HasValue && u.AdStartDate.Date >= adsParameters.fromDate.Value.Date && u.AdStartDate.Date <= adsParameters.toDate.Value.Date) ||
+                    (!adsParameters.fromDate.HasValue && adsParameters.toDate.HasValue && u.AdStartDate.Date <= adsParameters.toDate.Value.Date))
                 );
-            
-            //Add method to search by keyword here
 
+            if (!string.IsNullOrEmpty(adsParameters.searchKeyword))
+            {
+                var keyword = adsParameters.searchKeyword.ToLower();
+                userJobPosts = userJobPosts.Where(u =>
+                    (!string.IsNullOrEmpty(u.Position) && u.Position.ToLower().Contains(keyword)) ||
+                    (!string.IsNullOrEmpty(u.Biography) && u.Biography.ToLower().Contains(keyword)) ||
+                    (!string.IsNullOrEmpty(u.ApplicantFirstName) && u.ApplicantFirstName.ToLower().Contains(keyword)) ||
+                    (!string.IsNullOrEmpty(u.ApplicantLastName) && u.ApplicantLastName.ToLower().Contains(keyword)) ||
+                    (!string.IsNullOrEmpty(u.ApplicantEmail) && u.ApplicantEmail.ToLower().Contains(keyword)) ||
+                    (!string.IsNullOrEmpty(u.ApplicantPhoneNumber) && u.ApplicantPhoneNumber.ToLower().Contains(keyword))
+                );
+            }
+
+            userJobPosts = _sortHelper.ApplySort(userJobPosts, adsParameters.OrderBy);
+            return await PagedList<UserJobPost>.ToPagedListAsync(userJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
+        }
+
+        public async Task<PagedList<UserJobPost>> GetUserJobPostsAsync(AdsPaginationParameters adsParameters)
+        {
+            var userJobPosts = FindByCondition(u => u.SubmittingUserId == adsParameters.UserId 
+                                && u.JobPostStatusId == (int)adsParameters.adStatus);
             userJobPosts = _sortHelper.ApplySort(userJobPosts, adsParameters.OrderBy);
             return await PagedList<UserJobPost>.ToPagedListAsync(userJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }

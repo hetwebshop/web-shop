@@ -10,6 +10,7 @@ namespace API.Data.IUserOfferRepository
     public interface IUserJobPostRepository
     {
         Task<PagedList<UserJobPost>> GetJobPostsAsync(AdsPaginationParameters adsParameters);
+        Task<PagedList<UserJobPost>> GetUserJobPostsAsync(AdsPaginationParameters adsParameters);
         Task<UserJobPost> GetUserJobPostByIdAsync(int id);
         Task<UserJobPost> CreateUserJobPostAsync(UserJobPost userJobPost);
         Task<UserJobPost> UpdateUserJobPostAsync(UserJobPost userJobPost);

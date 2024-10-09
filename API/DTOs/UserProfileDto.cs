@@ -8,10 +8,16 @@ namespace API.DTOs
 {
     public class UserProfileDto
     {
+        private DateTime _dateOfBirth;
         public int Id { get; set; }
         [Required] public string FirstName { get; set; }
         [Required] public string LastName { get; set; }
-        [Required] public DateTime DateOfBirth { get; set; }
+        [Required]
+        public DateTime DateOfBirth
+        {
+            get { return _dateOfBirth.Date; }
+            set { _dateOfBirth = value.Date; }
+        }
         [Required] public Gender Gender { get; set; }
         public string PhoneNumber { get; set; }
         [Required] public string Email { get; set; }
@@ -29,6 +35,7 @@ namespace API.DTOs
         public string CompanyAddress { get; set; }
         public string CompanyPhone { get; set; }
         public string AboutCompany { get; set; }
+        public int? CompanyId { get; set; }
 
         public List<UserEducationDto> UserEducations { get; set; }
     }

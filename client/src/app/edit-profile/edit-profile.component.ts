@@ -13,6 +13,7 @@ import { JobService } from '../services/job.service';
 import { MatDialog } from '@angular/material/dialog';
 import { CancelConfirmationModalComponent } from '../modal/cancel-confirmation-modal/cancel-confirmation-modal.component';
 import { UserProfile } from '../modal/user';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-edit-profile',
@@ -168,11 +169,9 @@ export class EditProfileComponent implements OnInit {
         });
       }
       else if (key === 'dateOfBirth' && this.profileUpdate.get(key).value) {
-        formData.append(key, new Date(this.profileUpdate.get(key).value).toISOString());
-      } 
-      else if (key === 'gender'){
-        
-      }
+        const dateOfBirth = moment(this.profileUpdate.get(key).value).format('YYYY-MM-DD');
+        formData.append(key, dateOfBirth);
+      }      
       else {
         formData.append(key, this.profileUpdate.get(key).value);
       }

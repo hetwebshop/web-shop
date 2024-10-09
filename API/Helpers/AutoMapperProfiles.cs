@@ -31,11 +31,17 @@ namespace API.Helpers
 
             CreateMap<User, UserProfileDto>()
                 .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.CityId))
+                .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.CompanyId))
                 .ForMember(dest => dest.CompanyAddress, opt => opt.MapFrom(src => src.Company.Address))
                 .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.Company.CompanyName))
                 .ForMember(dest => dest.CompanyPhone, opt => opt.MapFrom(src => src.Company.PhoneNumber))
                 .ForMember(dest => dest.AboutCompany, opt => opt.MapFrom(src => src.Company.AboutUs))
                 .ReverseMap();
+
+            CreateMap<UserProfileDto, User>()
+                .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.CityId))
+                .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.CompanyId));
+
 
             CreateMap<UserEducation, UserEducationDto>().ReverseMap();
 

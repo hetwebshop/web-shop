@@ -20,7 +20,7 @@ namespace API.Mappers
                 .ForMember(dest => dest.JobPostStatus, src => src.MapFrom(x => x.JobPostStatus.Name))
                 .ForMember(dest => dest.City, src => src.MapFrom(x => x.City.Name))
                 .ForMember(dest => dest.CityId, src => src.MapFrom(x => x.City.Id))
-                .ForMember(dest => dest.ApplicantGender, src => src.MapFrom(x => MapGender(x.ApplicantGender)))
+                .ForMember(dest => dest.ApplicantGender, src => src.MapFrom(x => x.ApplicantGender))
                 .ForMember(dest => dest.ApplicantEducations, src => src.MapFrom(x => x.ApplicantEducations))
                 .ForMember(dest => dest.AdvertisementTypeId, src => src.MapFrom(x => x.AdvertisementTypeId));
 
@@ -54,18 +54,18 @@ namespace API.Mappers
             }
         }
 
-        private string MapGender(Gender gender)
-        {
-            switch (gender)
-            {
-                case Gender.Male:
-                    return "Muško";
-                case Gender.Female:
-                    return "Žensko";
-                default:
-                    return "Ostali";
-            }
-        }
+        //private string MapGender(Gender gender)
+        //{
+        //    switch (gender)
+        //    {
+        //        case Gender.Male:
+        //            return "Muško";
+        //        case Gender.Female:
+        //            return "Žensko";
+        //        default:
+        //            return "Ostali";
+        //    }
+        //}
 
         //private List<UserJobSubcategory> ConvertToUserJobSubcategories(int userJobPostId, List<int> subcategories)
         //{

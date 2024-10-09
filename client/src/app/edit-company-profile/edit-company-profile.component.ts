@@ -33,9 +33,11 @@ export class EditCompanyProfileComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    console.log("TEST KOMP");
     this.loadCities();
     
     this.accountService.getProfile().subscribe((response: UserProfile) => {
+      console.log(response);
       this.company = response;
       this.initilizeProfileForm();
       console.log("company");

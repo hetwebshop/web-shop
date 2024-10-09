@@ -14,6 +14,7 @@ import { AdvertisementTypeEnum, JobPostStatus } from 'src/app/models/enums';
 import { CompanyJobPost } from 'src/app/models/companyJobAd';
 import { CompanyJobService } from 'src/app/services/company-job.service';
 import { JobTypeQuery } from 'src/app/store/jobsHelpers/job-type.query';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 
 @Component({
   selector: 'app-company-my-ads',
@@ -21,19 +22,21 @@ import { JobTypeQuery } from 'src/app/store/jobsHelpers/job-type.query';
   styleUrls: ['./company-my-ads.component.css']
 })
 export class CompanyMyAdsComponent {
-  allJobs$: Observable<CompanyJobPost[]>;
-  completedJobs$: Observable<CompanyJobPost[]>;
-  filters = this.filtersQuery.getAll();
   paginationResponse: PagedResponse<CompanyJobPost>;
   paginationParameters: AdsPaginationParameters;
   jobCategories: JobCategory[];
   jobCategories$ = this.jobCategoryQuery.selectAll();
   jobTypes: JobType[];
   jobTypes$ = this.jobTypeQuery.selectAll();
-  selectedTabIndex = 0;//AKTIVNI OGLASI TAB
+  activeTabJobStatus: JobPostStatus = JobPostStatus.Active;
+  activeJobs: CompanyJobPost[];
+  closedJobs: CompanyJobPost[];
+  deletedJobs: CompanyJobPost[];
+  activeAdsPaginationResponse: PagedResponse<CompanyJobPost>;
+  closedAdsPaginationResponse: PagedResponse<CompanyJobPost>;
+  deletedAdsPaginationResponse: PagedResponse<CompanyJobPost>;
 
-  constructor(private jobService: JobService, private companyJobService: CompanyJobService, utility: UtilityService, private filtersQuery: FiltersQuery,
-    private filtersStore: FiltersStore, private datePipe: DatePipe, private jobCategoryQuery: JobCategoryQuery,
+  constructor(private jobService: JobService, private companyJobService: CompanyJobService, utility: UtilityService, private datePipe: DatePipe, private jobCategoryQuery: JobCategoryQuery,
     private jobTypeQuery: JobTypeQuery
   ) {
     utility.setTitle('Objave kompanije');
@@ -46,18 +49,12 @@ export class CompanyMyAdsComponent {
     this.jobTypes$.subscribe((jobTypes) => {
       this.jobTypes = jobTypes;
     });
-    if (this.filters && this.filters.length > 0) {
-      this.fetchPaginatedItems(this.selectedTabIndex, this.filters[0]);
-    }
-    else {
-      this.fetchPaginatedItems(this.selectedTabIndex);
-    }
+    this.fetchPaginatedItems();
   }
 
-  fetchPaginatedItems(selectedTab: number, filterCriteria?: AdsPaginationParameters): void {
+  fetchPaginatedItems(filterCriteria?: AdsPaginationParameters, isPaginationChangedByUserEvent: boolean = false): void {
     if (filterCriteria) {
       this.paginationParameters = filterCriteria;
-      this.filtersStore.set([this.paginationParameters]);
     }
     else {
       this.paginationParameters = {
@@ -66,29 +63,60 @@ export class CompanyMyAdsComponent {
         orderBy: "",
       };
     }
-    if(selectedTab == 0)//Aktivni oglasi
-      this.allJobs$ = this.companyJobService.getCompanyAds({...this.paginationParameters, adStatus: JobPostStatus.Active}).pipe(
-        map(response => {
-          this.paginationResponse = response;
-          return response.items;
-        })
-      );
-    else 
-      this.completedJobs$ = this.companyJobService.getCompanyAds({...this.paginationParameters, adStatus: JobPostStatus.Closed}).pipe(
-        map(response => {
-          this.paginationResponse = response;
-          return response.items;
-        })
-      );
+    if (isPaginationChangedByUserEvent) {
+      this.fetchCompanyAds({ ...this.paginationParameters, adStatus: this.activeTabJobStatus });
+    }
+    else {
+      this.fetchCompanyAds({ ...this.paginationParameters, adStatus: JobPostStatus.Active });
+      this.fetchCompanyAds({ ...this.paginationParameters, adStatus: JobPostStatus.Closed });
+      this.fetchCompanyAds({ ...this.paginationParameters, adStatus: JobPostStatus.Deleted });
+    }
   }
 
-  onTabChange(index: number): void {
-    this.selectedTabIndex = index;
-    this.fetchPaginatedItems(this.selectedTabIndex);
+  fetchCompanyAds(params: AdsPaginationParameters) {
+    this.companyJobService.getCompanyAds(params).subscribe(
+      (response) => {
+        if (params.adStatus == JobPostStatus.Active) {
+          this.activeAdsPaginationResponse = response;
+          this.activeJobs = response.items;
+        }
+        else if (params.adStatus == JobPostStatus.Closed) {
+          this.closedAdsPaginationResponse = response;
+          this.closedJobs = response.items;
+        }
+        else if (params.adStatus == JobPostStatus.Deleted) {
+          this.deletedAdsPaginationResponse = response;
+          this.deletedJobs = response.items;
+        }
+      },
+      (error) => {
+        console.error('Error fetching jobs:', error);
+      }
+    );
+  }
+
+  onTabChange(event: MatTabChangeEvent): void {
+    const selectedIndex = event.index; //0-aktivni oglasi tab, 1-zatvoreni oglasi tab
+    if (selectedIndex === 0) {
+      this.activeTabJobStatus = JobPostStatus.Active;
+    } else if (selectedIndex === 1) {
+      this.activeTabJobStatus = JobPostStatus.Closed;
+    }
+    else if (selectedIndex === 2) {
+      this.activeTabJobStatus = JobPostStatus.Deleted;
+    }
+    this.resetAdsResponses();
+    this.paginationParameters = { ...this.paginationParameters, pageSize: 10, pageNumber: 1, adStatus: this.activeTabJobStatus }
+    this.fetchPaginatedItems(this.paginationParameters, true);
+  }
+
+  resetAdsResponses() {
+    this.activeAdsPaginationResponse = null;
+    this.closedAdsPaginationResponse = null;
+    this.deletedAdsPaginationResponse = null;
   }
 
   getCategoryName(jobCategoryId: number): string | undefined {
-    console.log("JOBCATEGORY", jobCategoryId);
     return this.jobCategories?.find(r => r.id === jobCategoryId)?.name;
   }
   getJobType(jobTypeId: number): string {
@@ -98,35 +126,34 @@ export class CompanyMyAdsComponent {
   getStatusEnumValue(value: number): string {
     return value == JobPostStatus.Active ? "Aktivan Oglas" : value == JobPostStatus.Closed ? "Istekao Oglas" : "Obrisan Oglas";
   }
-  
+
   getFormattedDate(datePipe: DatePipe, date: Date): string {
     return this.datePipe.transform(date, 'dd.MM.yyyy');
   }
 
   onPageChange(pageNumber: number) {
     this.paginationParameters = { ...this.paginationParameters, pageNumber: pageNumber };
-    this.fetchPaginatedItems(this.selectedTabIndex, this.paginationParameters);
+    this.fetchPaginatedItems(this.paginationParameters, true);
   }
 
   onPageSizeChange(pageSize: number) {
-    this.paginationParameters = { ...this.paginationParameters, pageSize: pageSize };
-    this.fetchPaginatedItems(this.selectedTabIndex, this.paginationParameters);
+    this.paginationParameters = { ...this.paginationParameters, pageNumber: 1, pageSize: pageSize };
+    this.fetchPaginatedItems(this.paginationParameters, true);
   }
 
   deleteAd(event, jobId: number): void {
     event.preventDefault();
     this.companyJobService.deleteAd(jobId).subscribe((response) => {
-      if(response == true) {
-        this.fetchPaginatedItems(this.selectedTabIndex);
-      }
+      if (response == true)
+        this.fetchPaginatedItems(this.paginationParameters);
     });
   }
 
   closeAd(event, jobId: number): void {
     event.preventDefault();
     this.companyJobService.closeAd(jobId).subscribe((response) => {
-      if(response == true) {
-        this.fetchPaginatedItems(this.selectedTabIndex);
+      if (response == true) {
+        this.fetchPaginatedItems();
       }
     });
   }
@@ -134,8 +161,8 @@ export class CompanyMyAdsComponent {
   reactivateAd(event, jobId): void {
     event.preventDefault();
     this.companyJobService.reactivateAd(jobId).subscribe((response) => {
-      if(response == true) {
-        this.fetchPaginatedItems(this.selectedTabIndex);
+      if (response == true) {
+        this.fetchPaginatedItems();
       }
     });
   }
