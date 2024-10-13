@@ -42,12 +42,20 @@ namespace API.Data.ICompanyJobPostRepository
                 u.IsDeleted == false &&
                 (
                     (adsParameters.fromDate == null && adsParameters.toDate == null) ||
-                    (adsParameters.fromDate.HasValue && !adsParameters.toDate.HasValue && u.CreatedAt.Date >= adsParameters.fromDate.Value.Date) ||
-                    (adsParameters.fromDate.HasValue && adsParameters.toDate.HasValue && u.CreatedAt.Date >= adsParameters.fromDate.Value.Date && u.CreatedAt.Date <= adsParameters.toDate.Value.Date) ||
-                    (!adsParameters.fromDate.HasValue && adsParameters.toDate.HasValue && u.CreatedAt.Date <= adsParameters.toDate.Value.Date))
+                    (adsParameters.fromDate.HasValue && !adsParameters.toDate.HasValue && u.AdStartDate.Date >= adsParameters.fromDate.Value.Date) ||
+                    (adsParameters.fromDate.HasValue && adsParameters.toDate.HasValue && u.AdStartDate.Date >= adsParameters.fromDate.Value.Date && u.AdEndDate.Date <= adsParameters.toDate.Value.Date) ||
+                    (!adsParameters.fromDate.HasValue && adsParameters.toDate.HasValue && u.AdStartDate.Date <= adsParameters.toDate.Value.Date))
                 );
 
-            //Add method to search by keyword here
+            if (!string.IsNullOrEmpty(adsParameters.searchKeyword))
+            {
+                var keyword = adsParameters.searchKeyword.ToLower();
+                companyJobPosts = companyJobPosts.Where(u =>
+                    (!string.IsNullOrEmpty(u.Position) && u.Position.ToLower().Contains(keyword)) ||
+                    (!string.IsNullOrEmpty(u.JobDescription) && u.JobDescription.ToLower().Contains(keyword)) ||
+                    (!string.IsNullOrEmpty(u.AdName) && u.AdName.ToLower().Contains(keyword))
+                );
+            }
 
             companyJobPosts = _sortHelper.ApplySort(companyJobPosts, adsParameters.OrderBy);
             return await PagedList<CompanyJobPost>.ToPagedListAsync(companyJobPosts, adsParameters.PageNumber, adsParameters.PageSize);

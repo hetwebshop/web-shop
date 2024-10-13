@@ -124,23 +124,55 @@
           <textarea matInput formControlName="biography" rows="4" placeholder="Unesite biografiju" required></textarea>
         </mat-form-field>
 
-        <div fxFlex="95" fxFlex.lt-sm="90" appearance="outline" style="margin-bottom: 20px;">
-          <!-- If there is no existing file, show file input -->
-          <div *ngIf="!existingFilePath || !populateFormWithUserProfileData">
-            <input type="file" (change)="onFileSelected($event)" accept="application/pdf" />
-          </div>
+        <div fxLayout="row" fxLayoutAlign="space-between center" fxFlex="95" fxFlex.lt-sm="90" style="margin-bottom: 20px;">
+          <!-- Upload Button and Selected File in One Row -->
+          <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
+            <!-- Styled File Input -->
+            <button mat-raised-button color="primary" (click)="fileInput.click()" type="button">
+              <mat-icon>attach_file</mat-icon> Učitaj CV
+            </button>
+            <input #fileInput type="file" (change)="onFileSelected($event)" accept=".pdf, .doc, .docx, .txt, .jpg, .png, .xlsx, .pptx"  hidden />
         
-          <!-- If there is an existing file, show file details and delete option -->
-          <div *ngIf="existingFilePath && populateFormWithUserProfileData">
-            <p>Existing file: <a [href]="existingFilePath" target="_blank">View file</a></p>
-            <button mat-button (click)="deleteExistingFile()">Delete existing file</button>
-          </div>
-        
-          <!-- Show selected file name if a new file is selected -->
-          <div *ngIf="selectedFileName">
-            Selected file: {{ selectedFileName }}
+            <!-- Show Selected File Name with Remove Option -->
+            <div *ngIf="selectedFileName" fxLayout="row" fxLayoutAlign="start center" (click)="openFilePreview()" style="cursor: pointer;">
+              <mat-icon>description</mat-icon>
+              <span class="selected-file-text">Odabrani CV: {{ selectedFileName }}</span>
+              <button mat-icon-button color="warn" (click)="removeSelectedFile($event)">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
           </div>
         </div>
+        
+        <!-- Existing File Section -->
+        <div *ngIf="existingFilePath && populateFormWithUserProfileData" fxLayout="row" fxLayoutAlign="space-between center" style="margin-top: 10px;">
+          <p>Postojeća datoteka: <a [href]="existingFilePath" target="_blank">View file</a></p>
+          <button mat-raised-button color="warn" (click)="deleteExistingFile()">
+            <mat-icon>delete</mat-icon> Obriši CV
+          </button>
+        </div>
+        
+        <!-- PDF Preview Modal -->
+        <ng-template #filePreviewModal let-dialogRef="dialogRef">
+          <div fxLayout="column">
+            <div fxLayout="row" fxLayoutAlign="space-between center">
+              <h2 mat-dialog-title style="margin: 0;">Pregled učitanog CV-a</h2>
+              <button mat-icon-button style="margin-bottom: 20px;" (click)="dialogRef.close()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+        
+            <mat-dialog-content>
+              <ngx-doc-viewer [url]="selectedFilePath" viewer="pdf" style="width: 100%; height: 800px;"></ngx-doc-viewer>
+            </mat-dialog-content>
+        
+            <mat-dialog-actions align="end">
+              <button mat-button mat-dialog-close>Zatvori</button>
+            </mat-dialog-actions>
+          </div>
+        </ng-template>
+        
+        
 
         <mat-form-field *ngIf="selectedAdvertisementType == AdvertisementTypeEnum.Service" appearance="outline" class="full-width">
           <mat-label>Cijena usluge</mat-label>

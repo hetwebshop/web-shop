@@ -17,7 +17,7 @@ export class HttpService {
 
   get<T>(
     url: string,
-    { params = {}, cache = false, background = false } = {}
+    { params = {}, cache = false, background = false, responseType = 'json' } = {}
   ): Observable<T> {
     let identifier = this.getIdentifier(url, params);
     let cacheResponse = this.responseCache.get(identifier);
@@ -29,6 +29,7 @@ export class HttpService {
       .get<T>(url, {
         params: this.getHttpParams(params),
         headers: { Background: background.toString() },
+        responseType: responseType as any,
       })
       .pipe(
         map((response) => {

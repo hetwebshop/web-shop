@@ -115,7 +115,7 @@ export class CompanyJobAdsComponent {
   }
 
   onPageSizeChange(pageSize: number) {
-    this.paginationParameters = { ...this.paginationParameters, pageSize: pageSize };
+    this.paginationParameters = { ...this.paginationParameters, pageSize: pageSize, pageNumber: 1 };
     this.fetchPaginatedItems(this.paginationParameters);
   }
 }

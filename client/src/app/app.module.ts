@@ -76,6 +76,7 @@ import { CompanyJobPreviewComponent } from './jobs/company-job-ads/company-job-p
 import { CompanyMyAdsComponent } from './jobs/company-my-ads/company-my-ads.component';
 import { CompanyMyAdsWrapperComponent } from './jobs/company-my-ads/company-my-ads-wrapper.component';
 import { CompanyMyAdManagerComponent } from './jobs/company-my-ads/company-my-ad-manager/company-my-ad-manager.component';
+import { NgxDocViewerModule } from 'ngx-doc-viewer';
 
 @Injectable()
 export class HammerConfig extends HammerGestureConfig {
@@ -156,7 +157,8 @@ export class HammerConfig extends HammerGestureConfig {
     MatSlideToggleModule,
     MatCheckboxModule,
     MatRadioModule,
-    MatTabsModule
+    MatTabsModule,
+    NgxDocViewerModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },

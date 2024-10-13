@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription, map, switchMap } from 'rxjs';
 import { AdvertisementType, ApplicantEducation, JobCategory, JobType, UserJobPost, UserJobSubcategory } from 'src/app/models/userJobPost';
@@ -12,6 +12,7 @@ import { MatOption } from '@angular/material/core';
 import { User, UserInfo, UserProfile } from 'src/app/modal/user';
 import { AccountService } from 'src/app/services/account.service';
 import * as moment from 'moment';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-job-details-manager',
@@ -42,13 +43,15 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
   selectedFile: File;
   existingFilePath: string | null = null;
   selectedFileName: string | null = null;
+  selectedFilePath: string | null = null;
+  @ViewChild('filePreviewModal') filePreviewModal!: TemplateRef<any>;
   populateFormWithUserProfileData: boolean = false;
 
   @ViewChild('allSelected', { static: true }) private allSelected: MatOption;
 
   constructor(private jobService: JobService, private locationService: LocationService, utility: UtilityService, 
     private route: ActivatedRoute, private cdr: ChangeDetectorRef, 
-    private fb: FormBuilder, private accountService: AccountService, private router: Router) {
+    private fb: FormBuilder, private accountService: AccountService, private router: Router, private dialog: MatDialog) {
       this.route.url.subscribe(urlSegment => {
         this.isJobAd = !urlSegment.some(segment => segment.path.includes('service'));
       });
@@ -130,7 +133,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
       applicantGender: new FormControl('', Validators.required),
       applicantDateOfBirth: new FormControl('', Validators.required),
       applicantEducations: this.applicantEducations,
-      jobTypeId: new FormControl(0, Validators.required),
+      jobTypeId: new FormControl('', Validators.required),
       cityId: new FormControl('', Validators.required),
       countryId: new FormControl({ value: null, disabled: true}, Validators.required),
       jobCategoryId: new FormControl('', Validators.required),
@@ -156,6 +159,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
     });
 
     let now = moment();
+    console.log("CV IS ", data);
     const model: UserJobPost = {
       id: data.id,
       position: data.position || '',
@@ -196,7 +200,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
         //     });
         //} 
         else {
-          console.log("KEY", key, value);
+          //console.log("KEY", key, value);
           if(key !== 'cvFile' && value != null){
             formData.append(key, value.toString());
           }
@@ -227,25 +231,31 @@ private updateApplicantEducations(educations: any[]): void {
     Object.keys(formGroup.controls).forEach(key => {
       const control = formGroup.get(key);
       if (control instanceof FormControl && control.invalid) {
-        console.log(`Invalid Field: ${key}`);
+        //console.log(`Invalid Field: ${key}`);
       } else if (control instanceof FormGroup) {
         this.logInvalidControls(control);
       } else if (control instanceof FormArray) {
         control.controls.forEach((ctrl, index) => {
           if (ctrl instanceof FormGroup) {
-            console.log(`FormArray Group Index: ${index}`);
+            //console.log(`FormArray Group Index: ${index}`);
             this.logInvalidControls(ctrl);
           } else if (ctrl instanceof FormControl && ctrl.invalid) {
-            console.log(`Invalid Field in FormArray: ${key}[${index}]`);
+            //console.log(`Invalid Field in FormArray: ${key}[${index}]`);
           }
         });
       }
     });
   }
   onSubmit(): void {
+    const formData = this.form.getRawValue();
+    // const model = this.prepareModel(formData);
+    // console.log("MODEL IS", model);
+    // this.subscription = this.jobService.upsertJob(this.isEditMode, model).subscribe();
     if (this.form.valid) {
-      const formData = this.form.getRawValue();
+      // const formData = this.form.getRawValue();
       const model = this.prepareModel(formData);
+      //console.log("MODEL IS", model);
+      console.log("FORM IS", formData);
       this.subscription = this.jobService.upsertJob(this.isEditMode, model).subscribe();
     } 
     else {
@@ -352,12 +362,36 @@ private updateApplicantEducations(educations: any[]): void {
     }
   }
 
+  openFilePreview(): void {
+    if (this.selectedFilePath) {
+      this.dialog.open(this.filePreviewModal, {
+        width: '80%',
+        height: 'auto',
+      });
+    }
+  }
+
   onFileSelected(event): void {
-    this.selectedFile = (event.target as HTMLInputElement).files[0];
-    this.existingFilePath = null;
-    this.selectedFileName = this.selectedFile.name;
-    this.form.patchValue({ cvFile: this.selectedFile });
-    this.form.markAsDirty();
+    event.preventDefault();
+    event.stopPropagation(); 
+    const input = event.target as HTMLInputElement;
+    
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      this.selectedFileName = file.name;
+      this.selectedFilePath = URL.createObjectURL(file);
+      this.selectedFile = file;
+      this.form.patchValue({ cvFile: this.selectedFile });
+  
+      // Clear input value to allow re-upload of the same file
+      input.value = ''; 
+    }
+  }
+
+  removeSelectedFile(event: Event): void {
+    event.stopPropagation(); // Prevent triggering openFilePreview
+    this.selectedFileName = null;
+    this.selectedFilePath = null;
   }
 
   deleteExistingFile() {

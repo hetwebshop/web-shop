@@ -6,6 +6,7 @@ using API.Helpers;
 using API.PaginationEntities;
 using AutoMapper;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace API.Mappers
@@ -22,7 +23,8 @@ namespace API.Mappers
                 .ForMember(dest => dest.CityId, src => src.MapFrom(x => x.City.Id))
                 .ForMember(dest => dest.ApplicantGender, src => src.MapFrom(x => x.ApplicantGender))
                 .ForMember(dest => dest.ApplicantEducations, src => src.MapFrom(x => x.ApplicantEducations))
-                .ForMember(dest => dest.AdvertisementTypeId, src => src.MapFrom(x => x.AdvertisementTypeId));
+                .ForMember(dest => dest.AdvertisementTypeId, src => src.MapFrom(x => x.AdvertisementTypeId))
+                .ForMember(dest => dest.CvFilePath, src => src.MapFrom(x => Path.GetFileName(x.CvFilePath)));
 
             this.CreateMap<UserJobPostDto, UserJobPost>()
                 .ForMember(dest => dest.JobPostStatusId, src => src.MapFrom(x => x.JobPostStatusId != 0 ? x.JobPostStatusId : (int)Helpers.JobPostStatus.Active));

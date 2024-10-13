@@ -1,4 +1,4 @@
-import { Component, Inject, ViewChild } from '@angular/core';
+import { Component, Inject, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AdvertisementTypeEnum } from 'src/app/models/enums';
 import { JobCategory, UserJobPost } from 'src/app/models/userJobPost';
@@ -17,6 +17,7 @@ import { FiltersQuery } from 'src/app/store/filters/filters.query';
 import { JobCategoryQuery } from 'src/app/store/jobsHelpers/job-category.query';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatDrawer } from '@angular/material/sidenav';
+import { HttpClient } from '@angular/common/http';
 @Component({
   selector: 'app-user-jobs',
   templateUrl: './user-jobs-list.component.html',
@@ -33,12 +34,14 @@ export class UserJobsListComponent {
   jobCategories$ = this.jobCategoryQuery.selectAll();
   isLargeScreen = true;
   isJobAd: boolean;
-
+  selectedFilePath: string | null = null;
+  @ViewChild('filePreviewModal') filePreviewModal!: TemplateRef<any>;
+  fileUrl: string = ""
   
   constructor(private jobService: JobService, utility: UtilityService, private route: ActivatedRoute,
     private router: Router, private datePipe: DatePipe, public dialog: MatDialog,
     private accountService: AccountService, private filtersStore: FiltersStore,
-    private filtersQuery: FiltersQuery, private jobCategoryQuery: JobCategoryQuery, private breakpointObserver: BreakpointObserver) {
+    private filtersQuery: FiltersQuery, private http: HttpClient, private jobCategoryQuery: JobCategoryQuery, private breakpointObserver: BreakpointObserver) {
     utility.setTitle('Oglasi');
     this.accountService.user$.subscribe((u) => (this.user = u));
   }
@@ -126,6 +129,22 @@ export class UserJobsListComponent {
         console.log('Changes canceled');
       }
     });
+  }
+
+  previewUserCV(fileName: string) {
+    this.jobService.getCVFileByName(fileName).subscribe((fileBlob) => {
+      const blobUrl = URL.createObjectURL(fileBlob);
+      this.selectedFilePath = blobUrl;
+      this.dialog.open(this.filePreviewModal, {
+        width: '80%',
+        height: 'auto',
+      });
+    })
+    // this.selectedFilePath = this.jobService.getFileUrl(cvFilePath);
+    // this.dialog.open(this.filePreviewModal, {
+    //   width: '80%',
+    //   height: 'auto',
+    // });
   }
 
   onPageChange(pageNumber: number) {

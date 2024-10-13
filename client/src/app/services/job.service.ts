@@ -78,6 +78,12 @@ export class JobService {
     );
   }
 
+  getCVFileByName(fileName: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}cvfile/${fileName}`, {
+      responseType: 'blob',
+    });
+  }
+
   getJobById(id: number): Observable<UserJobPost> {
     var entity = this.adsQuery.getEntity(id);
     if (entity) {
@@ -124,6 +130,7 @@ export class JobService {
         })
       );
     } else {
+      console.log("JOB DATA", jobData);
       return this.http.post<UserJobPost>(`${this.baseUrl}create`, jobData).pipe(
         tap((response) => {
           this.adsStore.add(response);

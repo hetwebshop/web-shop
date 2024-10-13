@@ -93,6 +93,21 @@ namespace API.Controllers
             return Ok(updatedItem);
         }
 
+        [HttpGet("cvfile/{fileName}")]
+        public IActionResult GetCVFile(string fileName)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "uploads", fileName);
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("File not found.");
+            }
+
+            var mimeType = "application/pdf";
+            return PhysicalFile(filePath, mimeType);
+        }
+
+
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteUserJobPost(int id)
         {
