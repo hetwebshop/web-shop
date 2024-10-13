@@ -3,6 +3,7 @@ using API.Entities;
 using API.Seed;
 using AutoMapper;
 using System;
+using System.IO;
 using System.Linq;
 
 namespace API.Helpers
@@ -36,6 +37,7 @@ namespace API.Helpers
                 .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.Company.CompanyName))
                 .ForMember(dest => dest.CompanyPhone, opt => opt.MapFrom(src => src.Company.PhoneNumber))
                 .ForMember(dest => dest.AboutCompany, opt => opt.MapFrom(src => src.Company.AboutUs))
+                .ForMember(dest => dest.CvFilePath, opt => opt.MapFrom(src => Path.GetFileName(src.CvFilePath)))
                 .ReverseMap();
 
             CreateMap<UserProfileDto, User>()

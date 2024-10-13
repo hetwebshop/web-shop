@@ -145,9 +145,11 @@
         </div>
         
         <!-- Existing File Section -->
-        <div *ngIf="existingFilePath && populateFormWithUserProfileData" fxLayout="row" fxLayoutAlign="space-between center" style="margin-top: 10px;">
-          <p>Postojeća datoteka: <a [href]="existingFilePath" target="_blank">View file</a></p>
-          <button mat-raised-button color="warn" (click)="deleteExistingFile()">
+        <div *ngIf="existingFilePath && populateFormWithUserProfileData" fxLayout="row" fxLayoutAlign="start" style="margin-top: 10px;">
+          <button type="button" *ngIf="user.cvFilePath" mat-raised-button style="margin-left: 10px; color: #B2DFDB; background-color: #004D40;" (click)="previewUserCV(user.cvFilePath)"
+          color="accent">Pregledaj CV
+        </button>
+          <button mat-raised-button color="warn" style="margin-left: 10px;" (click)="deleteExistingFile()">
             <mat-icon>delete</mat-icon> Obriši CV
           </button>
         </div>

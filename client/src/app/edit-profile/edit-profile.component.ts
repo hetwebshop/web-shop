@@ -1,4 +1,4 @@
-import { Component, OnChanges, OnInit } from '@angular/core';
+import { Component, OnChanges, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, NgForm, Validators, FormGroup, FormArray, FormControl } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { Address, LocationInfo } from '../modal/address';
@@ -30,6 +30,10 @@ export class EditProfileComponent implements OnInit {
   loading: string;
   cities: City[] = [];
   selectedFile: File;
+  selectedFileName: string | null = null;
+  selectedFilePath: string | null = null;
+  existingFilePath: string | null = null;
+  @ViewChild('filePreviewModal') filePreviewModal!: TemplateRef<any>;
   //jobInfoForm: FormGroup;
   userEducations: FormArray;
 
@@ -56,6 +60,7 @@ export class EditProfileComponent implements OnInit {
       console.log("user");
       console.log(this.user);
       this.updateUserEducations(this.user?.userEducations);
+      this.existingFilePath = this.user.cvFilePath;
       //this.jobInfoForm = this.initializeJobInfoForm();
     });
     // this.accountService.getAddress().subscribe((response) => {
@@ -145,17 +150,6 @@ export class EditProfileComponent implements OnInit {
   }
 
   onSubmit() {
-    // const formData = new FormData();
-    // Object.keys(this.profileUpdate.controls).forEach(key => {
-    //   if (key !== 'cvFile') {
-    //     formData.append(key, this.profileUpdate.get(key).value);
-    //   }
-    // });
-
-    // if (this.selectedFile) {
-    //   //this.profileUpdate.get('cvFile').setValue(this.selectedFile);
-    //   formData.append('cvFile', this.selectedFile, this.selectedFile.name);
-    // }
     const formData = new FormData();
     console.log("FORM ", this.profileUpdate.value);
     // Append form data fields
@@ -181,8 +175,6 @@ export class EditProfileComponent implements OnInit {
     if (this.selectedFile) {
       formData.append('cvFile', this.selectedFile, this.selectedFile.name);
     }
-
-
     this.accountService
       .updateProfile(formData)
       .subscribe((response) => {
@@ -198,15 +190,56 @@ export class EditProfileComponent implements OnInit {
   updateAddress(form: NgForm) {
   }
 
-  openFile() {
-    const filePath = this.user.cvFilePath;
-    console.log("FILE PATH", filePath);
-    // Ensure the path is a valid URL
-    if (filePath) {
-      window.open("C:/dev/web-shop/web-shop/API/uploads/EminDukic_CV.pdf", '_blank');
-    } else {
-      console.error('File path is not valid');
+  openFilePreview(): void {
+    if (this.selectedFilePath) {
+      this.dialog.open(this.filePreviewModal, {
+        width: '80%',
+        height: 'auto',
+      });
     }
+  }
+
+  previewUserCV(fileName: string) {
+    this.jobService.getCVFileByName(fileName).subscribe((fileBlob) => {
+      const blobUrl = URL.createObjectURL(fileBlob);
+      this.selectedFilePath = blobUrl;
+      this.dialog.open(this.filePreviewModal, {
+        width: '80%',
+        height: 'auto',
+      });
+    })
+  }
+
+  onFileSelected(event): void {
+    event.preventDefault();
+    event.stopPropagation(); 
+    const input = event.target as HTMLInputElement;
+    
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      this.selectedFileName = file.name;
+      this.selectedFilePath = URL.createObjectURL(file);
+      this.selectedFile = file;
+      this.profileUpdate.patchValue({ cvFile: this.selectedFile });
+      this.profileUpdate.markAsDirty();
+      // Clear input value to allow re-upload of the same file
+      input.value = ''; 
+    }
+  }
+
+  removeSelectedFile(event: Event): void {
+    event.stopPropagation();
+    this.selectedFileName = null;
+    this.selectedFilePath = null;
+    this.profileUpdate.patchValue({cvFile: null});
+    this.user.cvFilePath = null;
+    this.profileUpdate.markAsDirty();
+  }
+
+  deleteExistingFile(event: Event) {
+    event.stopPropagation();
+    this.existingFilePath = null;
+    this.removeSelectedFile(event);
   }
 
   changePhoto(files: FileList) {
@@ -263,11 +296,4 @@ export class EditProfileComponent implements OnInit {
       }
     });
   }
-
-  onFileSelected(event): void {
-    this.selectedFile = (event.target as HTMLInputElement).files[0];
-    this.profileUpdate.patchValue({ cvFile: this.selectedFile });
-    this.profileUpdate.markAsDirty();
-  }
-
 }

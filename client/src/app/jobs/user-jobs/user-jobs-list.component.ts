@@ -131,7 +131,9 @@ export class UserJobsListComponent {
     });
   }
 
-  previewUserCV(fileName: string) {
+  previewUserCV(fileName: string, event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
     this.jobService.getCVFileByName(fileName).subscribe((fileBlob) => {
       const blobUrl = URL.createObjectURL(fileBlob);
       this.selectedFilePath = blobUrl;
@@ -140,11 +142,6 @@ export class UserJobsListComponent {
         height: 'auto',
       });
     })
-    // this.selectedFilePath = this.jobService.getFileUrl(cvFilePath);
-    // this.dialog.open(this.filePreviewModal, {
-    //   width: '80%',
-    //   height: 'auto',
-    // });
   }
 
   onPageChange(pageNumber: number) {

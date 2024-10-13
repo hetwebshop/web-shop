@@ -71,8 +71,8 @@ namespace API.Controllers
                 {
                     Directory.CreateDirectory(uploadsDir);
                 }
-
-                var filePath = Path.Combine(uploadsDir, userJobPostDto.CvFile.FileName);
+                var uniqueFileName = Helpers.GetUniqueFileName(uploadsDir, userJobPostDto.CvFile.FileName);
+                var filePath = Path.Combine(uploadsDir, uniqueFileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
@@ -89,6 +89,22 @@ namespace API.Controllers
         public async Task<IActionResult> UpdateUserJobPost(int id, [FromForm] UserJobPostDto userJobPostDto)
         {
             userJobPostDto.SubmittingUserId = HttpContext.User.GetUserId();
+            if (userJobPostDto.CvFile != null)
+            {
+                var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+                if (!Directory.Exists(uploadsDir))
+                {
+                    Directory.CreateDirectory(uploadsDir);
+                }
+                var uniqueFileName = Helpers.GetUniqueFileName(uploadsDir, userJobPostDto.CvFile.FileName);
+                var filePath = Path.Combine(uploadsDir, uniqueFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await userJobPostDto.CvFile.CopyToAsync(stream);
+                }
+                userJobPostDto.CvFilePath = filePath;
+            }
             var updatedItem = await _jobPostService.UpdateUserJobPostAsync(userJobPostDto);
             return Ok(updatedItem);
         }

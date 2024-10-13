@@ -388,6 +388,17 @@ private updateApplicantEducations(educations: any[]): void {
     }
   }
 
+  previewUserCV(fileName: string) {
+    this.jobService.getCVFileByName(fileName).subscribe((fileBlob) => {
+      const blobUrl = URL.createObjectURL(fileBlob);
+      this.selectedFilePath = blobUrl;
+      this.dialog.open(this.filePreviewModal, {
+        width: '80%',
+        height: 'auto',
+      });
+    })
+  }
+
   removeSelectedFile(event: Event): void {
     event.stopPropagation(); // Prevent triggering openFilePreview
     this.selectedFileName = null;
@@ -396,6 +407,5 @@ private updateApplicantEducations(educations: any[]): void {
 
   deleteExistingFile() {
     this.existingFilePath = null;
-    // Optionally, handle the deletion on the backend
   }
 }

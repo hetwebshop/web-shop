@@ -195,18 +195,22 @@ namespace API.Controllers
                 return BadRequest("Test User cannot change username.");
 
             var user = await _userManager.Users.SingleAsync(u => u.Id == profileDto.Id);
-            //var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-            //if (!Directory.Exists(uploadsDir))
-            //{
-            //    Directory.CreateDirectory(uploadsDir);
-            //}
+            if (profileDto.CvFile != null)
+            {
+                var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+                if (!Directory.Exists(uploadsDir))
+                {
+                    Directory.CreateDirectory(uploadsDir);
+                }
+                var uniqueFileName = Helpers.GetUniqueFileName(uploadsDir, profileDto.CvFile.FileName);
+                var filePath = Path.Combine(uploadsDir, uniqueFileName);
 
-            //var filePath = Path.Combine(uploadsDir, profileDto.CvFile.FileName);
-
-            //using (var stream = new FileStream(filePath, FileMode.Create))
-            //{
-            //    await profileDto.CvFile.CopyToAsync(stream);
-            //}
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await profileDto.CvFile.CopyToAsync(stream);
+                }
+                profileDto.CvFilePath = filePath;
+            }
 
             _mapper.Map(profileDto, user);
             //user.CvFilePath = filePath;

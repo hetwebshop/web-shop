@@ -1,7 +1,8 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectorRef, Component, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, TemplateRef, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatOption } from '@angular/material/core';
+import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { Observable, Subscription, map, switchMap } from 'rxjs';
@@ -46,6 +47,8 @@ export class MyAdComponent {
   selectedFile: File;
   existingFilePath: string | null = null;
   selectedFileName: string | null = null;
+  selectedFilePath: string | null = null;
+  @ViewChild('filePreviewModal') filePreviewModal!: TemplateRef<any>;
   populateFormWithUserProfileData: boolean = false;
   isJobInStatusClosedOrDeleted: boolean = false;
   canJobBeReactivated: boolean = false;
@@ -54,7 +57,7 @@ export class MyAdComponent {
 
   constructor(private jobService: JobService, private locationService: LocationService, utility: UtilityService, 
     private route: ActivatedRoute, private cdr: ChangeDetectorRef, 
-    private fb: FormBuilder, private accountService: AccountService, private router: Router) {
+    private fb: FormBuilder, private accountService: AccountService, private router: Router, private dialog: MatDialog) {
     utility.setTitle('Detalji oglasa');
   }
 
@@ -233,7 +236,9 @@ private updateApplicantEducations(educations: any[]): void {
     if (this.adUpdateForm.valid) {
       const formData = this.adUpdateForm.getRawValue();
       const model = this.prepareModel(formData);
-      this.subscription = this.jobService.upsertJob(this.isEditMode, model).subscribe();
+      this.subscription = this.jobService.upsertJob(this.isEditMode, model).subscribe((updatedJob) => {
+        this.job = updatedJob;
+      });
     } 
     else {
       this.logInvalidControls(this.adUpdateForm);
@@ -347,17 +352,57 @@ private updateApplicantEducations(educations: any[]): void {
     });
   }
 
+  openFilePreview(): void {
+    if (this.selectedFilePath) {
+      this.dialog.open(this.filePreviewModal, {
+        width: '80%',
+        height: 'auto',
+      });
+    }
+  }
+
+  previewUserCV(fileName: string) {
+    this.jobService.getCVFileByName(fileName).subscribe((fileBlob) => {
+      const blobUrl = URL.createObjectURL(fileBlob);
+      this.selectedFilePath = blobUrl;
+      this.dialog.open(this.filePreviewModal, {
+        width: '80%',
+        height: 'auto',
+      });
+    })
+  }
+
   onFileSelected(event): void {
-    this.selectedFile = (event.target as HTMLInputElement).files[0];
-    this.existingFilePath = null;
-    this.selectedFileName = this.selectedFile.name;
-    this.adUpdateForm.patchValue({ cvFile: this.selectedFile });
+    event.preventDefault();
+    event.stopPropagation(); 
+    const input = event.target as HTMLInputElement;
+    
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      this.selectedFileName = file.name;
+      this.selectedFilePath = URL.createObjectURL(file);
+      this.selectedFile = file;
+      this.adUpdateForm.patchValue({ cvFile: this.selectedFile });
+      this.adUpdateForm.markAsDirty();
+      // Clear input value to allow re-upload of the same file
+      input.value = ''; 
+    }
+  }
+
+  removeSelectedFile(event: Event): void {
+    event.stopPropagation();
+    this.selectedFileName = null;
+    this.selectedFilePath = null;
+    this.adUpdateForm.patchValue({cvFile: null});
     this.adUpdateForm.markAsDirty();
   }
 
-  deleteExistingFile() {
+  deleteExistingFile(event: Event) {
+    event.stopPropagation();
+    this.removeSelectedFile(event);
+    this.job = { ...this.job, cvFilePath: null };
     this.existingFilePath = null;
-    // Optionally, handle the deletion on the backend
+    this.removeSelectedFile(event)
   }
 
   getEnumStatusValue(value: number): string {
