@@ -1,6 +1,6 @@
 import { Component, Inject, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AdvertisementTypeEnum } from 'src/app/models/enums';
+import { AdvertisementTypeEnum, Gender } from 'src/app/models/enums';
 import { JobCategory, UserJobPost } from 'src/app/models/userJobPost';
 import { JobService } from 'src/app/services/job.service';
 import { UtilityService } from 'src/app/services/utility.service';
@@ -45,6 +45,17 @@ export class UserJobsListComponent {
     private filtersQuery: FiltersQuery, private http: HttpClient, private jobCategoryQuery: JobCategoryQuery, private breakpointObserver: BreakpointObserver) {
     utility.setTitle('Oglasi');
     this.accountService.user$.subscribe((u) => (this.user = u));
+  }
+
+  genderName(gender: Gender) {
+    if(gender == Gender.Male){
+      return "Muškarac";
+    }
+    else if(gender == Gender.Female){
+      return "Žena";
+    }
+    else 
+      return "Ostali";
   }
 
   ngOnInit(): void {

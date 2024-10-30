@@ -109,14 +109,13 @@
           </div>
         </div>
 
-        
         <div fxFlex="30%" fxFlex.lt-md="45%">
           <div fxLayout="column">
             <mat-label class="bold-label">Tip posla</mat-label>
             <mat-form-field appearance="outline">
               <mat-select 
                 #jobTypeSelect
-                formControlName="jobCategoryIds" 
+                formControlName="jobTypeIds" 
                 placeholder="Odaberite tip posla" 
                 multiple 
                 [panelClass]="'custom-select-panel'"
@@ -180,8 +179,10 @@
             </mat-form-field>
           </div>
         </div>
-        <button mat-raised-button color="primary" type="submit" fxFlex="30%" fxFlex.lt-md="45%" style="height: 50px; background-color: #283316;">Traži</button>
-
+        <button mat-raised-button color="primary" type="submit" fxFlex="30%" fxFlex.lt-md="45%" class="search-button" fxLayout="row" fxLayoutAlign="center center">
+          <mat-icon class="search-icon">search</mat-icon>
+          <span class="button-text">Traži</span>
+        </button>
       </div>
 
     </form>

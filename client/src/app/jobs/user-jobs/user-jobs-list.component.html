@@ -6,7 +6,7 @@
     <!-- Title Card -->
     <mat-card 
       style="border: 1px solid #283316; display: flex; justify-content: center; 
-             text-align: center; padding: 20px; width: 100%; max-width: 600px;">
+             text-align: center; padding: 20px; width: 100%; max-width: 600px; background-color: #eee9e0;">
       <h1 *ngIf="isJobAd" style="color: #283316; font-weight: 500; margin: 0;">
         Pretražite osobe koje traže posao
       </h1>
@@ -49,7 +49,7 @@
           <a class="job-link" [routerLink]="['/ads', job.id]">
             <mat-card-header fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
               <div fxFlex="grow">
-                <mat-card-title>{{ job.position }}</mat-card-title>
+                <mat-card-title>{{ job.adTitle }}</mat-card-title>
                 <p><span style="font-size: 17px; font-weight: 500;">Ime i prezime:</span> {{ job.applicantFirstName }}
                   {{ job.applicantLastName }}</p>
                 <p><span style="font-size: 17px; font-weight: 500;">Kategorija:</span> {{
@@ -74,10 +74,10 @@
                   </ng-container>
 
                   <ng-container *ngIf="job?.applicantGender !== ''">
-                    <strong style="font-weight: 500;">Spol:</strong> {{ job?.applicantGender }} &nbsp; &nbsp;
+                    <strong style="font-weight: 500;">Spol:</strong> {{ genderName(job?.applicantGender) }} &nbsp; &nbsp;
                   </ng-container>
                   <ng-container *ngIf="job?.applicantGender === ''">
-                    <strong style="font-weight: 500;">Spol:</strong> Nije unešeno &nbsp; &nbsp;
+                    <strong style="font-weight: 500;">Spol:</strong> - &nbsp; &nbsp;
                   </ng-container>
 
                   <ng-container *ngIf="job?.applicantEmail !== ''">
@@ -97,19 +97,29 @@
                 </p>
               </div>
               <div class="job-details">
+                <h2>Dodatni opis</h2>
+                <p>{{ job.adAdditionalDescription }}</p>
+              </div>
+              <div class="job-details">
                 <h2>Biografija</h2>
                 <p>{{ job.biography | truncate:150:true }}</p>
               </div>
             </mat-card-content>
           </a>
-          <div class="job-details">
-            <button *ngIf="job.applicantEmail" mat-raised-button style="background-color: #B2DFDB; color: #283316;" (click)="openEmailModal(job.applicantEmail)"
-              color="accent">Kontaktiraj mailom</button>
+          <div class="job-details" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
+            <button *ngIf="job.applicantEmail" class="email-button" mat-raised-button (click)="openEmailModal(job.applicantEmail)" color="accent">
+              <mat-icon class="email-icon">email</mat-icon>
+              <span class="button-text">Kontaktiraj mailom</span>
+            </button>
+          
             <button *ngIf="!job.applicantEmail" mat-raised-button disabled>Korisnik nema email</button>
-            <button *ngIf="job.cvFilePath" mat-raised-button style="margin-left: 10px; color: #B2DFDB; background-color: #283316;" (click)="previewUserCV(job.cvFilePath, $event)"
-              color="accent">Pregledaj CV
+          
+            <button *ngIf="!job.cvFilePath" class="cv-button" mat-raised-button (click)="previewUserCV(job.cvFilePath, $event)" color="accent">
+              <mat-icon class="cv-icon">assignment</mat-icon>
+              <span class="button-text">Pregledaj CV</span>
             </button>
           </div>
+          
         <!-- PDF Preview Modal -->
         <ng-template #filePreviewModal let-dialogRef="dialogRef">
           <div fxLayout="column">

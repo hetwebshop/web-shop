@@ -6,7 +6,7 @@
 
   .filter-card {
     border-radius: 4px;
-    box-shadow: none;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
   }
   
   .filter-field {
@@ -54,4 +54,18 @@
   }
   ::ng-deep .mat-pseudo-checkbox.mat-pseudo-checkbox-checked{
     background-color: #283316 !important; 
+  }
+
+  .search-button {
+    height: 50px; 
+    background-color: #283316;
+    &:hover {
+      background-color: #3a4623; /* Lighter version of #242d13 */
+    }
+    display: flex; /* Ensure flex layout */
+    align-items: center; /* Center items vertically */
+    
+    .search-icon {
+      margin-right: 4px; /* Space between icon and text */
+    }
   }

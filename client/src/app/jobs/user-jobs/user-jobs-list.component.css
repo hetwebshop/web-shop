@@ -7,9 +7,14 @@
     background-color: #FFFFFF; /* White background */
 }
 
-.job-card:hover {
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    border-color: #00838F; /* Darker teal border on hover */
+.job-card {
+    transition: box-shadow 0.3s, border-color 0.3s;
+
+    &:hover {
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4); /* Darker and larger shadow */
+      border-color: #a8996e; /* Slightly darker border color on hover */
+    }
+
 }
 
 .job-card mat-card-header {
@@ -21,6 +26,10 @@
     padding: 15px;
     padding-left: 20px;
     color: #333; /* Dark grey text for readability */
+    text-decoration: none;
+    &:hover {
+        text-decoration: none;
+    }
 }
 
 .job-info h4, .job-details h4 {
@@ -44,9 +53,9 @@
     text-decoration: none;
 }
 
-.job-link:hover {
+/* .job-link:hover {
     text-decoration: underline;
-}
+} */
 
 :host ::ng-deep .mat-card-header-text {
     margin: 8px !important;
@@ -74,3 +83,31 @@
 .mat-card-header {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+.email-button {
+    background-color: #c5b391;
+    color: #283316;
+    transition: background-color 0.3s;
+  
+    &:hover {
+      background-color: #a8996e; /* Darker version of #c5b391 */
+    }
+    .email-icon {
+        margin-right: 4px; /* Space between icon and text */
+      }
+  }
+  
+  .cv-button {
+    background-color: #242d13;
+    color: #c5b391;
+    margin-left: 10px;
+    transition: background-color 0.3s;
+  
+    &:hover {
+      background-color: #3a4623; /* Lighter version of #242d13 */
+    }
+    .cv-icon {
+        margin-right: 4px; /* Space between icon and text */
+      }
+  }
+  

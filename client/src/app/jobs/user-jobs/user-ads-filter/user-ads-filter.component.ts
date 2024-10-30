@@ -36,12 +36,12 @@ export class UserAdsFilterComponent {
     advertisementTypeId: 1
   };
   filters$ = this.filtersQuery.selectAll();
-  filteredCities = [...this.cities]; 
+  filteredCities = []; 
   isCitiesSearchActive = false; 
   isCategoriesSearchActive = false;
-  filteredCategories = [...this.jobCategories]; 
+  filteredCategories = []; 
   isJobTypesSearchActive = false;
-  filteredJobTypes = [...this.jobTypes]; 
+  filteredJobTypes = []; 
   searchKeyword = "";
   citieSearchKeyword = "";
   jobTypesSearchKeyword = "";
@@ -68,6 +68,7 @@ export class UserAdsFilterComponent {
     this.loadJobTypes();
     this.loadJobCategories();
 
+    console.log("JOB CATEGORIES ", this.jobCategories);
     this.form = this.createForm();
     
     this.filters$.subscribe((filters) => {
@@ -90,34 +91,73 @@ export class UserAdsFilterComponent {
   }
 
   onSelectionChange(id: number, formControlName: string): void {
-    if(formControlName == "cityIds"){
-      const index = this.selectedCityIds.indexOf(id);
-      if (index !== -1) {
-        this.selectedCityIds.splice(index, 1);
-      } else {
-        this.selectedCityIds.push(id);
-      }
-      this.form.get('cityIds').patchValue(this.selectedCityIds);
-    }
-    else if(formControlName == "jobCategoryIds"){
-      const index = this.selectedJobCategoryIds.indexOf(id);
-      if (index !== -1) {
-        this.selectedJobCategoryIds.splice(index, 1);
-      } else {
-        this.selectedJobCategoryIds.push(id);
-      }
-      this.form.get('jobCategoryIds').patchValue(this.selectedJobCategoryIds);
-    }
-    else if(formControlName == "jobTypeIds"){
-      const index = this.selectedJobTypeIds.indexOf(id);
-      if (index !== -1) {
-        this.selectedJobTypeIds.splice(index, 1);
-      } else {
-        this.selectedJobTypeIds.push(id);
-      }
-      this.form.get('jobTypeIds').patchValue(this.selectedJobTypeIds);
+    if (formControlName === "cityIds") {
+      this.handleSelectionChange(
+        id, 
+        this.selectedCityIds, 
+        this.cities.map(city => city.id), 
+        this.selectAllId, 
+        'cityIds'
+      );
+    } 
+    else if (formControlName === "jobCategoryIds") {
+      this.handleSelectionChange(
+        id, 
+        this.selectedJobCategoryIds, 
+        this.jobCategories.map(category => category.id), 
+        this.selectAllId, 
+        'jobCategoryIds'
+      );
+    } 
+    else if (formControlName === "jobTypeIds") {
+      this.handleSelectionChange(
+        id, 
+        this.selectedJobTypeIds, 
+        this.jobTypes.map(type => type.id), 
+        this.selectAllId, 
+        'jobTypeIds'
+      );
     }
   }
+  
+  private handleSelectionChange(
+    id: number, 
+    selectedIds: number[], 
+    allIds: number[], 
+    selectAllId: number, 
+    controlName: string
+  ): void {
+    const selectAllSelected = selectedIds.includes(selectAllId);
+  
+    if (id === selectAllId) {
+      // Toggle Select All
+      if (selectAllSelected) {
+        selectedIds.length = 0; // Clear all selections
+      } else {
+        selectedIds = [...allIds, selectAllId]; // Select all items including "Select All"
+      }
+    } else {
+      // Handle individual item selection
+      const index = selectedIds.indexOf(id);
+      if (index !== -1) {
+        selectedIds.splice(index, 1);
+      } else {
+        selectedIds.push(id);
+      }
+  
+      // Check if all items are selected
+      const allItemsSelected = allIds.every(itemId => selectedIds.includes(itemId));
+  
+      if (allItemsSelected && !selectAllSelected) {
+        selectedIds.push(selectAllId);
+      } else if (!allItemsSelected && selectAllSelected) {
+        selectedIds = selectedIds.filter(selectedId => selectedId !== selectAllId);
+      }
+    }
+  
+    this.form.get(controlName)?.patchValue(selectedIds);
+  }
+  
   
 
   onKey(searchValue: string, formControlName: string) {
@@ -236,6 +276,7 @@ export class UserAdsFilterComponent {
     this.locationService.getCities()
       .subscribe(cities => {
         this.cities = cities;
+        this.filteredCities = cities;
       });
   }
 
@@ -243,6 +284,7 @@ export class UserAdsFilterComponent {
     this.jobService.getJobTypes()
       .subscribe(types => {
         this.jobTypes = types;
+        this.filteredJobTypes = types;
       });
   }
 
@@ -250,6 +292,7 @@ export class UserAdsFilterComponent {
     this.jobService.getJobCategories()
       .subscribe(categories => {
         this.jobCategories = categories.filter(r => r.parentId == null);
+        this.filteredCategories = this.jobCategories;
       });
   }
 
@@ -311,34 +354,34 @@ export class UserAdsFilterComponent {
   toggleAllSelection(controlName: string): void {
     const control = this.form.get(controlName);
     console.log(control);
-    if (controlName.includes("advertisementTypeIds")) {
-      console.log("from if");
-      console.log(this.advertisementTypes);
-      if (this.allAdTypesSelected?.selected) {
-        control.patchValue([...this.advertisementTypes.map(adType => adType.id), this.selectAllId]);
-      } else {
-        control.patchValue([]);
-      }
-    }
-    else if (controlName.includes("cityIds")) {
+    if (controlName.includes("cityIds")) {
       if (this.allCitiesSelected?.selected) {
-        control.patchValue([...this.cities.map(city => city.id), this.selectAllId]);
+        const allCities = [...this.cities.map(city => city.id), this.selectAllId];
+        this.selectedCityIds = allCities
+        control.patchValue(allCities);
       } else {
         control.patchValue([]);
+        this.selectedCityIds = [];
       }
     }
     else if (controlName.includes("jobCategoryIds")) {
       if (this.allJobCategoriesSelected?.selected) {
-        control.patchValue([...this.jobCategories.map(jobCategory => jobCategory.id), this.selectAllId]);
+        const allCategories = [...this.jobCategories.map(jobCategory => jobCategory.id), this.selectAllId];
+        this.selectedJobCategoryIds = allCategories;
+        control.patchValue(allCategories);
       } else {
         control.patchValue([]);
+        this.selectedJobCategoryIds = [];
       }
     }
     else if (controlName.includes("jobTypeIds")) {
       if (this.allJobTypesSelected?.selected) {
-        control.patchValue([...this.jobTypes.map(jobType => jobType.id), this.selectAllId]);
+        const allJobTypes = [...this.jobTypes.map(jobType => jobType.id), this.selectAllId];
+        this.selectedJobTypeIds = allJobTypes;
+        control.patchValue(allJobTypes);
       } else {
         control.patchValue([]);
+        this.selectedJobTypeIds = [];
       }
     }
   }
