@@ -36,6 +36,8 @@ namespace API.DTOs
         public DateTime AdStartDate { get; set; }
         public DateTime AdEndDate { get; set; }
         public bool IsDeleted { get; set; } = false;
+        public string AdTitle { get; set; }
+        public string AdAdditionalDescription { get; set; }
 
         public List<ApplicantEducationDto> ApplicantEducations { get; set; }
     }

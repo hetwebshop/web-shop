@@ -131,6 +131,8 @@ namespace API.Data.IUserOfferRepository
                 existingUserJobPost.JobPostStatusId = updatedUserJobPost.JobPostStatusId;
                 existingUserJobPost.CityId = updatedUserJobPost.CityId;
                 existingUserJobPost.CvFilePath = updatedUserJobPost.CvFilePath;
+                existingUserJobPost.AdTitle = updatedUserJobPost.AdTitle;
+                existingUserJobPost.AdAdditionalDescription = updatedUserJobPost.AdAdditionalDescription;
 
                 // Update related collections
                 existingUserJobPost.ApplicantEducations = updatedUserJobPost.ApplicantEducations;

@@ -36,6 +36,8 @@ namespace API.Entities.JobPost
         public DateTime AdEndDate { get; set; }
         public int AdDuration { get; set; }
         public bool IsDeleted { get; set; } = false;
+        public string AdTitle { get; set; }
+        public string AdAdditionalDescription { get; set; }
 
         public ICollection<ApplicantEducation> ApplicantEducations { get; set; }
     }
