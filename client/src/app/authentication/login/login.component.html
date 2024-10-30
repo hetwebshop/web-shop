@@ -1,27 +1,30 @@
-<div fxLayout="row" fxLayoutAlign="center" style="margin-top: 100px;">
+<div fxLayout="row" fxLayoutAlign="center center">
     <mat-card class="text-center" fxFlex="40" fxFlex.lt-sm="90" fxFlex.lt-md="60" fxFlex.lt-lg="50"
-        style="margin-bottom: 2px;">
-        <mat-card-title class="my-4">Log in to account</mat-card-title>
-        <mat-card-content class="mt-5">
-            <form #loginForm="ngForm" (ngSubmit)="onSubmit()">
-                <div class="px-2" fxLayout="column" fxLayoutAlign="center">
-                    <mat-form-field appearance="outline">
-                        <mat-label>Email ili korisničko ime</mat-label>
-                        <input matInput type="text" [(ngModel)]="modal.userNameOrEmail" name="username" required />
-                    </mat-form-field>
-                    <mat-form-field appearance="outline">
-                        <mat-label>Lozinka</mat-label>
-                        <input matInput type="password" [(ngModel)]="modal.password" name="password" required />
-                    </mat-form-field>
-                    <button mat-raised-button color="warn" [disabled]="loginForm.invalid" type="submit">Prijava</button>
-                </div>
-            </form>
-        </mat-card-content>
-        <mat-divider inset></mat-divider>
-        <mat-card-actions class="mb-2 px-3">
-            <p class="mat-typography">Nemate račun? Kreirajte ga</p>
-            <button mat-flat-button color="accent" routerLink="/register" [queryParams]="{redirectTo:redirectUrl}"
-                type="button">Kreiraj račun</button>
-        </mat-card-actions>
+              style="margin-bottom: 2px; margin-top: 6%;">
+      <mat-card-title class="my-4">Prijavite se</mat-card-title>
+      <mat-card-content class="mt-5">
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <div class="px-2" fxLayout="column" fxLayoutAlign="center">
+            <app-input type="email" fxFlex="45" fxFlex.lt-sm="90" label="Email"
+                       [formControl]="loginForm.get('userNameOrEmail')">
+            </app-input>
+            <app-input type="password" fxFlex="45" fxFlex.lt-sm="90" label="Lozinka"
+                       [formControl]="loginForm.get('password')">
+            </app-input>
+            <button mat-raised-button color="warn" [disabled]="loginForm.invalid" type="submit">
+              Prijava
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+      <mat-divider inset></mat-divider>
+      <mat-card-actions class="mb-2 px-3">
+        <p style="font-weight: 100;">Nemate račun?</p>
+        <button mat-flat-button style="background-color: #283316; color: white;"
+                routerLink="/register" [queryParams]="{redirectTo:redirectUrl}" type="button">
+          Kreiraj račun
+        </button>
+      </mat-card-actions>
     </mat-card>
-</div>
+  </div>
+  

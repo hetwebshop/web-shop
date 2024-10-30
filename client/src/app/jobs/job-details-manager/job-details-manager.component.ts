@@ -101,7 +101,9 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
                 cityId: this.job.cityId,
                 countryId: this.job.countryId,
                 price: this.job.price,
-                cvFile: this.job.cvFile
+                cvFile: this.job.cvFile,
+                adTitle: this.job.adTitle,
+                adAdditionalDescription: this.job.adAdditionalDescription
               });
               this.cdr.detectChanges();
             },
@@ -140,7 +142,9 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
       advertisementTypeId: new FormControl({ value: this.isJobAd ? this.AdvertisementTypeEnum.JobAd : this.AdvertisementTypeEnum.Service, disabled: true}, Validators.required),
       price: new FormControl(''),
       cvFile: new FormControl(null),
-      adDuration: new FormControl(null, Validators.required)
+      adDuration: new FormControl("7", Validators.required),
+      adTitle: new FormControl(null),
+      adAdditionalDescription: new FormControl(null)
     });
   }
 
@@ -180,7 +184,9 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
       cvFile: data.cvFile,
       adDuration: data.adDuration,
       adStartDate: now,
-      adEndDate: moment(now).add(data.adDuration, 'days')
+      adEndDate: moment(now).add(data.adDuration, 'days'),
+      adAdditionalDescription: data.adAdditionalDescription,
+      adTitle: data.adTitle
     };
 
     const formData = new FormData();

@@ -1,15 +1,15 @@
 <mat-form-field appearance="outline" style="width: 100%;">
     <mat-label>{{label}}</mat-label>
     <input type="{{type}}" matInput name="{{label}}" [placeholder]="placeholder" [formControl]="ngControl.control">
-    <mat-error *ngIf="ngControl.control.errors?.required">Please enter a {{label}}.</mat-error>
-    <mat-error *ngIf="ngControl.control.value && ngControl.control.errors?.notMatching">Password not matching.
+    <mat-error *ngIf="ngControl.control.errors?.required">{{label}} je obavezno polje.</mat-error>
+    <mat-error *ngIf="ngControl.control.value && ngControl.control.errors?.notMatching">Lozinke nisu iste.
     </mat-error>
-    <mat-error *ngIf="ngControl.control.errors?.alreadyExist === true">{{ngControl.control.value}} already exist.
+    <mat-error *ngIf="ngControl.control.errors?.alreadyExist === true">{{ngControl.control.value}} već postoji.
     </mat-error>
-    <mat-error *ngIf="ngControl.control.errors?.email">Please enter valid {{label}}.</mat-error>
-    <mat-error *ngIf="ngControl.control.errors?.minlength">{{label}} must be atleast
-        {{ngControl.control.errors.minlength.requiredLength}} characters.</mat-error>
-    <mat-error *ngIf="ngControl.control.errors?.maxlength">{{label}} must be atmost
-        {{ngControl.control.errors.maxlength.requiredLength}} characters.</mat-error>
+    <mat-error *ngIf="ngControl.control.errors?.email">Unesite ispravan {{label}}.</mat-error>
+    <mat-error *ngIf="ngControl.control.errors?.minlength">{{label}} mora sadržavati najmanje
+        {{ngControl.control.errors.minlength.requiredLength}} karakter.</mat-error>
+    <mat-error *ngIf="ngControl.control.errors?.maxlength">{{label}} može sadržavati najviše
+        {{ngControl.control.errors.maxlength.requiredLength}} karaktera.</mat-error>
     <app-spinner *ngIf="ngControl.control.pending" matSuffix [overlay]="false" diameter="24"></app-spinner>
 </mat-form-field>

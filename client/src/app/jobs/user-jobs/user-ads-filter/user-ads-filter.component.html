@@ -1,6 +1,6 @@
-<mat-card class="filter-card" style="border: 1px solid #004D40;">
-  <mat-card-title style="font-size: 20px; color: #004D40; font-weight: 500;">Dodatna pretraga</mat-card-title>
-  <mat-divider style="background-color: #004D40;"></mat-divider>
+<mat-card class="filter-card" style="border: 1px solid #283316;">
+  <mat-card-title style="font-size: 20px; color: #283316; font-weight: 500;">Dodatna pretraga</mat-card-title>
+  <mat-divider style="background-color: #283316;"></mat-divider>
   <mat-card-content style="margin-top: 25px;">
     <form [formGroup]="form" (ngSubmit)="onSubmit()" #filterForm="ngForm" fxLayout="column" fxLayoutAlign="center">
       <div fxLayout="row wrap" fxLayoutGap="10px" fxLayout.lt-sm="column" fxLayoutAlign="space-between">
@@ -17,32 +17,140 @@
           <div fxLayout="column">
             <mat-label class="bold-label">Grad</mat-label>
             <mat-form-field appearance="outline">
-              <mat-select formControlName="cityIds" placeholder="Odaberite grad" multiple>
-                <mat-option #allCitiesSelected (click)="toggleAllSelection('cityIds')" [value]="selectAllId">Sve</mat-option>
-                <mat-option *ngFor="let city of cities" [value]="city.id" (click)="tosslePerOne('cityIds')">{{ city.name }}</mat-option>
+              <mat-select 
+                #citySelect
+                formControlName="cityIds" 
+                placeholder="Odaberite grad" 
+                multiple 
+                [panelClass]="'custom-select-panel'"
+                (openedChange)="resetSearch('cityIds')"
+              >
+                <div style="display: flex; justify-content: space-between;">
+                  <input 
+                    matInput 
+                    placeholder="Pretraži" 
+                    (keyup)="onKey($event.target.value, 'cityIds')" 
+                    class="search-input" 
+                    [value]="citieSearchKeyword"
+                    style="width: 100%; box-sizing: border-box;" 
+                  />
+                  <button mat-icon-button (click)="onKey('', 'cityIds')" *ngIf="citieSearchKeyword">
+                    <mat-icon>clear</mat-icon>
+                  </button>
+                </div>
+        
+                <mat-option 
+                  *ngIf="!isCitiesSearchActive" 
+                  #allCitiesSelected 
+                  (click)="toggleAllSelection('cityIds')" 
+                  [value]="selectAllId"
+                >
+                  Sve
+                </mat-option>
+                <mat-option 
+                  *ngFor="let city of filteredCities" 
+                  [value]="city.id"
+                  (click)="onSelectionChange(city.id, 'cityIds')"
+                >
+                  {{ city.name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+        
+        
+
+        <div fxFlex="30%" fxFlex.lt-md="45%">
+          <div fxLayout="column">
+            <mat-label class="bold-label">Kategorija</mat-label>
+            <mat-form-field appearance="outline">
+              <mat-select 
+                #categorySelect
+                formControlName="jobCategoryIds" 
+                placeholder="Odaberite kategoriju" 
+                multiple 
+                [panelClass]="'custom-select-panel'"
+              >
+                
+
+                <div style="display: flex; justify-content: space-between;">
+                  <input 
+                  #searchInput
+                  matInput 
+                  placeholder="Pretraži" 
+                  (keyup)="onKey($event.target.value, 'jobCategoryIds')" 
+                  class="search-input" 
+                  [value]="jobCategoriesSearchKeyword"
+                />
+                  <button mat-icon-button (click)="onKey('', 'jobCategoryIds')" *ngIf="jobCategoriesSearchKeyword">
+                    <mat-icon>clear</mat-icon>
+                  </button>
+                </div>
+        
+                <mat-option 
+                  *ngIf="!isCategoriesSearchActive" 
+                  #allJobCategoriesSelected 
+                  (click)="toggleAllSelection('jobCategoryIds')" 
+                  [value]="selectAllId"
+                >
+                  Sve
+                </mat-option>
+        
+                <mat-option 
+                  *ngFor="let category of filteredCategories" 
+                  [value]="category.id" 
+                  (click)="onSelectionChange(category.id, 'jobCategoryIds')"
+                >
+                  {{ category.name }}
+                </mat-option>
               </mat-select>
             </mat-form-field>
           </div>
         </div>
 
+        
         <div fxFlex="30%" fxFlex.lt-md="45%">
           <div fxLayout="column">
-            <mat-label class="bold-label">Kategorija</mat-label>
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-select formControlName="jobCategoryIds" placeholder="Odaberite kategoriju" multiple>
-                <mat-option #allJobCategoriesSelected (click)="toggleAllSelection('jobCategoryIds')" [value]="selectAllId">Sve</mat-option>
-                <mat-option *ngFor="let category of jobCategories" [value]="category.id" (click)="tosslePerOne('jobCategoryIds')">{{ category.name }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-        </div>
-        <div fxFlex="30%" fxFlex.lt-md="45%">
-          <div fxLayout="column">
-            <mat-label class="bold-label">Tip Posla</mat-label>
+            <mat-label class="bold-label">Tip posla</mat-label>
             <mat-form-field appearance="outline">
-              <mat-select formControlName="jobTypeIds" placeholder="Odaberite tip posla" multiple>
-                <mat-option #allJobTypesSelected (click)="toggleAllSelection('jobTypeIds')" [value]="selectAllId">Sve</mat-option>
-                <mat-option *ngFor="let jobType of jobTypes" [value]="jobType.id" (click)="tosslePerOne('jobTypeIds')">{{ jobType.name }}</mat-option>
+              <mat-select 
+                #jobTypeSelect
+                formControlName="jobCategoryIds" 
+                placeholder="Odaberite tip posla" 
+                multiple 
+                [panelClass]="'custom-select-panel'"
+              >
+
+        
+                <div style="display: flex; justify-content: space-between;">
+                  <input 
+                  matInput 
+                  placeholder="Pretraži" 
+                  (keyup)="onKey($event.target.value, 'jobTypeIds')" 
+                  class="search-input" 
+                  [value]="jobTypesSearchKeyword"
+                />
+                  <button mat-icon-button (click)="onKey('', 'jobTypeIds')" *ngIf="jobTypesSearchKeyword">
+                    <mat-icon>clear</mat-icon>
+                  </button>
+                </div>
+                <mat-option 
+                  *ngIf="!isJobTypesSearchActive" 
+                  #allJobTypesSelected 
+                  (click)="toggleAllSelection('jobTypeIds')" 
+                  [value]="selectAllId"
+                >
+                  Sve
+                </mat-option>
+        
+                <mat-option 
+                  *ngFor="let jobType of filteredJobTypes" 
+                  [value]="jobType.id" 
+                  (click)="onSelectionChange(jobType.id, 'jobTypeIds')"
+                >
+                  {{ jobType.name }}
+                </mat-option>
               </mat-select>
             </mat-form-field>
           </div>
@@ -72,7 +180,7 @@
             </mat-form-field>
           </div>
         </div>
-        <button mat-raised-button color="primary" type="submit" fxFlex="30%" fxFlex.lt-md="45%" style="height: 50px; background-color: #006064;">Traži</button>
+        <button mat-raised-button color="primary" type="submit" fxFlex="30%" fxFlex.lt-md="45%" style="height: 50px; background-color: #283316;">Traži</button>
 
       </div>
 

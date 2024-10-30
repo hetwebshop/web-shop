@@ -13,6 +13,7 @@ import { AccountService } from '../services/account.service';
 import { AdvertisementTypeEnum } from '../models/enums';
 import { Observable, map, shareReplay } from 'rxjs';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { ToastrService } from '../services/toastr.service';
 
 @Component({
   selector: 'app-nav',
@@ -31,6 +32,7 @@ export class NavComponent implements OnInit {
     public accountService: AccountService,
     private router: Router,
     private route: ActivatedRoute,
+    private toastr: ToastrService,
     private breakpointObserver: BreakpointObserver
   ) {
     this.accountService.user$.subscribe((u) => (this.user = u));
@@ -63,6 +65,10 @@ export class NavComponent implements OnInit {
   toggleTheme(): void {
     this.isDark = !this.isDark;
     this.changeTheme.emit(this.isDark);
+  }
+
+  isActive(route: string): boolean {
+    return this.router.url.includes(route);
   }
 
   logout() {

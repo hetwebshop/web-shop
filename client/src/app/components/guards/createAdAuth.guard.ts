@@ -5,7 +5,7 @@ import {
   Router,
   RouterStateSnapshot,
 } from '@angular/router';
-import { map, Observable } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 import { AccountService } from 'src/app/services/account.service';
 import { ToastrService } from 'src/app/services/toastr.service';
 
@@ -22,23 +22,24 @@ export class CreateAdAuthGard implements CanActivate {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean> {
-    return this.accountService.user$.pipe(
-      map((user) => {
-        if (!user) {
-          this.toastr.error('You are not allowed');
-          this.router.navigate(['login']);
-          return false;
-        }
-        if (
-          route.data.roles &&
-          user.roles.some((r) => route.data.roles.includes(r))
-        ) {
-          return true;
-        }
-        this.toastr.error('You are not allowed');
-        this.router.navigate(['login']);
-        return false;
-      })
-    );
+    return of(true);
+    // return this.accountService.user$.pipe(
+    //   map((user) => {
+    //     if (!user) {
+    //       this.toastr.error('You are not allowed');
+    //       this.router.navigate(['login']);
+    //       return false;
+    //     }
+    //     if (
+    //       route.data.roles &&
+    //       user.roles.some((r) => route.data.roles.includes(r))
+    //     ) {
+    //       return true;
+    //     }
+    //     this.toastr.error('You are not allowed');
+    //     this.router.navigate(['login']);
+    //     return false;
+    //   })
+    // );
   }
 }

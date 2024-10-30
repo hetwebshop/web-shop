@@ -1,6 +1,8 @@
-import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatOption } from '@angular/material/core';
+import { MatInput } from '@angular/material/input';
+import { MatSelect } from '@angular/material/select';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
 import { AdvertisementTypeEnum } from 'src/app/models/enums';
@@ -34,12 +36,26 @@ export class UserAdsFilterComponent {
     advertisementTypeId: 1
   };
   filters$ = this.filtersQuery.selectAll();
+  filteredCities = [...this.cities]; 
+  isCitiesSearchActive = false; 
+  isCategoriesSearchActive = false;
+  filteredCategories = [...this.jobCategories]; 
+  isJobTypesSearchActive = false;
+  filteredJobTypes = [...this.jobTypes]; 
+  searchKeyword = "";
+  citieSearchKeyword = "";
+  jobTypesSearchKeyword = "";
+  jobCategoriesSearchKeyword = "";
+  selectedCityIds: number[] = [];
+  selectedJobCategoryIds: number[] = [];
+  selectedJobTypeIds: number[] = [];
   @Output() filterSubmitted = new EventEmitter();
 
-  @ViewChild('allCitiesSelected', { static: true }) private allCitiesSelected: MatOption;
-  @ViewChild('allJobCategoriesSelected', { static: true }) private allJobCategoriesSelected: MatOption;
-  @ViewChild('allJobTypesSelected', { static: true }) private allJobTypesSelected: MatOption;
-  @ViewChild('allAdTypesSelected', { static: true }) private allAdTypesSelected: MatOption;
+  @ViewChild('allCitiesSelected', { static: false }) private allCitiesSelected: MatOption;
+  @ViewChild('allJobCategoriesSelected', { static: false }) private allJobCategoriesSelected: MatOption;
+  @ViewChild('allJobTypesSelected', { static: false }) private allJobTypesSelected: MatOption;
+  @ViewChild('allAdTypesSelected', { static: false }) private allAdTypesSelected: MatOption;
+  @ViewChild('searchInput', { static: false }) private searchInput: ElementRef;
   selectAllId: number = 0;
 
   constructor(private jobService: JobService, private locationService: LocationService,
@@ -71,6 +87,79 @@ export class UserAdsFilterComponent {
     ).subscribe(() => {
       this.formChanged = true;
     });
+  }
+
+  onSelectionChange(id: number, formControlName: string): void {
+    if(formControlName == "cityIds"){
+      const index = this.selectedCityIds.indexOf(id);
+      if (index !== -1) {
+        this.selectedCityIds.splice(index, 1);
+      } else {
+        this.selectedCityIds.push(id);
+      }
+      this.form.get('cityIds').patchValue(this.selectedCityIds);
+    }
+    else if(formControlName == "jobCategoryIds"){
+      const index = this.selectedJobCategoryIds.indexOf(id);
+      if (index !== -1) {
+        this.selectedJobCategoryIds.splice(index, 1);
+      } else {
+        this.selectedJobCategoryIds.push(id);
+      }
+      this.form.get('jobCategoryIds').patchValue(this.selectedJobCategoryIds);
+    }
+    else if(formControlName == "jobTypeIds"){
+      const index = this.selectedJobTypeIds.indexOf(id);
+      if (index !== -1) {
+        this.selectedJobTypeIds.splice(index, 1);
+      } else {
+        this.selectedJobTypeIds.push(id);
+      }
+      this.form.get('jobTypeIds').patchValue(this.selectedJobTypeIds);
+    }
+  }
+  
+
+  onKey(searchValue: string, formControlName: string) {
+    if(formControlName == "cityIds"){
+      this.citieSearchKeyword = searchValue;
+      this.isCitiesSearchActive = searchValue.length > 0;
+      this.filteredCities = this.cities.filter(city =>
+        city.name.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    } 
+    else if(formControlName == "jobCategoryIds"){
+      this.jobCategoriesSearchKeyword = searchValue;
+      this.isCategoriesSearchActive = searchValue.length > 0;
+      this.filteredCategories = this.jobCategories.filter(cg =>
+        cg.name.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    } 
+    else if(formControlName == "jobTypeIds"){
+      this.jobTypesSearchKeyword = searchValue;
+      this.isJobTypesSearchActive = searchValue.length > 0;
+      this.filteredJobTypes = this.jobTypes.filter(jt =>
+        jt.name.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    } 
+  }
+
+  resetSearch(formControlName: string): void {
+    this.citieSearchKeyword = "";
+    this.jobTypesSearchKeyword = "";
+    this.jobCategoriesSearchKeyword = "";
+    if(formControlName == "cityIds"){
+      this.isCitiesSearchActive = false;
+      this.filteredCities = [...this.cities];
+    }
+    else if(formControlName == "jobCategoryIds"){
+      this.isJobTypesSearchActive = false;
+      this.filteredCategories = [...this.jobCategories];
+    }
+    else if(formControlName == "jobTypeIds"){
+      this.isJobTypesSearchActive = false;
+      this.filteredJobTypes = [...this.jobTypes];
+    }
   }
 
   getEnumValue(name: string): AdvertisementTypeEnum {
@@ -168,39 +257,56 @@ export class UserAdsFilterComponent {
     const control = this.form.get(controlName);
 
     if (controlName.includes("advertisementTypeIds")) {
-      if (this.allAdTypesSelected.selected) {
+      if (this.allAdTypesSelected?.selected) {
         this.allAdTypesSelected.deselect();
         return false;
       }
-      if (control.value.length == this.advertisementTypes.length)
+      if (control.value.length == this.advertisementTypes?.length)
         this.allAdTypesSelected.select();
     }
     else if (controlName.includes("cityIds")) {
-      if (this.allCitiesSelected.selected) {
-        this.allCitiesSelected.deselect();
+      if (this.allCitiesSelected?.selected) {
+        this.allCitiesSelected?.deselect();
         return false;
       }
       if (control.value.length == this.cities.length)
-        this.allCitiesSelected.select();
+        this.allCitiesSelected?.select();
     }
     else if (controlName.includes("jobCategoryIds")) {
-      if (this.allJobCategoriesSelected.selected) {
-        this.allJobCategoriesSelected.deselect();
+      if (this.allJobCategoriesSelected?.selected) {
+        this.allJobCategoriesSelected?.deselect();
         return false;
       }
       if (control.value.length == this.jobCategories.length)
-        this.allJobCategoriesSelected.select();
+        this.allJobCategoriesSelected?.select();
     }
     else if (controlName.includes("jobTypeIds")) {
-      if (this.allJobTypesSelected.selected) {
-        this.allJobTypesSelected.deselect();
+      if (this.allJobTypesSelected?.selected) {
+        this.allJobTypesSelected?.deselect();
         return false;
       }
       if (control.value.length == this.jobTypes.length)
-        this.allJobTypesSelected.select();
+        this.allJobTypesSelected?.select();
     }
   }
 
+  toggleSingleSelection(cityId: number) {
+    console.log("TEES5", cityId)
+
+    const currentSelection = this.form.get('cityIds').value || [];
+    console.log('Current Selection:', currentSelection);
+    const index = currentSelection.indexOf(cityId);
+    console.log('Index:', index);
+    if (index === -1) {
+      console.log("TEES2112")
+      // If not selected, add to the selection
+      this.form.get('cityIds').patchValue([...currentSelection, cityId]);
+    } else {
+      // If already selected, remove from the selection
+      currentSelection.splice(index, 1);
+      this.form.get('cityIds').setValue(currentSelection);
+    }
+  }
 
   toggleAllSelection(controlName: string): void {
     const control = this.form.get(controlName);
@@ -208,28 +314,28 @@ export class UserAdsFilterComponent {
     if (controlName.includes("advertisementTypeIds")) {
       console.log("from if");
       console.log(this.advertisementTypes);
-      if (this.allAdTypesSelected.selected) {
+      if (this.allAdTypesSelected?.selected) {
         control.patchValue([...this.advertisementTypes.map(adType => adType.id), this.selectAllId]);
       } else {
         control.patchValue([]);
       }
     }
     else if (controlName.includes("cityIds")) {
-      if (this.allCitiesSelected.selected) {
+      if (this.allCitiesSelected?.selected) {
         control.patchValue([...this.cities.map(city => city.id), this.selectAllId]);
       } else {
         control.patchValue([]);
       }
     }
     else if (controlName.includes("jobCategoryIds")) {
-      if (this.allJobCategoriesSelected.selected) {
+      if (this.allJobCategoriesSelected?.selected) {
         control.patchValue([...this.jobCategories.map(jobCategory => jobCategory.id), this.selectAllId]);
       } else {
         control.patchValue([]);
       }
     }
     else if (controlName.includes("jobTypeIds")) {
-      if (this.allJobTypesSelected.selected) {
+      if (this.allJobTypesSelected?.selected) {
         control.patchValue([...this.jobTypes.map(jobType => jobType.id), this.selectAllId]);
       } else {
         control.patchValue([]);

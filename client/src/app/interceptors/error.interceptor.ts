@@ -65,7 +65,7 @@ export class ErrorInterceptor implements HttpInterceptor {
   }
 
   handleAuthenticationError(error) {
-    this.toastr.error('Authentication failed');
+    this.toastr.error('Desila se greška u autentikaciji korisnika!');
     let params = this.route.snapshot.queryParams;
     if (!params.redirectTo) {
       this.router.navigate(['/login'], {

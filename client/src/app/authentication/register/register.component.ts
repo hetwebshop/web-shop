@@ -26,6 +26,7 @@ export class RegisterComponent implements OnInit {
   cities: City[];
   genders = Object.values(Gender);
   registrationType: string = 'user';
+  loginRegistrationError: string | null = null;
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -67,11 +68,6 @@ export class RegisterComponent implements OnInit {
       lastName: [
         '',
         [Validators.required],
-      ],
-      userName: [
-        '',
-        [Validators.required, Validators.minLength(3)],
-        this.accountService.userExistAsync(false),
       ],
       phoneNumber: ['', Validators.required],
       email: ['', [Validators.email, Validators.required]],
@@ -141,8 +137,16 @@ export class RegisterComponent implements OnInit {
   onSubmit() {
     const formData = this.registerForm.value;
     formData.gender = Gender[formData.gender];
-    this.accountService.register(formData).subscribe(() => {
-      location.reload();
+    this.accountService.register(formData).subscribe({
+      next: (response) => {
+        if (response) {
+          location.reload();
+        }
+      },
+      error: (error) => {
+        console.error('Registration failed', error);
+        this.loginRegistrationError = 'Greška prilikom registracije. Molimo pokušajte ponovo.';
+      },
     });
   }
 

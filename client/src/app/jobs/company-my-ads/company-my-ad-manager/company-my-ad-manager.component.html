@@ -1,9 +1,9 @@
 <div *ngIf="job" fxLayout="row" fxLayoutAlign="center" style="margin-top: 100px;">
-    <mat-card class="text-center" style="border: 1px solid #004D40;" fxFlex="70" fxFlex.lt-sm="90">
-      <mat-card-title class="my-4" style="color: #004D40;">
+    <mat-card class="text-center" style="border: 1px solid #283316;" fxFlex="70" fxFlex.lt-sm="90">
+      <mat-card-title class="my-4" style="color: #283316;">
         Uredi Oglas za Posao
       </mat-card-title>
-      <mat-divider style="background-color:#004D40;"></mat-divider>
+      <mat-divider style="background-color:#283316;"></mat-divider>
           <mat-card-content class="mt-5">
         <form [formGroup]="adUpdateForm" (ngSubmit)="onSubmit()" fxLayout="column" fxLayoutAlign="center">
           <div fxLayout="row" fxLayoutAlign="start center" style="margin-bottom: 40px;">
@@ -98,7 +98,7 @@
           </mat-form-field>
           </div>
   
-          <button *ngIf="!isJobInStatusClosedOrDeleted" mat-raised-button style="background-color: #004D40; color: white;" type="submit">Uredi oglas</button>
+          <button *ngIf="!isJobInStatusClosedOrDeleted" mat-raised-button style="background-color: #283316; color: white;" type="submit">Uredi oglas</button>
         </form>
       </mat-card-content>
     </mat-card>

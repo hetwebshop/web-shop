@@ -37,7 +37,8 @@ export class UserJobsListComponent {
   selectedFilePath: string | null = null;
   @ViewChild('filePreviewModal') filePreviewModal!: TemplateRef<any>;
   fileUrl: string = ""
-  
+  showFilters: boolean = true;
+
   constructor(private jobService: JobService, utility: UtilityService, private route: ActivatedRoute,
     private router: Router, private datePipe: DatePipe, public dialog: MatDialog,
     private accountService: AccountService, private filtersStore: FiltersStore,
@@ -76,6 +77,10 @@ export class UserJobsListComponent {
         }
       }
     });
+  }
+
+  toggleFilters() {
+    this.showFilters = !this.showFilters;
   }
 
   getCategoryName(jobCategoryId: number): string {

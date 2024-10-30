@@ -1,7 +1,7 @@
 .job-card {
     margin-bottom: 20px;
     margin-top: 20px;
-    border: 1px solid #004D40;
+    border: 1px solid #283316;
 }
 
 .job-card:hover {
@@ -40,4 +40,8 @@
     /* Your custom styles for the <a> tag */
     color: black; /* Change the color */
     text-decoration: none; /* Remove underline */
+}
+
+:host ::ng-deep .mat-tab-group.mat-primary .mat-ink-bar, .mat-tab-nav-bar.mat-primary .mat-ink-bar {
+    background-color: #678239; /* Your desired color */
 }

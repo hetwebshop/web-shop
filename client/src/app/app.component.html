@@ -1,7 +1,3 @@
-<div style="min-height: 100%;">
-    <app-nav [isDark]="isDark" (changeTheme)="toggleTheme($event)" style="min-height: 100vh;">
-        <div style="margin: 20px; margin-top: 10px;">
-            <router-outlet></router-outlet>
-        </div>        
-    </app-nav>
-</div>
+<app-nav [isDark]="isDark" (changeTheme)="toggleTheme($event)">     
+</app-nav>
+<router-outlet></router-outlet>  

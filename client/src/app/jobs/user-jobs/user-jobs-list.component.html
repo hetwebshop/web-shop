@@ -1,16 +1,40 @@
 <div class="container">
   <div fxLayout="column">
-    <mat-card *ngIf="isJobAd" style="border:1px solid #004D40; margin-bottom: 30px; margin-top: 20px; display: flex; text-align: center; justify-content: center;">
-      <h1 style="color: #004D40; font-weight: 500;">Pretraga osoba u potrazi za poslom</h1>
+    <div 
+    style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 20px;">
+  
+    <!-- Title Card -->
+    <mat-card 
+      style="border: 1px solid #283316; display: flex; justify-content: center; 
+             text-align: center; padding: 20px; width: 100%; max-width: 600px;">
+      <h1 *ngIf="isJobAd" style="color: #283316; font-weight: 500; margin: 0;">
+        Pretražite osobe koje traže posao
+      </h1>
+      <h1 *ngIf="!isJobAd" style="color: #283316; font-weight: 500; margin: 0;">
+        Pretraga usluga
+      </h1>
     </mat-card>
-    <mat-card *ngIf="!isJobAd" style="border:1px solid #004D40; margin-bottom: 30px; margin-top: 20px; display: flex; text-align: center; justify-content: center;">
-      <h1 style="color: #004D40; font-weight: 500;">Pretraga usluga</h1>
-    </mat-card>
-    <!-- <mat-card style="margin-bottom: 20px; background-color: #B2DFDB; color: black;">
-      <p>U ovoj sekciji se nalaze svi oglasi iz kategorije "Oglasi".</p>
-    </mat-card> -->
-    <!-- User Ads Filter -->
-    <div>
+  
+    <!-- Centered Toggle Filters Button -->
+    <button 
+      (click)="toggleFilters()" 
+      style="border-radius: 25px; width: 220px; background-color: #283316; 
+             color: white; padding: 12px 18px; border: none; cursor: pointer;
+             display: flex; align-items: center; justify-content: center; 
+             gap: 10px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); margin-bottom: 20px;">
+      <mat-icon *ngIf="showFilters" style="font-size: 24px;">filter_list</mat-icon>
+      <mat-icon *ngIf="!showFilters" style="font-size: 24px;">filter_alt</mat-icon>
+      <span style="font-size: 16px; font-weight: 500;">
+        {{ showFilters ? 'Sakrij Filtere' : 'Prikaži Filtere' }}
+      </span>
+    </button>
+  
+  </div>
+  
+
+    
+
+    <div *ngIf="showFilters">
       <app-user-ads-filter (filterSubmitted)="fetchPaginatedItems($event)"></app-user-ads-filter>
     </div>
 
@@ -18,7 +42,7 @@
     <!-- Job Cards -->
     <div fxFlex fxLayout="column" fxLayoutAlign="start stretch" style="margin-top: 50px;">
       <div style="margin-bottom: 20px; margin-top: 20px; display: flex; text-align: center; justify-content: center;">
-        <h1 style="color: #004D40; font-weight: 500;">Rezultati pretrage</h1>
+        <h1 style="color: #283316; font-weight: 500;">Rezultati pretrage</h1>
       </div>
       <div *ngFor="let job of allJobs$ | async" class="job-link" style="margin-bottom: 10px;">
         <mat-card class="job-card">
@@ -79,10 +103,10 @@
             </mat-card-content>
           </a>
           <div class="job-details">
-            <button *ngIf="job.applicantEmail" mat-raised-button style="background-color: #B2DFDB; color: #004D40;" (click)="openEmailModal(job.applicantEmail)"
+            <button *ngIf="job.applicantEmail" mat-raised-button style="background-color: #B2DFDB; color: #283316;" (click)="openEmailModal(job.applicantEmail)"
               color="accent">Kontaktiraj mailom</button>
             <button *ngIf="!job.applicantEmail" mat-raised-button disabled>Korisnik nema email</button>
-            <button *ngIf="job.cvFilePath" mat-raised-button style="margin-left: 10px; color: #B2DFDB; background-color: #004D40;" (click)="previewUserCV(job.cvFilePath)"
+            <button *ngIf="job.cvFilePath" mat-raised-button style="margin-left: 10px; color: #B2DFDB; background-color: #283316;" (click)="previewUserCV(job.cvFilePath, $event)"
               color="accent">Pregledaj CV
             </button>
           </div>

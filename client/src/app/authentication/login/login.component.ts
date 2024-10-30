@@ -1,36 +1,50 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { AccountService } from 'src/app/services/account.service';
 import { UtilityService } from 'src/app/services/utility.service';
-import { AccountService } from '../../services/account.service';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
+  styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
-  modal: any = {};
+  loginForm: FormGroup;
   redirectUrl: string;
+
   constructor(
+    private fb: FormBuilder,
     private accountService: AccountService,
     private router: Router,
     private route: ActivatedRoute,
-    utility: UtilityService
+    private utility: UtilityService
   ) {
     utility.setTitle('Login');
   }
 
   ngOnInit(): void {
+    this.initializeForm();
     this.redirectUrl = this.route.snapshot.queryParams.redirectTo;
+
     if (this.accountService.loggedIn) {
       this.redirect();
     }
   }
 
-  onSubmit() {
-    this.accountService.login(this.modal).subscribe(() => {
-      location.reload();
+  initializeForm() {
+    this.loginForm = this.fb.group({
+      userNameOrEmail: ['', [Validators.email, Validators.required]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
     });
+  }
+
+  onSubmit() {
+    if (this.loginForm.valid) {
+      this.accountService.login(this.loginForm.value).subscribe(() => {
+        location.reload();
+      });
+    }
   }
 
   loginAsTester() {

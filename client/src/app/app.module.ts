@@ -77,6 +77,14 @@ import { CompanyMyAdsComponent } from './jobs/company-my-ads/company-my-ads.comp
 import { CompanyMyAdsWrapperComponent } from './jobs/company-my-ads/company-my-ads-wrapper.component';
 import { CompanyMyAdManagerComponent } from './jobs/company-my-ads/company-my-ad-manager/company-my-ad-manager.component';
 import { NgxDocViewerModule } from 'ngx-doc-viewer';
+import { FilterPipe } from './customPipes/filter.pipe';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatInputModule } from '@angular/material/input';
+import { registerLocaleData } from '@angular/common';
+import localeBS from '@angular/common/locales/bs';
+
+registerLocaleData(localeBS);
+
 
 @Injectable()
 export class HammerConfig extends HammerGestureConfig {
@@ -140,7 +148,8 @@ export class HammerConfig extends HammerGestureConfig {
     CompanyJobPreviewComponent,
     CompanyMyAdsComponent,
     CompanyMyAdsWrapperComponent,
-    CompanyMyAdManagerComponent
+    CompanyMyAdManagerComponent,
+    FilterPipe
   ],
   imports: [
     BrowserModule,
@@ -165,7 +174,7 @@ export class HammerConfig extends HammerGestureConfig {
     { provide: HTTP_INTERCEPTORS, useClass: LoadingInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
     { provide: HAMMER_GESTURE_CONFIG, useClass: HammerConfig },
-    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
+    { provide: MAT_DATE_LOCALE, useValue: 'hr' },
     [DatePipe]    
   ],
   bootstrap: [AppComponent],

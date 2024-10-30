@@ -1,10 +1,27 @@
 <div fxLayout="column">
-    <p class="title">{{name}}</p>
+    <p class="title">{{ name }}</p>
     <mat-form-field appearance="outline" fxFlex>
-        <mat-label>Select {{name}}</mat-label>
-        <mat-select multiple [(value)]="_value" (selectionChange)="onChange()">
-            <mat-option *ngFor="let itemValue of values.split(',')" [value]="itemValue">{{itemValue | spaceBetween}}
-            </mat-option>
-        </mat-select>
+      <mat-label>Odaberite {{ name }}</mat-label>
+      <mat-select multiple [(value)]="_value" (selectionChange)="onChange()">
+        <div class="search-container">
+          <input
+            type="text"
+            placeholder="Pretraži..."
+            [(ngModel)]="searchTerm"
+            (input)="filterItems()"
+            class="search-input"
+          />
+          <button mat-icon-button (click)="clearSearch()" *ngIf="searchTerm">
+            <mat-icon>clear</mat-icon>
+          </button>
+        </div>
+        <mat-option
+          *ngFor="let itemValue of filteredValues"
+          [value]="itemValue.id"
+        >
+          {{ itemValue.name | spaceBetween }}
+        </mat-option>
+      </mat-select>
     </mat-form-field>
-</div>
+  </div>
+  

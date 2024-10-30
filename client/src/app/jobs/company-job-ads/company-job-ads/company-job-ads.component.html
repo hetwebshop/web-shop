@@ -1,8 +1,8 @@
 <div class="container">
   <div fxLayout="column">
     <div fxLayout="column">
-      <mat-card style="border:1px solid #004D40; margin-bottom: 30px; margin-top: 20px; display: flex; text-align: center; justify-content: center;">
-        <h1 style="color: #004D40; font-weight: 500;">Otvoreni oglasi za posao od strane kompanija</h1>
+      <mat-card style="border:1px solid #283316; margin-bottom: 30px; margin-top: 20px; display: flex; text-align: center; justify-content: center;">
+        <h1 style="color: #283316; font-weight: 500;">Otvoreni oglasi za posao od strane kompanija</h1>
       </mat-card>
       <!-- User Ads Filter -->
       <div>
@@ -12,7 +12,7 @@
       <!-- Job Cards -->
       <div fxFlex fxLayout="column" fxLayoutAlign="start stretch" style="margin-top: 50px;">
         <div style="margin-bottom: 20px; margin-top: 20px; display: flex; text-align: center; justify-content: center;">
-          <h1 style="color: #004D40; font-weight: 500;">Rezultati pretrage</h1>
+          <h1 style="color: #283316; font-weight: 500;">Rezultati pretrage</h1>
         </div>
         
         <div *ngFor="let job of allJobs$ | async" class="job-link" style="margin-bottom: 10px;">
@@ -29,7 +29,7 @@
               </mat-card-header>
             </a>
             <div class="job-details">
-              <button *ngIf="job.emailForReceivingApplications" mat-raised-button style="background-color: #B2DFDB; color: #004D40;" (click)="openSubmitApplicationModal(job.emailForReceivingApplications)" color="accent">Prijavi se</button>
+              <button *ngIf="job.emailForReceivingApplications" mat-raised-button style="background-color: #B2DFDB; color: #283316;" (click)="openSubmitApplicationModal(job.emailForReceivingApplications)" color="accent">Prijavi se</button>
             </div>
           </mat-card>
         </div>

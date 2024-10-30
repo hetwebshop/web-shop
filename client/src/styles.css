@@ -1,15 +1,31 @@
 /* You can add global styles to this file, and also import other style files */
 
-body {
+html, body {
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  line-height: 1.6; 
+  color: #1f1f1f;
+  box-sizing: border-box;
+  height: 100vh;
+  width: 100vw;
 }
-
+* {
+  font-family: 'Georgia', 'Times New Roman', serif;
+}
 html,
 body {
   min-height: 100vh;
+  min-width: 100vw;
+  overflow-x: hidden;
 }
-
+app-root {
+  height: 100vh;
+  width: 100vw;
+  display: block;
+  overflow-x: hidden;
+  background-color: #f7f4ef;
+}
 .profile {
   height: 32px;
   width: 32px;
@@ -148,28 +164,28 @@ img {
   }
 }
 .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
-  color: #004D40 !important;
+  color: #283316 !important;
 }
 .mat-form-field.mat-focused .mat-form-field-label {
-  color: #004D40 !important;
+  color: #283316 !important;
 }
 .mat-focused .mat-form-field-required-marker{
-  color: #004D40 !important;
+  color: #283316 !important;
 }
 .mat-radio-button.mat-accent .mat-radio-ripple .mat-ripple-element {
-  background-color: #004D40 !important;
+  background-color: #283316 !important;
 }
 
 .mat-radio-button.mat-accent .mat-radio-inner-circle {
-  background-color: #004D40!important;   /*inner circle color change*/
+  background-color: #283316!important;   /*inner circle color change*/
 }
 
 .mat-radio-button.mat-accent.mat-radio-checked .mat-radio-outer-circle {
- border-color:#004D40!important; /*outer ring color change*/
+ border-color:#283316!important; /*outer ring color change*/
 }
 .mat-slide-toggle.mat-primary.mat-checked .mat-slide-toggle-bar {
   background-color:#00b496!important;
 }
 .mat-slide-toggle.mat-primary.mat-checked .mat-slide-toggle-thumb {
-  background-color:#004D40!important;
+  background-color:#283316!important;
 }

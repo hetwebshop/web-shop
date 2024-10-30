@@ -109,7 +109,9 @@ export class MyAdComponent {
       advertisementTypeId: new FormControl({ value: this.job?.advertisementTypeId, disabled: true}, Validators.required),
       price: new FormControl(this.job?.price),
       cvFile: new FormControl(this.job?.cvFile),
-      adDuration: new FormControl(this.job?.adDuration, Validators.required)
+      adDuration: new FormControl(this.job?.adDuration, Validators.required),
+      adTitle: new FormControl(this.job?.adTitle),
+      adAdditionalDescription: new FormControl(this.job?.adAdditionalDescription)
     });
 
     this.updateApplicantEducations(this.job?.applicantEducations);
@@ -165,7 +167,9 @@ export class MyAdComponent {
       cvFile: data.cvFile,
       adDuration: data.adDuration,
       adStartDate: now,
-      adEndDate: moment(now).add(data.adDuration, 'days')
+      adEndDate: moment(now).add(data.adDuration, 'days'),
+      adAdditionalDescription: data.adAdditionalDescription,
+      adTitle: data.adTitle
     };
 
     const formData = new FormData();

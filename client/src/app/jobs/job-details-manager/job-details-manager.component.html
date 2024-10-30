@@ -1,9 +1,9 @@
-<div fxLayout="row" fxLayoutAlign="center" style="margin-top: 100px;">
-  <mat-card class="text-center" style="border: 1px solid #004D40;" fxFlex="70" fxFlex.lt-sm="90">
-    <mat-card-title style="color:#004D40; height: 50px; align-items: center; display: flex; justify-content: center;">
+<div fxLayout="row" fxLayoutAlign="center" style="margin-top: 50px; margin-bottom: 50px;">
+  <mat-card class="text-center" style="border: 1px solid #283316;" fxFlex="70" fxFlex.lt-sm="90">
+    <mat-card-title style="color:#283316; height: 50px; align-items: center; display: flex; justify-content: center;">
       {{ isJobAd ? (isEditMode ? 'Uredi Oglas' : 'Kreiraj Oglas') : (isEditMode ? 'Uredi uslugu' : 'Kreiraj uslugu') }}
     </mat-card-title>
-    <mat-divider style="background-color: #004D40;"></mat-divider>
+    <mat-divider style="background-color: #283316;"></mat-divider>
         <mat-card-content>
       <form [formGroup]="form" style="margin-top: 50px;" (ngSubmit)="onSubmit()" #jobForm="ngForm" fxLayout="column" fxLayoutAlign="center">
         <input type="hidden" formControlName="id">
@@ -94,7 +94,7 @@
           </div>
         </div>
         <div>
-          <button mat-stroked-button type="button" style="color:#004D40;margin-bottom: 25px; border-color: #004D40; max-width: 150px;" (click)="addEducation()">Dodaj obrazovanje</button>
+          <button mat-stroked-button type="button" style="color:#283316;margin-bottom: 25px; border-color: #283316; max-width: 150px;" (click)="addEducation()">Dodaj obrazovanje</button>
         </div>
         
         <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
@@ -113,6 +113,16 @@
           </mat-form-field>
         </div>
 
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Naslov oglasa</mat-label>
+          <input matInput type="text" formControlName="adTitle" placeholder="Unesite naslov oglasa"/>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Dodatni opis oglasa</mat-label>
+          <textarea matInput formControlName="adAdditionalDescription" rows="4" placeholder="Unesite dodatni opis"></textarea>
+        </mat-form-field>
+
         <!-- Details about job and skills -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Pozicija</mat-label>
@@ -128,7 +138,7 @@
           <!-- Upload Button and Selected File in One Row -->
           <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
             <!-- Styled File Input -->
-            <button mat-raised-button color="primary" (click)="fileInput.click()" type="button">
+            <button mat-raised-button style="background-color: #c5b391; width: 200px;" (click)="fileInput.click()" type="button">
               <mat-icon>attach_file</mat-icon> Učitaj CV
             </button>
             <input #fileInput type="file" (change)="onFileSelected($event)" accept=".pdf, .doc, .docx, .txt, .jpg, .png, .xlsx, .pptx"  hidden />
@@ -146,7 +156,7 @@
         
         <!-- Existing File Section -->
         <div *ngIf="existingFilePath && populateFormWithUserProfileData" fxLayout="row" fxLayoutAlign="start" style="margin-top: 10px;">
-          <button type="button" *ngIf="user.cvFilePath" mat-raised-button style="margin-left: 10px; color: #B2DFDB; background-color: #004D40;" (click)="previewUserCV(user.cvFilePath)"
+          <button type="button" *ngIf="user.cvFilePath" mat-raised-button style="margin-left: 10px; color: #B2DFDB; background-color: #283316;" (click)="previewUserCV(user.cvFilePath)"
           color="accent">Pregledaj CV
         </button>
           <button mat-raised-button color="warn" style="margin-left: 10px;" (click)="deleteExistingFile()">
@@ -197,7 +207,7 @@
           </mat-select>
         </mat-form-field>
 
-        <button mat-raised-button style="background-color: #004D40; color: white;" type="submit">{{ isJobAd ? (isEditMode ? 'Uredi Oglas' : 'Kreiraj Oglas') : (isEditMode ? 'Uredi uslugu' : 'Kreiraj uslugu') }}</button>
+        <button mat-raised-button style="background-color: #283316; color: white;" type="submit">{{ isJobAd ? (isEditMode ? 'Uredi Oglas' : 'Kreiraj Oglas') : (isEditMode ? 'Uredi uslugu' : 'Kreiraj uslugu') }}</button>
       </form>
     </mat-card-content>
   </mat-card>

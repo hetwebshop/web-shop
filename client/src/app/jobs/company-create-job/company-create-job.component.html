@@ -1,9 +1,9 @@
 <div fxLayout="row" fxLayoutAlign="center" style="margin-top: 100px;">
-    <mat-card class="text-center" style="border: 1px solid #004D40;" fxFlex="70" fxFlex.lt-sm="90">
-      <mat-card-title style="color:#004D40; height: 50px; align-items: center; display: flex; justify-content: center;">
+    <mat-card class="text-center" style="border: 1px solid #283316;" fxFlex="70" fxFlex.lt-sm="90">
+      <mat-card-title style="color:#283316; height: 50px; align-items: center; display: flex; justify-content: center;">
         {{ isEditMode ? 'Uredi Oglas za Posao' : 'Kreiraj Oglas za Posao' }}
       </mat-card-title>
-      <mat-divider style="background-color: #004D40;"></mat-divider>
+      <mat-divider style="background-color: #283316;"></mat-divider>
           <mat-card-content>
         <form [formGroup]="form" style="margin-top: 50px;" (ngSubmit)="onSubmit()" #jobForm="ngForm" fxLayout="column" fxLayoutAlign="center">
           <input type="hidden" formControlName="id">
@@ -66,7 +66,7 @@
               </mat-select>
             </mat-form-field>
           </div>
-          <button mat-raised-button style="background-color: #004D40; color: white;" type="submit">{{ isEditMode ? 'Uredi Oglas za Posao' : 'Kreiraj Oglas za Posao' }}</button>
+          <button mat-raised-button style="background-color: #283316; color: white;" type="submit">{{ isEditMode ? 'Uredi Oglas za Posao' : 'Kreiraj Oglas za Posao' }}</button>
         </form>
       </mat-card-content>
     </mat-card>

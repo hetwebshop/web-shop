@@ -1,6 +1,6 @@
-.sidenav-container {
+/* .sidenav-container {
   height: 100%;
-}
+} */
 
 .sidenav {
   min-width: 220px;
@@ -32,7 +32,7 @@
 }
 
 .mat-list-item.active-link {
-  background-color: #004D40;
+  background-color: #283316;
   color: white !important;
   text-decoration: none;
 }

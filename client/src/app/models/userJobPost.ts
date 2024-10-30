@@ -25,6 +25,8 @@ export interface UserJobPost {
     adStartDate: Moment;
     adEndDate: Moment;
     isDeleted?: boolean;
+    adTitle: string;
+    adAdditionalDescription: string;
 }
 
 export interface AdvertisementType {

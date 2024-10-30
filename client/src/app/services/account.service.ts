@@ -3,12 +3,14 @@ import { AbstractControl, AsyncValidatorFn } from '@angular/forms';
 import { Params } from '@angular/router';
 import {
   BehaviorSubject,
+  catchError,
   debounceTime,
   first,
   map,
   of,
   switchMap,
   tap,
+  throwError,
 } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Address, LocationInfo } from '../modal/address';
@@ -40,16 +42,23 @@ export class AccountService {
     );
   }
 
-  register(model) {
-    return this.http.post<User>(this.baseUrl + 'register', model).pipe(
+  register(model: any) {
+    const payload = { ...model, userName: model.Email };
+  
+    return this.http.post<User>(`${this.baseUrl}register`, payload).pipe(
       map((user: User) => {
         if (user) {
           this.setUser(user);
         }
+        return user;
+      }),
+      catchError((error) => {
+        console.error('Greška prilikom registracije', error);
+        return throwError(() => new Error(error));
       })
     );
   }
-
+  
   registerCompany(model) {
     model.userName = model.email;
     return this.http.post<User>(this.baseUrl + 'register-company', model).pipe(

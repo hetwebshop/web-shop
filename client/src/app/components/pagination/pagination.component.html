@@ -10,7 +10,7 @@
             <mat-icon>navigate_before</mat-icon>
         </button>
         <div *ngFor="let item of range; index as i;">
-            <button *ngIf="selected === item" mat-mini-fab style="color: white; background-color: #004D40;">
+            <button *ngIf="selected === item" mat-mini-fab style="color: white; background-color: #283316;">
                 {{item}}
             </button>
             <button *ngIf="selected !== item" mat-icon-button (click)="onClick(item)">
