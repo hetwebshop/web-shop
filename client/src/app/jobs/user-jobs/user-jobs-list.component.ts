@@ -1,4 +1,4 @@
-import { Component, Inject, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Inject, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AdvertisementTypeEnum, Gender } from 'src/app/models/enums';
 import { JobCategory, UserJobPost } from 'src/app/models/userJobPost';
@@ -38,8 +38,10 @@ export class UserJobsListComponent {
   @ViewChild('filePreviewModal') filePreviewModal!: TemplateRef<any>;
   fileUrl: string = ""
   showFilters: boolean = true;
+  isGridView: boolean = true;
+  isGridViewUserSelection: boolean = this.isGridView;
 
-  constructor(private jobService: JobService, utility: UtilityService, private route: ActivatedRoute,
+  constructor(private cdr: ChangeDetectorRef, private jobService: JobService, utility: UtilityService, private route: ActivatedRoute,
     private router: Router, private datePipe: DatePipe, public dialog: MatDialog,
     private accountService: AccountService, private filtersStore: FiltersStore,
     private filtersQuery: FiltersQuery, private http: HttpClient, private jobCategoryQuery: JobCategoryQuery, private breakpointObserver: BreakpointObserver) {
@@ -58,14 +60,23 @@ export class UserJobsListComponent {
       return "Ostali";
   }
 
+  toggleView() {
+    this.isGridView = !this.isGridView;
+    this.isGridViewUserSelection = this.isGridView;
+  }
+
   ngOnInit(): void {
     this.breakpointObserver.observe([
       "(min-width: 768px)"
     ]).subscribe(result => {
-      if(result.matches)
+      if(result.matches){
         this.isLargeScreen = true;
+        this.isGridView = this.isGridViewUserSelection;
+      }
+      
       else 
-        this.isLargeScreen = false;
+        {this.isLargeScreen = false;
+        this.isGridView = false;}
     });
     this.jobCategories$.subscribe((jobCategories) => {
       this.jobCategories = jobCategories;
@@ -159,10 +170,13 @@ export class UserJobsListComponent {
       });
     })
   }
-
-  onPageChange(pageNumber: number) {
+  @ViewChild('itemListContainer') itemListContainer!: ElementRef;
+    onPageChange(pageNumber: number) {
     this.paginationParameters = { ...this.paginationParameters, pageNumber: pageNumber };
     this.fetchPaginatedItems(this.paginationParameters);
+    this.cdr.detectChanges();
+    console.log("TE22");
+    this.itemListContainer.nativeElement.scrollIntoView({ behavior: 'smooth' });
   }
 
   onPageSizeChange(pageSize: number) {

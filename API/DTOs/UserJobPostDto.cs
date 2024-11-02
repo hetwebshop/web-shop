@@ -38,6 +38,7 @@ namespace API.DTOs
         public bool IsDeleted { get; set; } = false;
         public string AdTitle { get; set; }
         public string AdAdditionalDescription { get; set; }
+        public int CurrentUserCredits { get; set; }
 
         public List<ApplicantEducationDto> ApplicantEducations { get; set; }
     }

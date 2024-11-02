@@ -1,4 +1,4 @@
-<div class="job-details-container">
+<div class="job-details-container" style="margin-bottom:30px;">
   <div class="job-details-content">
     <div fxLayout="row" fxLayoutAlign="space-between">
       <button mat-button class="back-button" backButton>
@@ -22,9 +22,10 @@
         <h1 *ngIf="job.advertisementTypeId == 2" class="section-title">Detalji servisa</h1>
       </div>
 
-      <mat-card style="border: 1px solid #00ACC1">
-        <mat-card-header fxLayout="row" fxLayoutAlign="space-between">
+      <mat-card style="border: 1px solid #283316">
+        <mat-card-header fxLayout="row" fxLayoutAlign="space-between" style="background-color: #283316; color: white; padding: 10px; border-radius: 8px;">
           <div fxFlex="grow">
+            <h2>{{job.adTitle}}</h2>
             <h2>{{ job?.position }}</h2>
             <h4><strong>Tip oglasa -</strong> {{ getEnumName(job?.advertisementTypeId) }}</h4>
             <h4><strong>Datum početka objave -</strong> {{ job?.adStartDate | date: 'dd.MM.yyyy' }}</h4>
@@ -32,13 +33,13 @@
           </div>
           <div fxFlex class="contact-buttons">
             <mat-card-actions>
-              <button *ngIf="job?.applicantEmail" mat-raised-button color="primary" (click)="openEmailModal(job?.applicantEmail)">Kontaktiraj mailom</button>
+              <button *ngIf="job?.applicantEmail" mat-raised-button class="email-button" (click)="openEmailModal(job?.applicantEmail)"><mat-icon class="email-icon">email</mat-icon>
+                <span class="button-text">Kontaktiraj mailom</span></button>
               <button *ngIf="!job?.applicantEmail" mat-raised-button color="warn" disabled>Korisnik nema email</button>
             </mat-card-actions>
           </div>
         </mat-card-header>
 
-        <mat-divider></mat-divider>
         <mat-card-content class="job-card-content">
           <div class="job-info">
             <h2 class="subsection-title">Osnovni podaci</h2>
@@ -72,36 +73,44 @@
               </ng-container>
             </p>
           </div>
+          <div class="job-info">
+            <h2 class="subsection-title">Dodatni opis</h2>
+            <p>{{ job.adAdditionalDescription }}</p>
+          </div>
           <div class="job-biography">
             <h2 class="subsection-title">Biografija</h2>
             <p>{{ job?.biography }}</p>
           </div>
-          <h2 class="subsection-title">Obrazovanja</h2>
-          <div *ngIf="job?.applicantEducations && job?.applicantEducations.length > 0; else noEducation">
-            <div *ngFor="let education of job?.applicantEducations; let i = index">
-              <div>
-                <h4><strong>Obrazovanje {{ i + 1 }}</strong></h4>
-                <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
-                  <p><strong>Univerzitet:</strong> {{ education.university }}</p>
-                  <p><strong>Fakultet:</strong> {{ education.institutionName }}</p>
-                  <p><strong>Odsjek:</strong> {{ education.fieldOfStudy }}</p>
-                  <p><strong>Zvanje:</strong> {{ education.degree }}</p>
-                  <p>
-                    <strong>Period obrazovanja:</strong>
-                    {{ education.educationStartYear }} -
-                    {{ education.educationEndYear ? education.educationEndYear : 'U toku' }}
-                  </p>
+          <div class="job-info">
+            <h2 class="subsection-title">Obrazovanja</h2>
+            <div *ngIf="job?.applicantEducations && job?.applicantEducations.length > 0; else noEducation">
+              <div *ngFor="let education of job?.applicantEducations; let i = index">
+                <div>
+                  <h4><strong>Obrazovanje {{ i + 1 }}</strong></h4>
+                  <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
+                    <p><strong>Univerzitet:</strong> {{ education.university }}</p>
+                    <p><strong>Fakultet:</strong> {{ education.institutionName }}</p>
+                    <p><strong>Odsjek:</strong> {{ education.fieldOfStudy }}</p>
+                    <p><strong>Zvanje:</strong> {{ education.degree }}</p>
+                    <p>
+                      <strong>Period obrazovanja:</strong>
+                      {{ education.educationStartYear }} -
+                      {{ education.educationEndYear ? education.educationEndYear : 'U toku' }}
+                    </p>
+                  </div>
+                  <mat-divider class="education-divider"></mat-divider>
                 </div>
-                <mat-divider class="education-divider"></mat-divider>
               </div>
             </div>
           </div>
+
           <ng-template #noEducation>
             <p>Nema obrazovanja</p>
           </ng-template>
         </mat-card-content>
         <mat-card-actions class="bottom-contact-buttons">
-          <button *ngIf="job?.applicantEmail" mat-raised-button color="primary" (click)="openEmailModal(job?.applicantEmail)">Kontaktiraj mailom</button>
+          <button style="margin-bottom: 10px;" *ngIf="job?.applicantEmail" mat-raised-button class="email-button" (click)="openEmailModal(job?.applicantEmail)"><mat-icon class="email-icon">email</mat-icon>
+            <span class="button-text">Kontaktiraj mailom</span></button>
           <button *ngIf="!job?.applicantEmail" mat-raised-button color="warn" disabled>Korisnik nema email</button>
         </mat-card-actions>
       </mat-card>

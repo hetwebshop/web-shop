@@ -80,6 +80,9 @@
       <a mat-list-item routerLinkActive="active-link" style="color:#283316;" *ngIf="!user" routerLink="/login">Prijavi se</a>
       <a mat-list-item routerLinkActive="active-link" style="color:#283316;" *ngIf="!user" routerLink="/register">Registracija</a>
       <ng-container *ngIf="user">
+        <a mat-list-item routerLinkActive="active-link" style="color:#283316;" [routerLink]="'/credits'">
+          {{ 'Dopuni kredit' }}
+        </a>
         <a mat-list-item routerLinkActive="active-link" style="color:#283316;" [routerLink]="user?.roles.includes('Company') ? '/company-my-ads' : '/my-ads'">
           {{ user?.roles.includes('Company') ? 'Objave kompanije' : 'Moje objave' }}
         </a>
@@ -134,11 +137,28 @@
             <span *ngIf="!user" class="nav-item brand" routerLink="/register">
               Registracija
             </span>
-            <button *ngIf="user" mat-icon-button [matMenuTriggerFor]="navMenu">
-              <img class="profile" src="{{user.photoUrl || './assets/images/profile.png'}}" alt="Profile">
-              <mat-icon>arrow_drop_down</mat-icon>
-            </button>
+            <div class="user-controls">
+              <button *ngIf="user" class="credits-button">
+                <mat-icon>payment</mat-icon> Krediti {{ user.credits }}
+              </button>
+              <button *ngIf="user" mat-icon-button [matMenuTriggerFor]="navMenu" class="profile-button">
+                <img class="profile-icon" src="./assets/images/profile.png" alt="Profile">
+                <mat-icon class="arrow-icon">arrow_drop_down</mat-icon>
+              </button>
+            </div>
+            
+            
+
             <mat-menu #navMenu="matMenu">
+              <button 
+              mat-menu-item 
+              [routerLink]="'/credits'" 
+              [ngStyle]="{
+                'background-color': isActive('/credits') ? '#283316' : 'transparent',
+                'color': isActive('/credits') ? 'white' : '#283316'
+              }">
+              {{ 'Dopuni kredit' }}
+            </button>
               <button 
                 mat-menu-item 
                 [routerLink]="user?.roles.includes('Company') ? '/company-my-ads' : '/my-ads'" 

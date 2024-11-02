@@ -16,6 +16,7 @@ export interface User {
   jobCategoryId: number;
   dateOfBirth: Date;
   userEducations: UserEducation[];
+  credits: number;
 
   isCompany: boolean;
 }

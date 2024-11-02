@@ -32,12 +32,14 @@
 
 .job-card-content {
   margin-top: 25px;
-  padding-left: 34px;
 }
 
 .job-info,
 .job-biography {
   margin-bottom: 20px;
+  border-radius: 8px;
+  color: #283316;
+  padding: 10px;
 }
 
 .job-info p,
@@ -55,7 +57,7 @@
 }
 
 .bottom-contact-buttons {
-  padding-left: 34px;
+  padding-left: 20px;
 }
 
 .mat-form-field-disabled .mat-form-field-wrapper {
@@ -72,4 +74,25 @@
 
 .readonly-input {
   cursor: default; /* Prevent cursor change */
+}
+.email-button {
+  background-color: #c5b391;
+  color: #283316;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #a8996e; /* Darker version of #c5b391 */
+  }
+  .email-icon {
+      margin-right: 4px; /* Space between icon and text */
+    }
+}
+.custom-modal-background {
+  background-color: #c5b391; /* Set to your desired color */
+  color: #283316; /* Optional: Set text color if needed */
+}
+
+::ng-deep .mat-dialog-container {
+  background-color: #faf8f6 !important;
+  color: #283316;
 }

@@ -14,6 +14,7 @@ import { JobCategoryStore } from '../store/jobsHelpers/job-category.store';
 import { JobCategoryQuery } from '../store/jobsHelpers/job-category.query';
 import { JobTypeStore } from '../store/jobsHelpers/job-type.store';
 import { JobTypeQuery } from '../store/jobsHelpers/job-type.query';
+import { AccountService } from './account.service';
 
 @Injectable({
   providedIn: 'root',
@@ -26,7 +27,7 @@ export class JobService {
 
   constructor(private http: HttpService, private datePipe: DatePipe, private adsStore: AdsStore, private adsQuery: AdsQuery,
     private jobCategoryStore: JobCategoryStore, private jobCategoryQuery: JobCategoryQuery,
-    private jobTypeStore: JobTypeStore, private jobTypeQuery: JobTypeQuery) {}
+    private jobTypeStore: JobTypeStore, private jobTypeQuery: JobTypeQuery, private accountService: AccountService) {}
 
   getAds(adsFilter?: AdsPaginationParameters) {
     const queryParams: any = {
@@ -135,8 +136,8 @@ export class JobService {
         tap((response) => {
           this.adsStore.add(response);
           this.adsStore.setActive(response.id);
+          this.accountService.updateCredits(response.currentUserCredits)
           setLoading(this.adsStore);
-
           return response;
         })
       );

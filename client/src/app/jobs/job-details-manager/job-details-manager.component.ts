@@ -13,6 +13,7 @@ import { User, UserInfo, UserProfile } from 'src/app/modal/user';
 import { AccountService } from 'src/app/services/account.service';
 import * as moment from 'moment';
 import { MatDialog } from '@angular/material/dialog';
+import { ToastrService } from 'src/app/services/toastr.service';
 
 @Component({
   selector: 'app-job-details-manager',
@@ -51,7 +52,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
 
   constructor(private jobService: JobService, private locationService: LocationService, utility: UtilityService, 
     private route: ActivatedRoute, private cdr: ChangeDetectorRef, 
-    private fb: FormBuilder, private accountService: AccountService, private router: Router, private dialog: MatDialog) {
+    private fb: FormBuilder, private accountService: AccountService, private toastrService: ToastrService, private router: Router, private dialog: MatDialog) {
       this.route.url.subscribe(urlSegment => {
         this.isJobAd = !urlSegment.some(segment => segment.path.includes('service'));
       });
@@ -124,7 +125,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
   private createForm(): FormGroup {
     this.applicantEducations = this.fb.array([]);
 
-    return this.fb.group({
+    const formGroup = this.fb.group({
       id: new FormControl(0),
       position: new FormControl('', Validators.required),
       biography: new FormControl(''),
@@ -143,9 +144,19 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
       price: new FormControl(''),
       cvFile: new FormControl(null),
       adDuration: new FormControl("7", Validators.required),
-      adTitle: new FormControl(null),
-      adAdditionalDescription: new FormControl(null)
+      adTitle: new FormControl(null, Validators.required),
+      adAdditionalDescription: new FormControl(null, Validators.required)
     });
+
+    if (!this.isJobAd) {
+      formGroup.get('position')?.clearValidators();
+      formGroup.get('biography')?.clearValidators();
+      formGroup.get('jobCategoryId')?.clearValidators();
+      formGroup.get('advertisementTypeId')?.clearValidators();
+    }
+
+    formGroup.updateValueAndValidity();
+    return formGroup;
   }
 
   prepareModel(data: any) : FormData {
@@ -186,7 +197,8 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
       adStartDate: now,
       adEndDate: moment(now).add(data.adDuration, 'days'),
       adAdditionalDescription: data.adAdditionalDescription,
-      adTitle: data.adTitle
+      adTitle: data.adTitle,
+      price: data.price
     };
 
     const formData = new FormData();
@@ -254,15 +266,20 @@ private updateApplicantEducations(educations: any[]): void {
   }
   onSubmit(): void {
     const formData = this.form.getRawValue();
-    // const model = this.prepareModel(formData);
-    // console.log("MODEL IS", model);
-    // this.subscription = this.jobService.upsertJob(this.isEditMode, model).subscribe();
     if (this.form.valid) {
-      // const formData = this.form.getRawValue();
       const model = this.prepareModel(formData);
-      //console.log("MODEL IS", model);
       console.log("FORM IS", formData);
-      this.subscription = this.jobService.upsertJob(this.isEditMode, model).subscribe();
+      this.subscription = this.jobService.upsertJob(this.isEditMode, model).subscribe({
+        next: () => {
+          this.toastrService.success("Uspješno ste kreirali objavu!");
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        },
+        error: () => {
+          this.toastrService.error("Desila se greška prilikom kreiranja objave!");
+        }
+      });
     } 
     else {
       this.logInvalidControls(this.form);

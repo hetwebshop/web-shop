@@ -36,7 +36,8 @@ export class CompanyJobAdsComponent {
   jobCategories$ = this.jobCategoryQuery.selectAll();
   jobTypes: JobType[];
   jobTypes$ = this.jobTypeQuery.selectAll();
-
+  showFilters: boolean = true;
+  
   constructor(private jobService: JobService, private companyJobService: CompanyJobService, utility: UtilityService, private route: ActivatedRoute,
     private router: Router, private datePipe: DatePipe, public dialog: MatDialog,
     private accountService: AccountService, private filtersStore: FiltersStore,
@@ -117,5 +118,9 @@ export class CompanyJobAdsComponent {
   onPageSizeChange(pageSize: number) {
     this.paginationParameters = { ...this.paginationParameters, pageSize: pageSize, pageNumber: 1 };
     this.fetchPaginatedItems(this.paginationParameters);
+  }
+
+  toggleFilters() {
+    this.showFilters = !this.showFilters;
   }
 }

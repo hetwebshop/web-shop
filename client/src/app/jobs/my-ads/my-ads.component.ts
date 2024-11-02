@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, first, map } from 'rxjs';
 import { AdsPaginationParameters } from 'src/app/models/filterCriteria';
 import { PagedResponse } from 'src/app/models/pagedResponse';
 import { JobCategory, UserJobPost } from 'src/app/models/userJobPost';
@@ -10,7 +10,7 @@ import { FiltersStore } from 'src/app/store/filters/filters.store';
 //import { getCategoryName, getEnumName, getEnumValue, getFormattedDate } from '../helpers/helpers';
 import { DatePipe } from '@angular/common';
 import { JobCategoryQuery } from 'src/app/store/jobsHelpers/job-category.query';
-import { AdvertisementTypeEnum, JobPostStatus } from 'src/app/models/enums';
+import { AdvertisementTypeEnum, Gender, JobPostStatus } from 'src/app/models/enums';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 
 @Component({
@@ -27,9 +27,11 @@ export class MyAdsComponent {
   deletedAdsPaginationResponse: PagedResponse<UserJobPost>;
   paginationParameters: AdsPaginationParameters;
   jobCategories: JobCategory[];
-  jobCategories$ = this.jobCategoryQuery.selectAll();
-  activeTabJobStatus: JobPostStatus = JobPostStatus.Active;
 
+  activeTabJobStatus: JobPostStatus = JobPostStatus.Active;
+  genderMap = Gender; 
+
+  
   constructor(private jobService: JobService, utility: UtilityService,
     private datePipe: DatePipe, private jobCategoryQuery: JobCategoryQuery
   ) {
@@ -37,10 +39,17 @@ export class MyAdsComponent {
   }
 
   ngOnInit(): void {
-    this.jobCategories$.subscribe((jobCategories) => {
-      this.jobCategories = jobCategories;
-    })
+    this.loadJobCategories();
     this.fetchPaginatedItems();
+  }
+
+
+  loadJobCategories(): void {
+    this.jobService.getJobCategories()
+      .subscribe(categories => {
+        this.jobCategories = categories.filter(r => r.parentId == null);
+        console.log("Job categories" + JSON.stringify(this.jobCategories));
+      });
   }
 
   fetchPaginatedItems(filterCriteria?: AdsPaginationParameters, isPaginationChangedByUserEvent: boolean = false): void {
@@ -87,8 +96,8 @@ export class MyAdsComponent {
   }
 
 
-  getCategoryName(jobCategories: JobCategory[], jobCategoryId: number): string | undefined {
-    return jobCategories?.find(r => r.id === jobCategoryId)?.name;
+  getCategoryName(jobCategoryId: number): string | undefined {
+    return this.jobCategories?.find(r => r.id === jobCategoryId)?.name;
   }
   getEnumValue(name: string): AdvertisementTypeEnum {
     return AdvertisementTypeEnum[name as keyof typeof AdvertisementTypeEnum];
@@ -99,11 +108,15 @@ export class MyAdsComponent {
   }
 
   getEnumName(value: number): string {
-    return value === AdvertisementTypeEnum.JobAd ? "Posao" : "Servis";
+    return value === AdvertisementTypeEnum.JobAd ? "Posao" : "Usluga";
   }
 
-  getFormattedDate(datePipe: DatePipe, date: Date): string {
+  getFormattedDate(date: Date): string {
     return this.datePipe.transform(date, 'dd.MM.yyyy');
+  }
+
+  genderName(gender: Gender): string {
+    return this.genderMap[gender] || 'Ostali';
   }
 
   onPageChange(pageNumber: number) {

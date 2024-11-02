@@ -33,7 +33,7 @@ export class EmailModalComponent {
     if(this.message || this.title){
       const cancelDialogRef = this.dialog.open(CancelConfirmationModalComponent, {
         data: {
-          title: "Email",
+          title: "Potvrdite",
           message: "Da li ste sigurni da želite odustati od slanja email-a ?"
         }
       });

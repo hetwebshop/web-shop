@@ -4,8 +4,9 @@
       {{ isJobAd ? (isEditMode ? 'Uredi Oglas' : 'Kreiraj Oglas') : (isEditMode ? 'Uredi uslugu' : 'Kreiraj uslugu') }}
     </mat-card-title>
     <mat-divider style="background-color: #283316;"></mat-divider>
-        <mat-card-content>
-      <form [formGroup]="form" style="margin-top: 50px;" (ngSubmit)="onSubmit()" #jobForm="ngForm" fxLayout="column" fxLayoutAlign="center">
+    <mat-card-content>
+      <form [formGroup]="form" style="margin-top: 50px;" (ngSubmit)="onSubmit()" #jobForm="ngForm" fxLayout="column"
+        fxLayoutAlign="center">
         <input type="hidden" formControlName="id">
         <mat-slide-toggle color="primary" (change)="onToggleUseUserDataChange($event)" style="margin-bottom: 20px;">
           <span style="font-weight: bold;">Popuni podacima sa mog profila</span>
@@ -16,7 +17,7 @@
             <mat-option *ngFor="let adType of advertisementTypes" [value]="adType.id">{{ adType.name }}</mat-option>
           </mat-select>
         </mat-form-field>
-        <mat-radio-group formControlName="adDuration"  class="duration-radio-group" appearance="outline">
+        <mat-radio-group formControlName="adDuration" class="duration-radio-group" appearance="outline">
           <mat-label style="font-weight: bold; margin-right: 20px;">Odaberite period trajanja oglasa:</mat-label>
           <mat-radio-button value="7" class="duration-radio-button">7 dana</mat-radio-button>
           <mat-radio-button value="15" class="duration-radio-button">15 dana</mat-radio-button>
@@ -36,7 +37,7 @@
             <input matInput type="text" formControlName="applicantLastName" placeholder="Unesite prezime" required />
           </mat-form-field>
         </div>
-        
+
         <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
           <mat-form-field appearance="outline" fxFlex class="flex-item full-width">
             <mat-label>Email</mat-label>
@@ -45,58 +46,73 @@
 
           <mat-form-field appearance="outline" fxFlex class="flex-item full-width">
             <mat-label>Broj telefona</mat-label>
-            <input matInput type="tel" formControlName="applicantPhoneNumber" placeholder="Unesite broj telefona" required />
+            <input matInput type="tel" formControlName="applicantPhoneNumber" placeholder="Unesite broj telefona"
+              required />
+          </mat-form-field>
+        </div>
+        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Spol</mat-label>
+            <mat-select formControlName="applicantGender" placeholder="Odaberite spol">
+              <mat-option *ngFor="let gender of genders" [value]="gender">{{ genderName(gender) }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Datum rođenja</mat-label>
+            <input matInput [matDatepicker]="dobPicker" formControlName="applicantDateOfBirth">
+            <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+            <mat-datepicker #dobPicker></mat-datepicker>
           </mat-form-field>
         </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Spol</mat-label>
-          <mat-select formControlName="applicantGender" placeholder="Odaberite spol">
-            <mat-option *ngFor="let gender of genders" [value]="gender">{{ genderName(gender) }}</mat-option>
-          </mat-select>
-        </mat-form-field>
 
-        <mat-form-field appearance="fill" class="full-width">
-          <mat-label>Datum rođenja</mat-label>
-          <input matInput [matDatepicker]="dobPicker" formControlName="applicantDateOfBirth">
-          <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
-          <mat-datepicker #dobPicker></mat-datepicker>
-        </mat-form-field>
-        
         <div formArrayName="applicantEducations">
-          <div *ngFor="let education of applicantEducations.controls; let i = index" [formGroupName]="i" class="education-group">
-            <h3>Obrazovanje {{ i + 1 }}</h3>
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Univerzitet</mat-label>
-              <input matInput type="text" formControlName="university" placeholder="Unesite univerzitet" required>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Fakultet</mat-label>
-              <input matInput type="text" formControlName="institutionName" placeholder="Unesite fakultet" required>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Odsjek</mat-label>
-              <input matInput type="text" formControlName="fieldOfStudy" placeholder="Unesite odsjek" required>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Zvanje</mat-label>
-              <input matInput type="text" formControlName="degree" placeholder="Unesite zvanje" required>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Godina početka studija</mat-label>
-              <input matInput type="number" formControlName="educationStartYear" placeholder="Unesite godinu početka studija" required>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Godina kraja studija</mat-label>
-              <input matInput type="number" formControlName="educationEndYear" placeholder="Unesite godinu kraja studija">
-            </mat-form-field>
-            <button mat-button type="button" color="warn" (click)="removeEducation(i)">Ukloni obrazovanje</button>
+          <div *ngFor="let education of applicantEducations.controls; let i = index" [formGroupName]="i"
+            class="education-group" style="background-color: #faf0e6; padding: 20px; border-radius: 4px;">
+            <h3 style="color: #283316;">Obrazovanje {{ i + 1 }}</h3>
+            <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Univerzitet</mat-label>
+                <input matInput type="text" formControlName="university" placeholder="Unesite univerzitet" required>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Fakultet</mat-label>
+                <input matInput type="text" formControlName="institutionName" placeholder="Unesite fakultet" required>
+              </mat-form-field>
+            </div>
+            <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Odsjek</mat-label>
+                <input matInput type="text" formControlName="fieldOfStudy" placeholder="Unesite odsjek" required>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Zvanje</mat-label>
+                <input matInput type="text" formControlName="degree" placeholder="Unesite zvanje" required>
+              </mat-form-field>
+            </div>
+            <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Godina početka studija</mat-label>
+                <input matInput type="number" formControlName="educationStartYear"
+                  placeholder="Unesite godinu početka studija" required>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Godina kraja studija</mat-label>
+                <input matInput type="number" formControlName="educationEndYear"
+                  placeholder="Unesite godinu kraja studija">
+              </mat-form-field>
+            </div>
+            <button mat-button type="button" style="background-color: #FF5722; color: white;"
+              (click)="removeEducation(i)">Ukloni obrazovanje</button>
           </div>
         </div>
         <div>
-          <button mat-stroked-button type="button" style="color:#283316;margin-bottom: 25px; border-color: #283316; max-width: 150px;" (click)="addEducation()">Dodaj obrazovanje</button>
+          <button mat-stroked-button type="button"
+            style="background-color:#283316;margin-bottom: 25px; color: #c5b391; max-width: 150px;"
+            (click)="addEducation()">Dodaj obrazovanje</button>
         </div>
-        
+
         <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Država</mat-label>
@@ -115,55 +131,64 @@
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Naslov oglasa</mat-label>
-          <input matInput type="text" formControlName="adTitle" placeholder="Unesite naslov oglasa"/>
+          <input matInput type="text" formControlName="adTitle" placeholder="Unesite naslov oglasa" />
         </mat-form-field>
-        
+
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Dodatni opis oglasa</mat-label>
-          <textarea matInput formControlName="adAdditionalDescription" rows="4" placeholder="Unesite dodatni opis"></textarea>
+          <textarea matInput formControlName="adAdditionalDescription" rows="4"
+            placeholder="Unesite dodatni opis"></textarea>
         </mat-form-field>
 
         <!-- Details about job and skills -->
-        <mat-form-field appearance="outline" class="full-width">
+        <mat-form-field *ngIf="isJobAd" appearance="outline" class="full-width">
           <mat-label>Pozicija</mat-label>
           <input matInput type="text" formControlName="position" placeholder="Unesite poziciju" required />
         </mat-form-field>
-        
-        <mat-form-field appearance="outline" class="full-width">
+
+        <mat-form-field *ngIf="isJobAd" appearance="outline" class="full-width">
           <mat-label>Biografija</mat-label>
           <textarea matInput formControlName="biography" rows="4" placeholder="Unesite biografiju" required></textarea>
         </mat-form-field>
 
-        <div fxLayout="row" fxLayoutAlign="space-between center" fxFlex="95" fxFlex.lt-sm="90" style="margin-bottom: 20px;">
+        <div fxLayout="row" fxLayoutAlign="space-between center" fxFlex="95" fxFlex.lt-sm="90"
+          style="margin-bottom: 20px;">
           <!-- Upload Button and Selected File in One Row -->
           <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
-            <!-- Styled File Input -->
-            <button mat-raised-button style="background-color: #c5b391; width: 200px;" (click)="fileInput.click()" type="button">
-              <mat-icon>attach_file</mat-icon> Učitaj CV
-            </button>
-            <input #fileInput type="file" (change)="onFileSelected($event)" accept=".pdf, .doc, .docx, .txt, .jpg, .png, .xlsx, .pptx"  hidden />
-        
-            <!-- Show Selected File Name with Remove Option -->
-            <div *ngIf="selectedFileName" fxLayout="row" fxLayoutAlign="start center" (click)="openFilePreview()" style="cursor: pointer;">
-              <mat-icon>description</mat-icon>
-              <span class="selected-file-text">Odabrani CV: {{ selectedFileName }}</span>
-              <button mat-icon-button color="warn" (click)="removeSelectedFile($event)">
-                <mat-icon>close</mat-icon>
+            <!-- Upload Button and Selected File in One Row -->
+            <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
+              <!-- Styled File Input -->
+              <button mat-raised-button style="background-color: #c5b391;" (click)="fileInput.click()" type="button">
+                <mat-icon>attach_file</mat-icon> Učitaj CV
+              </button>
+              <input #fileInput type="file" (change)="onFileSelected($event)"
+                accept=".pdf, .doc, .docx, .txt, .jpg, .png, .xlsx, .pptx" hidden />
+
+              <!-- Show Selected File Name with Remove Option -->
+              <div *ngIf="selectedFileName" fxLayout="row" fxLayoutAlign="start center" (click)="openFilePreview()"
+                style="cursor: pointer;">
+                <mat-icon>description</mat-icon>
+                <span class="selected-file-text">Odabrani CV: {{ selectedFileName }}</span>
+                <button mat-icon-button color="warn" (click)="removeSelectedFile($event)">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+            <!-- Existing File Section -->
+            <div *ngIf="existingFilePath && populateFormWithUserProfileData" fxLayout="row" fxLayoutAlign="start"
+              style="margin-top: 10px;">
+              <button type="button" *ngIf="user.cvFilePath" mat-raised-button class="cv-button"
+                (click)="previewUserCV(user.cvFilePath)" color="accent"><mat-icon
+                  class="cv-icon">assignment</mat-icon>Pregledaj CV
+              </button>
+              <button mat-raised-button color="warn" style="margin-left: 10px;" (click)="deleteExistingFile()">
+                <mat-icon>delete</mat-icon> Obriši CV
               </button>
             </div>
           </div>
         </div>
-        
-        <!-- Existing File Section -->
-        <div *ngIf="existingFilePath && populateFormWithUserProfileData" fxLayout="row" fxLayoutAlign="start" style="margin-top: 10px;">
-          <button type="button" *ngIf="user.cvFilePath" mat-raised-button style="margin-left: 10px; color: #B2DFDB; background-color: #283316;" (click)="previewUserCV(user.cvFilePath)"
-          color="accent">Pregledaj CV
-        </button>
-          <button mat-raised-button color="warn" style="margin-left: 10px;" (click)="deleteExistingFile()">
-            <mat-icon>delete</mat-icon> Obriši CV
-          </button>
-        </div>
-        
+
+
         <!-- PDF Preview Modal -->
         <ng-template #filePreviewModal let-dialogRef="dialogRef">
           <div fxLayout="column">
@@ -173,41 +198,40 @@
                 <mat-icon>close</mat-icon>
               </button>
             </div>
-        
+
             <mat-dialog-content>
-              <ngx-doc-viewer [url]="selectedFilePath" viewer="pdf" style="width: 100%; height: 800px;"></ngx-doc-viewer>
+              <ngx-doc-viewer [url]="selectedFilePath" viewer="pdf"
+                style="width: 100%; height: 800px;"></ngx-doc-viewer>
             </mat-dialog-content>
-        
+
             <mat-dialog-actions align="end">
               <button mat-button mat-dialog-close>Zatvori</button>
             </mat-dialog-actions>
           </div>
         </ng-template>
-        
-        
 
-        <mat-form-field *ngIf="selectedAdvertisementType == AdvertisementTypeEnum.Service" appearance="outline" class="full-width">
-          <mat-label>Cijena usluge</mat-label>
-          <input matInput type="number" formControlName="price" placeholder="Unesite cijenu" />
-        </mat-form-field>
-        
         <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start stretch">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Kategorija posla</mat-label>
+            <mat-label>Kategorija <span *ngIf="isJobAd"> posla</span></mat-label>
             <mat-select formControlName="jobCategoryId" (selectionChange)="onCategoryChange($event.value)">
               <mat-option *ngFor="let category of jobCategories" [value]="category.id">{{ category.name }}</mat-option>
             </mat-select>
           </mat-form-field>
+          <mat-form-field *ngIf="!isJobAd" appearance="outline" class="full-width">
+            <mat-label>Cijena usluge</mat-label>
+            <input matInput type="number" formControlName="price" placeholder="Unesite cijenu" />
+          </mat-form-field>
         </div>
 
-        <mat-form-field appearance="outline" class="full-width">
+        <mat-form-field *ngIf="isJobAd" appearance="outline" class="full-width">
           <mat-label>Tip posla</mat-label>
           <mat-select formControlName="jobTypeId" placeholder="Odaberite tip posla">
             <mat-option *ngFor="let jobType of jobTypes" [value]="jobType.id">{{ jobType.name }}</mat-option>
           </mat-select>
         </mat-form-field>
 
-        <button mat-raised-button style="background-color: #283316; color: white;" type="submit">{{ isJobAd ? (isEditMode ? 'Uredi Oglas' : 'Kreiraj Oglas') : (isEditMode ? 'Uredi uslugu' : 'Kreiraj uslugu') }}</button>
+        <button mat-raised-button style="background-color: #283316; color: white;" type="submit">{{ isJobAd ?
+          (isEditMode ? 'Uredi Oglas' : 'Kreiraj Oglas') : (isEditMode ? 'Uredi uslugu' : 'Kreiraj uslugu') }}</button>
       </form>
     </mat-card-content>
   </mat-card>

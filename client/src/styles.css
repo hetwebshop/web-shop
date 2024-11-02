@@ -48,8 +48,8 @@ app-root {
 }
 
 .success-snack-bar {
-  background-color: green !important;
-  color: whitesmoke !important;
+  background-color: #283316 !important;
+  color: #c5b391 !important;
 }
 
 .warn-snack-bar {
@@ -184,7 +184,7 @@ img {
  border-color:#283316!important; /*outer ring color change*/
 }
 .mat-slide-toggle.mat-primary.mat-checked .mat-slide-toggle-bar {
-  background-color:#00b496!important;
+  background-color:#a89d7f!important;
 }
 .mat-slide-toggle.mat-primary.mat-checked .mat-slide-toggle-thumb {
   background-color:#283316!important;

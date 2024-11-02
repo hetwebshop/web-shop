@@ -72,7 +72,8 @@ namespace API.Data.IUserOfferRepository
         {
             var userJobPosts = FindByCondition(u => u.SubmittingUserId == adsParameters.UserId 
                                 && u.JobPostStatusId == (int)adsParameters.adStatus);
-            userJobPosts = _sortHelper.ApplySort(userJobPosts, adsParameters.OrderBy);
+            //userJobPosts = _sortHelper.ApplySort(userJobPosts, adsParameters.OrderBy);
+            userJobPosts = userJobPosts.OrderByDescending(r => r.AdStartDate);
             return await PagedList<UserJobPost>.ToPagedListAsync(userJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }
 
@@ -93,6 +94,8 @@ namespace API.Data.IUserOfferRepository
             try
             {
                 await DataContext.UserJobPosts.AddAsync(newUserJobPost);
+                var user = DataContext.Users.First(r => r.Id == newUserJobPost.SubmittingUserId);
+                user.Credits -= 1;
                 await DataContext.SaveChangesAsync();
                 return newUserJobPost;
             }

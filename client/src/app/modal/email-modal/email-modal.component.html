@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>Pošaljite Email</h2>
+<h2 mat-dialog-title style="color: #283316;">Pošaljite Email</h2>
 <div mat-dialog-content fxLayout="column" fxLayoutGap="10px">
   <mat-form-field>
     <input matInput placeholder="Pošiljatelj" [(ngModel)]="fromEmail">
@@ -14,6 +14,6 @@
   </mat-form-field>
 </div>
 <div mat-dialog-actions>
-  <button mat-button (click)="openCancelConfirmationModal()">Otkaži</button>
-  <button mat-button color="primary" (click)="sendEmail()">Pošalji</button>
+  <button mat-button color="error" (click)="openCancelConfirmationModal()">Otkaži</button>
+  <button mat-button style="background-color: #283316; color: #a8996e;" (click)="sendEmail()">Pošalji</button>
 </div>

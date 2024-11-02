@@ -41,3 +41,53 @@
 .mat-list-item.active-link a {
   color: white;
 }
+.user-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Increased gap for better spacing */
+}
+
+.credits-button {
+  color: #283316; /* Change text color for better visibility */
+  background-color: #c5b391; /* Add background color */
+  cursor: pointer;
+  height: 40px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 8px; /* Slightly rounder corners */
+  font-weight: normal; /* Make the font bold */
+  font-size: 14px;
+  transition: background-color 0.3s, color 0.3s;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Add subtle shadow for depth */
+}
+
+.credits-button mat-icon {
+  margin-right: 8px; /* Space between icon and text */
+}
+
+.credits-button:hover {
+  background-color: #a18a6a; /* Lighter background on hover */
+  color: #283316; /* Darker text on hover */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.profile-button {
+  display: flex;
+  align-items: center;
+  color: #283316;
+}
+
+.profile-icon {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  margin-right: 8px; /* Adjust spacing between icon and profile */
+  border: 2px solid #283316; /* Optional: Add border to the profile image */
+}
+
+.arrow-icon {
+  margin-left: 5px; /* Space between profile icon and arrow */
+}
+

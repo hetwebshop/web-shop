@@ -9,6 +9,7 @@ import {
   map,
   of,
   switchMap,
+  take,
   tap,
   throwError,
 } from 'rxjs';
@@ -68,6 +69,15 @@ export class AccountService {
         }
       })
     );
+  }
+
+  updateCredits(newCredits: number) {
+    this.user$.pipe(take(1)).subscribe((user) => {
+      if (user) {
+        const updatedUser = { ...user, credits: newCredits };
+        this.setUser(updatedUser);
+      }
+    });
   }
 
   getProfile() {

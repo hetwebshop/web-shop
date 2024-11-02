@@ -1,4 +1,5 @@
-﻿using API.Data.IUserOfferRepository;
+﻿using API.Data;
+using API.Data.IUserOfferRepository;
 using API.Data.Pagination;
 using API.DTOs;
 using API.Entities.JobPost;
@@ -13,10 +14,12 @@ namespace API.Services.UserOfferServices
     public class UserJobPostService : IUserJobPostService
     {
         private readonly IUserJobPostRepository userJobPostRepository;
+        private readonly IUnitOfWork _uow;
 
-        public UserJobPostService(IUserJobPostRepository userJobPostRepository)
+        public UserJobPostService(IUserJobPostRepository userJobPostRepository, IUnitOfWork uow)
         {
             this.userJobPostRepository = userJobPostRepository;
+            _uow = uow;
         }
 
         public async Task<PagedList<UserJobPostDto>> GetJobPostsAsync(AdsPaginationParameters adsParameters)
@@ -40,7 +43,10 @@ namespace API.Services.UserOfferServices
         public async Task<UserJobPostDto> CreateUserJobPostAsync(UserJobPostDto userJobPostDto)
         {
             var newItem = await userJobPostRepository.CreateUserJobPostAsync(userJobPostDto.ToEntity());
-            return newItem.ToDto();
+            var dto = newItem.ToDto();
+            var user = await _uow.UserRepository.GetUserByIdAsync(dto.SubmittingUserId);
+            dto.CurrentUserCredits = user.Credits;
+            return dto;
         }
 
         public async Task<UserJobPostDto> UpdateUserJobPostAsync(UserJobPostDto userJobPostDto)

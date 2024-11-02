@@ -1,4 +1,5 @@
-﻿using API.DTOs;
+﻿using API.Data;
+using API.DTOs;
 using API.Extensions;
 using API.Helpers;
 using API.Mappers;
@@ -17,10 +18,12 @@ namespace API.Controllers
     public class JobController : BaseController
     {
         private readonly IUserJobPostService _jobPostService;
+        private readonly IUnitOfWork _uow;
 
-        public JobController(IUserJobPostService jobPostService)
+        public JobController(IUserJobPostService jobPostService, IUnitOfWork uow)
         {
             _jobPostService = jobPostService;
+            _uow = uow;
         }
 
         [HttpGet("ads")]
@@ -62,8 +65,13 @@ namespace API.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateUserJobPost([FromForm]UserJobPostDto userJobPostDto)
         {
+            var currentUserId = HttpContext.User.GetUserId();
+            var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
+            if(user.Credits == 0)
+            {
 
-            userJobPostDto.SubmittingUserId = HttpContext.User.GetUserId();
+            }
+            userJobPostDto.SubmittingUserId = currentUserId;
             if(userJobPostDto.CvFile != null)
             {
                 var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads");

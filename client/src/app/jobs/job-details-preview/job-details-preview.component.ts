@@ -1,7 +1,9 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subscription, map, switchMap } from 'rxjs';
+import { EmailModalComponent } from 'src/app/modal/email-modal/email-modal.component';
 import { AdvertisementTypeEnum } from 'src/app/models/enums';
 import { AdsPaginationParameters } from 'src/app/models/filterCriteria';
 import { UserJobPost } from 'src/app/models/userJobPost';
@@ -33,6 +35,7 @@ export class JobDetailsPreviewComponent implements OnInit, OnDestroy {
     private datePipe: DatePipe, private cdr: ChangeDetectorRef, private adsQuery: AdsQuery, 
     private filtersStore: FiltersStore,
     private filtersQuery: FiltersQuery,
+    public dialog: MatDialog,
     private router: Router, 
     private adsStore: AdsStore) {
     utility.setTitle('Detalji oglasa');
@@ -96,7 +99,21 @@ export class JobDetailsPreviewComponent implements OnInit, OnDestroy {
       }
     }
     
-
+    openEmailModal(toEmail: string) {
+      console.log(toEmail);
+      const fromEmail = this.job.applicantEmail ?? '';
+      const dialogRef = this.dialog.open(EmailModalComponent, {
+        width: '800px',
+        data: { fromEmail, toEmail },
+      });
+  
+      dialogRef.afterClosed().subscribe(result => {
+        if (result === true) {
+          // Perform cancellation action here
+          console.log('Changes canceled');
+        }
+      });
+    }
     moveToNext(): void {
       const currentIndex = this.allJobs.findIndex(job => job.id === this.job.id);
       const nextIndex = currentIndex + 1;

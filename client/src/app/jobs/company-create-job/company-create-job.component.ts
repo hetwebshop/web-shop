@@ -12,6 +12,7 @@ import { CompanyJobPost } from 'src/app/models/companyJobAd';
 import { CompanyJobService } from 'src/app/services/company-job.service';
 import * as moment from 'moment';
 import { JobPostStatus } from 'src/app/models/enums';
+import { ToastrService } from 'src/app/services/toastr.service';
 
 @Component({
   selector: 'app-company-create-job',
@@ -33,7 +34,7 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
 
   constructor(private jobService: JobService, private companyJobService: CompanyJobService, private locationService: LocationService, utility: UtilityService, 
     private route: ActivatedRoute, private cdr: ChangeDetectorRef, 
-    private fb: FormBuilder, private accountService: AccountService, private router: Router) {
+    private fb: FormBuilder, private accountService: AccountService, private toastrService: ToastrService, private router: Router) {
     utility.setTitle('Detalji oglasa za posao');
   }
 
@@ -116,7 +117,17 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
     if (this.form.valid) {
       const formData = this.form.getRawValue();
       const model = this.prepareModel(formData);
-      this.subscription = this.companyJobService.upsertJob(this.isEditMode, model).subscribe();
+      this.subscription = this.companyJobService.upsertJob(this.isEditMode, model).subscribe({
+        next: () => {
+          this.toastrService.success("Uspješno ste kreirali oglas za posao!");
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        },
+        error: () => {
+          this.toastrService.error("Desila se greška prilikom kreiranja oglasa za posao!");
+        }
+      });
     } 
     else {
       Object.keys(this.form.controls).forEach(field => {

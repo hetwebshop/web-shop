@@ -37,3 +37,17 @@
     font-size: 16px;
     margin-right: 15px;
   }
+
+  .cv-button {
+    background-color: #242d13;
+    color: #c5b391;
+    margin-left: 10px;
+    transition: background-color 0.3s;
+  
+    &:hover {
+      background-color: #3a4623; /* Lighter version of #242d13 */
+    }
+    .cv-icon {
+        margin-right: 4px; /* Space between icon and text */
+      }
+  }

@@ -27,6 +27,7 @@ export interface UserJobPost {
     isDeleted?: boolean;
     adTitle: string;
     adAdditionalDescription: string;
+    currentUserCredits?: number;
 }
 
 export interface AdvertisementType {

@@ -130,7 +130,8 @@ namespace API.Controllers
                 Token = token,
                 PhotoUrl = user.Photo?.Url,
                 Email = user.Email,
-                IsCompany = user.IsCompany
+                IsCompany = user.IsCompany,
+                Credits = user.Credits
             };
         }
 
