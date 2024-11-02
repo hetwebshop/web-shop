@@ -151,8 +151,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
     if (!this.isJobAd) {
       formGroup.get('position')?.clearValidators();
       formGroup.get('biography')?.clearValidators();
-      formGroup.get('jobCategoryId')?.clearValidators();
-      formGroup.get('advertisementTypeId')?.clearValidators();
+      formGroup.get('jobTypeId')?.clearValidators();
     }
 
     formGroup.updateValueAndValidity();

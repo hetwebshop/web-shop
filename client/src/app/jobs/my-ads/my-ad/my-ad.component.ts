@@ -52,6 +52,7 @@ export class MyAdComponent {
   populateFormWithUserProfileData: boolean = false;
   isJobInStatusClosedOrDeleted: boolean = false;
   canJobBeReactivated: boolean = false;
+  isJobAd = true;
 
   @ViewChild('allSelected', { static: true }) private allSelected: MatOption;
 
@@ -76,6 +77,7 @@ export class MyAdComponent {
           .subscribe({
             next: (response) => {
               this.job = response;
+              this.isJobAd = response.advertisementTypeId == 1 ? true : false;
               console.log("JOB IS ", response);
               this.existingFilePath = this.job.cvFilePath;
               this.loadAdTypes();
@@ -126,6 +128,14 @@ export class MyAdComponent {
       }
     }
 
+    if (!this.isJobAd) {
+      this.adUpdateForm.get('position')?.clearValidators();
+      this.adUpdateForm.get('biography')?.clearValidators();
+      this.adUpdateForm.get('jobTypeId')?.clearValidators();
+    }
+
+    this.adUpdateForm.updateValueAndValidity();
+
     this.loadCountries();
     this.loadCities();
     this.loadJobTypes();
@@ -169,7 +179,8 @@ export class MyAdComponent {
       adStartDate: now,
       adEndDate: moment(now).add(data.adDuration, 'days'),
       adAdditionalDescription: data.adAdditionalDescription,
-      adTitle: data.adTitle
+      adTitle: data.adTitle,
+      price: data.price
     };
 
     const formData = new FormData();

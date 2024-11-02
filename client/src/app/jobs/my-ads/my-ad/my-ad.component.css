@@ -64,3 +64,14 @@
   } */
 
   
+.job-card {
+  border: 1px solid #283316;
+  border-radius: 4px;
+}
+
+.education-margin {
+  margin-bottom: 15px;
+}
+.full-width {
+  width: 100%;
+}

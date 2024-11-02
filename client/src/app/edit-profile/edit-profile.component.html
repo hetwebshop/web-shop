@@ -167,58 +167,69 @@
                             <ng-container *ngFor="let education of userEducations.controls; let i = index"
                                 [formGroupName]="i">
                                 <ng-container style="margin-top: 20px">
-                                    <h4 fxFlex="100">Obrazovanje {{ i + 1 }}</h4>
-                                    <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                        <mat-label>Univerzitet</mat-label>
-                                        <input matInput type="text" formControlName="university"
-                                            placeholder="Unesite univerzitet" required>
-                                    </mat-form-field>
-                                    <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                        <mat-label>Fakultet</mat-label>
-                                        <input matInput type="text" formControlName="institutionName"
-                                            placeholder="Unesite fakultet" required>
-                                    </mat-form-field>
-                                    <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                        <mat-label>Odsjek</mat-label>
-                                        <input matInput type="text" formControlName="fieldOfStudy"
-                                            placeholder="Unesite odsjek" required>
-                                    </mat-form-field>
-                                    <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                        <mat-label>Zvanje</mat-label>
-                                        <input matInput type="text" formControlName="degree"
-                                            placeholder="Unesite zvanje" required>
-                                    </mat-form-field>
-                                    <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                        <mat-label>Godina početka studija</mat-label>
-                                        <input matInput type="number" formControlName="educationStartYear"
-                                            placeholder="Unesite godinu početka studija" required>
-                                    </mat-form-field>
-                                    <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                                        <mat-label>Godina kraja studija (neobavezno)</mat-label>
-                                        <input matInput type="number" formControlName="educationEndYear"
-                                            placeholder="Unesite godinu završetka studija">
-                                    </mat-form-field>
-                                </ng-container>
-                                <div fxFlex="100"></div>
-                                <button style="margin-bottom: 20px;" fxFlex="45" fxFlex.lt-sm="90" mat-button
-                                    type="button" (click)="openCancelConfirmationModal(i)" color="warn">Ukloni
-                                    obrazovanje</button>
-                                <div fxFlex="100"></div>
+                                    <div fxLayout="column" style="margin-bottom: 15px; background-color: #faf0e6; padding: 20px; border-radius: 4px; border: 1px solid #283316; width: 100%;">
+                                        <h4 fxFlex="100">Obrazovanje {{ i + 1 }}</h4>
+                                        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+                                            <mat-form-field appearance="outline" class="full-width">
+                                                <mat-label>Univerzitet</mat-label>
+                                                <input matInput type="text" formControlName="university"
+                                                    placeholder="Unesite univerzitet" required>
+                                            </mat-form-field>
+                                            <mat-form-field appearance="outline" class="full-width">
+                                                <mat-label>Fakultet</mat-label>
+                                                <input matInput type="text" formControlName="institutionName"
+                                                    placeholder="Unesite fakultet" required>
+                                            </mat-form-field>
+                                        </div>
+                                        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+                                            <mat-form-field appearance="outline" class="full-width">
+                                                <mat-label>Odsjek</mat-label>
+                                                <input matInput type="text" formControlName="fieldOfStudy"
+                                                    placeholder="Unesite odsjek" required>
+                                            </mat-form-field>
+                                            <mat-form-field appearance="outline" class="full-width">
+                                                <mat-label>Zvanje</mat-label>
+                                                <input matInput type="text" formControlName="degree"
+                                                    placeholder="Unesite zvanje" required>
+                                            </mat-form-field>
+                                        </div>
+                                        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+                                            <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                                                <mat-label>Godina početka studija</mat-label>
+                                                <input matInput type="number" formControlName="educationStartYear"
+                                                    placeholder="Unesite godinu početka studija" required>
+                                            </mat-form-field>
+                                            <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
+                                                <mat-label>Godina kraja studija (neobavezno)</mat-label>
+                                                <input matInput type="number" formControlName="educationEndYear"
+                                                    placeholder="Unesite godinu završetka studija">
+                                            </mat-form-field>
+                                        </div>
+  
+                                        <div fxFlex style="justify-content: center;">
+                                            <button style="background-color: #FF5722; color: white; width: 150px;" mat-button
+                                            type="button" (click)="openCancelConfirmationModal(i)" color="warn">Ukloni
+                                            obrazovanje</button>
+                                        </div>
+
+                                    </div>
+                                      </ng-container>
                             </ng-container>
                         </ng-container>
 
-                        <div fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
-                            <button mat-stroked-button type="button" style="border-color: #283316; color: #283316;"
-                                (click)="addEducation()">Dodaj
-                                obrazovanje</button>
-                        </div>
+
+                        <div fxFlex style="justify-content: center;">
+                            <button mat-stroked-button type="button" style="background-color:#283316;margin-bottom: 25px; margin-top: 15px; color: #c5b391; max-width: 150px;"
+                            (click)="addEducation()">Dodaj
+                            obrazovanje</button>
+                          </div>
                         <!-- <button mat-flat-button fxFlex="45" fxLayoutAlign="start" fxFlex.lt-sm="90" color="accent"
                                 type="submit">
                                 Dodaj obrazovanje
                             </button> -->
                     </div>
-                    <button mat-flat-button [disabled]="!profileUpdate.valid || profileUpdate.pristine"
-                        [ngStyle]="{'background-color': !profileUpdate.valid || profileUpdate.pristine ? '' : '#283316', 'color': !profileUpdate.valid || profileUpdate.pristine ? '' : 'white'}"
+                    <button mat-flat-button style="width: 150px" [disabled]="!profileUpdate.valid || profileUpdate.pristine"
+                        [ngStyle]="{'background-color': !profileUpdate.valid || profileUpdate.pristine ? '' : '#283316', 'color': !profileUpdate.valid || profileUpdate.pristine ? '' : '#c5b391'}"
                         type="submit">
                         Ažuriraj
                     </button>
