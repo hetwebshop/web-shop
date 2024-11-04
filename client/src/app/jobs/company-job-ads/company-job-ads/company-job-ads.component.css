@@ -4,23 +4,35 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     border: 1px solid #283316; /* Vibrant teal border */
-    background-color: #FFFFFF; /* White background */
 }
 
-.job-card:hover {
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    border-color: #00838F; /* Darker teal border on hover */
+.job-card {
+    transition: box-shadow 0.3s, border-color 0.3s;
+
+    &:hover {
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4); /* Darker and larger shadow */
+      border-color: #a8996e; /* Slightly darker border color on hover */
+    }
+
 }
 
 .job-card mat-card-header {
     background-color: #283316; /* Light teal background for the header */
-    color: white; /* Dark teal text for contrast */
+    color: #edd79c; /* Dark teal text for contrast */
 }
 
 .job-info, .job-details {
     padding: 15px;
-    padding-left: 0px;
+    padding-left: 20px;
     color: #333; /* Dark grey text for readability */
+    text-decoration: none;
+    height: 400px;
+    background-color: #fcfcfc;
+    border-radius: 8px;
+    border: 1px solid white;
+    &:hover {
+        text-decoration: none;
+    }
 }
 
 .job-info h4, .job-details h4 {
@@ -36,7 +48,7 @@
 }
 
 .job-details, .job-info {
-    border-top: 1px solid #B2DFDB; /* Light teal border */
+    border-top: 1px solid #283316; /* Light teal border */
 }
 
 .job-link {
@@ -44,9 +56,9 @@
     text-decoration: none;
 }
 
-.job-link:hover {
+/* .job-link:hover {
     text-decoration: underline;
-}
+} */
 
 :host ::ng-deep .mat-card-header-text {
     margin: 8px !important;
@@ -74,3 +86,22 @@
 .mat-card-header {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+
+
+
+.item {
+    width: 100%;
+  }
+  
+  .container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2%;
+  }
+  
+  .container > div {
+    flex: 45%; /* or - flex: 0 50% - or - flex-basis: 50% - */
+    /*demo*/
+    margin-bottom: 10px;
+  }

@@ -19,7 +19,7 @@ namespace API.Mappers
                 .ForMember(dest => dest.JobType, src => src.MapFrom(x => x.JobType.Name))
                 .ForMember(dest => dest.JobPostStatus, src => src.MapFrom(x => x.JobPostStatus.Name))
                 .ForMember(dest => dest.City, src => src.MapFrom(x => x.City.Name))
-                .ForMember(dest => dest.CityId, src => src.MapFrom(x => x.City.Id))
+                .ForMember(dest => dest.CityId, src => src.MapFrom(x => x.CityId))
                 .ForMember(dest => dest.PricingPlanName, src => src.MapFrom(x => x.PricingPlan.Name))
                 .ForMember(dest => dest.AdDuration, src => src.MapFrom(x => x.PricingPlan.AdActiveDays));
 

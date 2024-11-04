@@ -24,34 +24,69 @@
       </div>
 
       <!-- Job Cards -->
-      <div fxFlex fxLayout="column" fxLayoutAlign="start stretch" style="margin-top: 50px;">
-        <div style="margin-bottom: 20px; margin-top: 20px; display: flex; text-align: center; justify-content: center;">
+      <div fxFlex fxLayout="column" fxLayoutAlign="start stretch" style="margin-top: 15px;">
+        <div #itemListContainer style="margin-bottom: 20px; margin-top: 20px; display: flex; text-align: center; justify-content: space-between;">
           <h1 style="color: #283316; font-weight: 500;">Rezultati pretrage</h1>
+        
+          <!-- Toggle Button with Icons -->
+          <button 
+            (click)="toggleView()" 
+            style="margin-left: 20px; border-radius: 4px; background-color: #283316; 
+                   color: white; padding: 2px 8px; border: none; cursor: pointer; 
+                   display: flex; align-items: center;">
+                   
+            <mat-icon *ngIf="isGridView" style="margin-right: 5px;">grid_view</mat-icon> <!-- Icon for List View -->
+            <mat-icon *ngIf="!isGridView" style="margin-right: 5px;">view_list</mat-icon> <!-- Icon for Grid View -->
+            
+            <span *ngIf="isGridView">Blokovi</span>
+            <span *ngIf="!isGridView">Lista</span>
+          </button>
+        </div>
+        <div [ngClass]="{'container': isGridView}" [ngStyle]="{'margin-bottom': isGridView ? '200px' : '0px'}">
+          <div *ngFor="let job of allJobs$ | async" class="job-link" [ngStyle]="{'margin-bottom': '30px', 'max-height': isGridView ? '400px' : 'none'}">
+            <mat-card class="job-card" style="height: 100%;">
+              <a class="job-link" [routerLink]="['/company-job-ads', job.id]">
+                <mat-card-header fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
+                  <div fxFlex="grow">
+                    <mat-card-title>{{ job.adName }}</mat-card-title>
+                    <p><span style="font-size: 15px; font-weight: 500;">Pozicija:</span> {{ job.position }}</p>
+                    <p><span style="font-size: 15px; font-weight: 500;">Kategorija:</span> {{
+                      getCategoryName(job.jobCategoryId) }}</p>
+                    <p><span style="font-size: 15px; font-weight: 500;">Tip posla:</span> {{ getJobType(job.jobTypeId) }}
+                    </p>
+                    <p>
+                      <span style="font-weight: 500; font-size: 15px;">Lokacija:</span> {{ getCityName(job?.cityId) }}
+                    </p>
+                  </div>
+                  <div fxFlex>
+                    <p style="min-width: 100px; color: #a8996e">
+                      <span style="font-weight: 500; font-size: 13px; color: #a8996e">Tip Oglasa:</span> Oglas za posao
+                    </p>
+                    <p style="min-width: 100px; color: #a8996e">
+                      <span style="font-weight: 500; font-size: 13px; color: #a8996e">Datum objave:</span> {{
+                      getFormattedDate(job?.adStartDate) }}
+                    </p>
+                  </div>
+                </mat-card-header>
+                <mat-card-content style="margin-top: 15px; border:none; height: 130px;">
+                  <div class="job-details" style="height: 100%;">
+                    <h2>Opis posla</h2>
+                    <p>{{ job.jobDescription | truncate:150:false }}</p>
+                  </div>
+                </mat-card-content>
+              </a>
+              <div>
+                <button *ngIf="job.emailForReceivingApplications" mat-raised-button
+                  (click)="openSubmitApplicationModal(job.emailForReceivingApplications)" style="color: #edd79c; background-color: #283316;">Prijavi
+                  se na oglas</button>
+                  <p *ngIf="!job.emailForReceivingApplications" style="color: #D32F2F; font-weight: bold; background-color: #FFEBEE; padding: 10px; border: 1px solid #D32F2F; border-radius: 4px;">
+                    Kompanija nije ostavila mail za prijavu na ovaj oglas.
+                  </p>
+              </div>
+            </mat-card>
+          </div>
         </div>
 
-        <div *ngFor="let job of allJobs$ | async" class="job-link" style="margin-bottom: 10px;">
-          <mat-card class="job-card">
-            <a class="job-link" [routerLink]="['/company-job-ads', job.id]">
-              <mat-card-header fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
-                <div fxFlex="grow">
-                  <mat-card-title>{{ job.adName }}</mat-card-title>
-                  <p><span style="font-size: 17px; font-weight: 500;">Pozicija:</span> {{ job.position }}</p>
-                  <p><span style="font-size: 17px; font-weight: 500;">Kategorija:</span> {{
-                    getCategoryName(job.jobCategoryId) }}</p>
-                  <p><span style="font-size: 17px; font-weight: 500;">Tip posla:</span> {{ getJobType(job.jobTypeId) }}
-                  </p>
-                  <p><span style="font-size: 17px; font-weight: 500;">Opis posla:</span> {{ job.jobDescription }}</p>
-                </div>
-              </mat-card-header>
-            </a>
-            <div class="job-details">
-              <button *ngIf="job.emailForReceivingApplications" mat-raised-button
-                style="background-color: #B2DFDB; color: #283316;"
-                (click)="openSubmitApplicationModal(job.emailForReceivingApplications)" color="accent">Prijavi
-                se</button>
-            </div>
-          </mat-card>
-        </div>
       </div>
     </div>
     <app-pagination *ngIf="paginationResponse" [listSize]="paginationResponse.pageSize"

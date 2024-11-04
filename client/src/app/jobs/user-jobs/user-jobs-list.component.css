@@ -19,7 +19,7 @@
 
 .job-card mat-card-header {
     background-color: #283316; /* Light teal background for the header */
-    color: white; /* Dark teal text for contrast */
+    color: #edd79c; /* Dark teal text for contrast */
 }
 
 .job-info, .job-details {
@@ -71,9 +71,10 @@
 }
 
 .mat-card-header {
-    background-color: #B2EBF2; /* Lighter teal */
     border-radius: 4px 4px 0 0; /* Rounded corners on top */
     padding: 16px; /* Adjust as needed */
+    background-color: #283316; /* Light teal background for the header */
+    color: #edd79c; 
 }
 
 .mat-card-header-content {

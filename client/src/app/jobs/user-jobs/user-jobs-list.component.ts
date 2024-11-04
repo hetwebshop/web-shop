@@ -18,6 +18,8 @@ import { JobCategoryQuery } from 'src/app/store/jobsHelpers/job-category.query';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatDrawer } from '@angular/material/sidenav';
 import { HttpClient } from '@angular/common/http';
+import { City } from 'src/app/models/location';
+import { LocationService } from 'src/app/services/location.service';
 @Component({
   selector: 'app-user-jobs',
   templateUrl: './user-jobs-list.component.html',
@@ -31,7 +33,6 @@ export class UserJobsListComponent {
   paginationParameters: AdsPaginationParameters;
   filters = this.filtersQuery.getAll();
   jobCategories: JobCategory[];
-  jobCategories$ = this.jobCategoryQuery.selectAll();
   isLargeScreen = true;
   isJobAd: boolean;
   selectedFilePath: string | null = null;
@@ -40,11 +41,12 @@ export class UserJobsListComponent {
   showFilters: boolean = false;
   isGridView: boolean = true;
   isGridViewUserSelection: boolean = this.isGridView;
+  cities: City[];
 
   constructor(private cdr: ChangeDetectorRef, private jobService: JobService, utility: UtilityService, private route: ActivatedRoute,
     private router: Router, private datePipe: DatePipe, public dialog: MatDialog,
     private accountService: AccountService, private filtersStore: FiltersStore,
-    private filtersQuery: FiltersQuery, private http: HttpClient, private jobCategoryQuery: JobCategoryQuery, private breakpointObserver: BreakpointObserver) {
+    private filtersQuery: FiltersQuery, private http: HttpClient, private locationService: LocationService, private jobCategoryQuery: JobCategoryQuery, private breakpointObserver: BreakpointObserver) {
     utility.setTitle('Oglasi');
     this.accountService.user$.subscribe((u) => (this.user = u));
   }
@@ -66,6 +68,8 @@ export class UserJobsListComponent {
   }
 
   ngOnInit(): void {
+    this.loadCities();
+    this.loadJobCategories();
     this.breakpointObserver.observe([
       "(min-width: 768px)"
     ]).subscribe(result => {
@@ -78,9 +82,6 @@ export class UserJobsListComponent {
         {this.isLargeScreen = false;
         this.isGridView = false;}
     });
-    this.jobCategories$.subscribe((jobCategories) => {
-      this.jobCategories = jobCategories;
-    })
     this.route.queryParams.subscribe(params => {
       if (params['type']) {
         this.adType = this.getEnumValue(params['type']);
@@ -105,6 +106,13 @@ export class UserJobsListComponent {
     this.showFilters = !this.showFilters;
   }
 
+  loadJobCategories(): void {
+    this.jobService.getJobCategories()
+      .subscribe(categories => {
+        this.jobCategories = categories.filter(r => r.parentId == null);
+      });
+  }
+
   getCategoryName(jobCategoryId: number): string {
     return this.jobCategories?.find(r => r.id == jobCategoryId)?.name;
   }
@@ -119,6 +127,17 @@ export class UserJobsListComponent {
 
   getFormattedDate(date: Date): string {
     return this.datePipe.transform(date, 'dd.MM.yyyy');
+  }
+
+  getCityName(cityId: number) : string {
+    return this.cities.find(r => r.id == cityId)?.name;
+  }
+
+  loadCities(): void {
+    this.locationService.getCities()
+      .subscribe(cities => {
+        this.cities = cities;
+      });
   }
   
   fetchPaginatedItems(filterCriteria?: AdsPaginationParameters): void {  

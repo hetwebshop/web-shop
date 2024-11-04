@@ -40,7 +40,7 @@
 
 
     <!-- Job Cards -->
-    <div fxFlex fxLayout="column" fxLayoutAlign="start stretch" style="margin-top: 50px;">
+    <div fxFlex fxLayout="column" fxLayoutAlign="start stretch" style="margin-top: 15px;">
       <div #itemListContainer style="margin-bottom: 20px; margin-top: 20px; display: flex; text-align: center; justify-content: space-between;">
         <h1 style="color: #283316; font-weight: 500;">Rezultati pretrage</h1>
       
@@ -65,18 +65,20 @@
               <mat-card-header fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
                 <div fxFlex="grow">
                   <mat-card-title>{{ job.adTitle ?? "Nema naslov" }}</mat-card-title>
-                  <p><span style="font-size: 17px; font-weight: 500;">Ime i prezime:</span> {{ job.applicantFirstName }}
+                  <p><span style="font-size: 15px; font-weight: 500;">Ime i prezime:</span> {{ job.applicantFirstName }}
                     {{ job.applicantLastName }}</p>
-                  <p><span style="font-size: 17px; font-weight: 500;">Kategorija:</span> {{
+                  <p><span style="font-size: 15px; font-weight: 500;">Kategorija:</span> {{
                     getCategoryName(job.jobCategoryId) }}</p>
+                    <p><span style="font-size: 15px; font-weight: 500;">Lokacija:</span> {{
+                    getCityName(job?.cityId) }}</p>
                 </div>
                 <div fxFlex>
-                  <p style="min-width: 150px;">
-                    <span style="font-weight: 500; font-size: 17px;">Tip Oglasa:</span> {{
+                  <p style="min-width: 100px;">
+                    <span style="font-weight: 500; font-size: 13px; color: #a8996e;">Tip Oglasa:</span> {{
                     getEnumName(job?.advertisementTypeId) }}
                   </p>
-                  <p style="min-width: 200px;">
-                    <span style="font-weight: 500; font-size: 17px;">Datum objave:</span> {{
+                  <p style="min-width: 100px;">
+                    <span style="font-weight: 500; font-size: 13px; color: #a8996e;">Datum objave:</span> {{
                     getFormattedDate(job?.adStartDate) }}
                   </p>
                 </div>
@@ -121,7 +123,7 @@
                 </div>
               </mat-card-content>
             </a>
-            <div class="job-details" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
+            <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
               <button *ngIf="job.applicantEmail" class="email-button" mat-raised-button (click)="openEmailModal(job.applicantEmail)" color="accent">
                 <mat-icon class="email-icon">email</mat-icon>
                 <span class="button-text">Kontaktiraj mailom</span>
