@@ -140,12 +140,12 @@ export class CompanyJobAdsComponent {
     return this.cities.find(r => r.id == cityId).name;
   }
 
-  openSubmitApplicationModal(toEmail: string) {
+  openSubmitApplicationModal(toEmail: string, jobPosition: string) {
     console.log(toEmail);
     const fromEmail = this.user.email ?? '';
     const dialogRef = this.dialog.open(SubmitApplicationModalComponent, {
       width: '800px',
-      data: { fromEmail, toEmail }
+      data: { fromEmail, toEmail, jobPosition }
     });
 
     dialogRef.afterClosed().subscribe(result => {

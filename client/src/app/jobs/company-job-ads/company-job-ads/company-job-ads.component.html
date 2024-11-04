@@ -77,7 +77,7 @@
               </a>
               <div>
                 <button *ngIf="job.emailForReceivingApplications" mat-raised-button
-                  (click)="openSubmitApplicationModal(job.emailForReceivingApplications)" style="color: #edd79c; background-color: #283316;">Prijavi
+                  (click)="openSubmitApplicationModal(job.emailForReceivingApplications, job.position)" style="color: #edd79c; background-color: #283316;">Prijavi
                   se na oglas</button>
                   <p *ngIf="!job.emailForReceivingApplications" style="color: #D32F2F; font-weight: bold; background-color: #FFEBEE; padding: 10px; border: 1px solid #D32F2F; border-radius: 4px;">
                     Kompanija nije ostavila mail za prijavu na ovaj oglas.
