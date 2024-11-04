@@ -72,7 +72,7 @@ export class NavComponent implements OnInit {
   }
 
   logout() {
-    this.router.navigate(['/'], { queryParams: { logout: true } });
+    this.router.navigate(['/login'], { queryParams: { logout: true } });
   }
 
   // search() {

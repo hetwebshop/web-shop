@@ -15,6 +15,8 @@ import { CompanyJobPost } from 'src/app/models/companyJobAd';
 import { CompanyJobService } from 'src/app/services/company-job.service';
 import { JobTypeQuery } from 'src/app/store/jobsHelpers/job-type.query';
 import { MatTabChangeEvent } from '@angular/material/tabs';
+import { LocationService } from 'src/app/services/location.service';
+import { City } from 'src/app/models/location';
 
 @Component({
   selector: 'app-company-my-ads',
@@ -25,9 +27,7 @@ export class CompanyMyAdsComponent {
   paginationResponse: PagedResponse<CompanyJobPost>;
   paginationParameters: AdsPaginationParameters;
   jobCategories: JobCategory[];
-  jobCategories$ = this.jobCategoryQuery.selectAll();
   jobTypes: JobType[];
-  jobTypes$ = this.jobTypeQuery.selectAll();
   activeTabJobStatus: JobPostStatus = JobPostStatus.Active;
   activeJobs: CompanyJobPost[];
   closedJobs: CompanyJobPost[];
@@ -35,21 +35,37 @@ export class CompanyMyAdsComponent {
   activeAdsPaginationResponse: PagedResponse<CompanyJobPost>;
   closedAdsPaginationResponse: PagedResponse<CompanyJobPost>;
   deletedAdsPaginationResponse: PagedResponse<CompanyJobPost>;
+  cities: City[];
 
-  constructor(private jobService: JobService, private companyJobService: CompanyJobService, utility: UtilityService, private datePipe: DatePipe, private jobCategoryQuery: JobCategoryQuery,
+  constructor(private jobService: JobService, private companyJobService: CompanyJobService, private locationService: LocationService, utility: UtilityService, private datePipe: DatePipe, private jobCategoryQuery: JobCategoryQuery,
     private jobTypeQuery: JobTypeQuery
   ) {
     utility.setTitle('Objave kompanije');
   }
 
   ngOnInit(): void {
-    this.jobCategories$.subscribe((jobCategories) => {
-      this.jobCategories = jobCategories;
-    });
-    this.jobTypes$.subscribe((jobTypes) => {
-      this.jobTypes = jobTypes;
-    });
+    this.loadJobCategories();
+    this.loadCities();
     this.fetchPaginatedItems();
+  }
+
+  loadJobCategories(): void {
+    this.jobService.getJobCategories()
+      .subscribe(categories => {
+        this.jobCategories = categories.filter(r => r.parentId == null);
+        console.log("Job categories" + JSON.stringify(this.jobCategories));
+      });
+  }
+
+  loadCities(): void {
+    this.locationService.getCities()
+      .subscribe(cities => {
+        this.cities = cities;
+      });
+  }
+
+  getCityName(cityId: number) : string {
+    return this.cities.find(r => r.id == cityId).name;
   }
 
   fetchPaginatedItems(filterCriteria?: AdsPaginationParameters, isPaginationChangedByUserEvent: boolean = false): void {
@@ -124,10 +140,10 @@ export class CompanyMyAdsComponent {
   }
 
   getStatusEnumValue(value: number): string {
-    return value == JobPostStatus.Active ? "Aktivan Oglas" : value == JobPostStatus.Closed ? "Istekao Oglas" : "Obrisan Oglas";
+    return value == JobPostStatus.Active ? "Aktivan Oglas" : value == JobPostStatus.Closed ? "Završen Oglas" : "Obrisan Oglas";
   }
 
-  getFormattedDate(datePipe: DatePipe, date: Date): string {
+  getFormattedDate(date: Date): string {
     return this.datePipe.transform(date, 'dd.MM.yyyy');
   }
 

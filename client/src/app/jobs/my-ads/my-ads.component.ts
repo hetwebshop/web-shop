@@ -12,6 +12,8 @@ import { DatePipe } from '@angular/common';
 import { JobCategoryQuery } from 'src/app/store/jobsHelpers/job-category.query';
 import { AdvertisementTypeEnum, Gender, JobPostStatus } from 'src/app/models/enums';
 import { MatTabChangeEvent } from '@angular/material/tabs';
+import { City } from 'src/app/models/location';
+import { LocationService } from 'src/app/services/location.service';
 
 @Component({
   selector: 'app-my-ads',
@@ -27,12 +29,13 @@ export class MyAdsComponent {
   deletedAdsPaginationResponse: PagedResponse<UserJobPost>;
   paginationParameters: AdsPaginationParameters;
   jobCategories: JobCategory[];
+  cities: City[];
 
   activeTabJobStatus: JobPostStatus = JobPostStatus.Active;
   genderMap = Gender; 
 
   
-  constructor(private jobService: JobService, utility: UtilityService,
+  constructor(private jobService: JobService, private locationService: LocationService, utility: UtilityService,
     private datePipe: DatePipe, private jobCategoryQuery: JobCategoryQuery
   ) {
     utility.setTitle('Moje objave');
@@ -40,9 +43,16 @@ export class MyAdsComponent {
 
   ngOnInit(): void {
     this.loadJobCategories();
+    this.loadCities();
     this.fetchPaginatedItems();
   }
-
+  
+  loadCities(): void {
+    this.locationService.getCities()
+      .subscribe(cities => {
+        this.cities = cities;
+      });
+  }
 
   loadJobCategories(): void {
     this.jobService.getJobCategories()
@@ -95,6 +105,9 @@ export class MyAdsComponent {
     );
   }
 
+  getCityName(cityId: number) : string {
+    return this.cities.find(r => r.id == cityId).name;
+  }
 
   getCategoryName(jobCategoryId: number): string | undefined {
     return this.jobCategories?.find(r => r.id === jobCategoryId)?.name;
@@ -104,7 +117,7 @@ export class MyAdsComponent {
   }
 
   getStatusEnumValue(value: number): string {
-    return value == JobPostStatus.Active ? "Aktivan Oglas" : value == JobPostStatus.Closed ? "Istekao Oglas" : "Obrisan Oglas";
+    return value == JobPostStatus.Active ? "Aktivan Oglas" : value == JobPostStatus.Closed ? "Završen Oglas" : "Obrisan Oglas";
   }
 
   getEnumName(value: number): string {

@@ -7,18 +7,18 @@
           <mat-card-content class="mt-5">
         <form [formGroup]="adUpdateForm" (ngSubmit)="onSubmit()" fxLayout="column" fxLayoutAlign="center">
           <div fxLayout="row" fxLayoutAlign="start center" style="margin-bottom: 40px;">
-            <div *ngIf="!job.isDeleted" fxFlex="none" style="margin-right: 10px;">
-              <button mat-raised-button color="warn" (click)="deleteAd($event)">Obriši objavu</button>
-            </div>
             <div *ngIf="!isJobInStatusClosedOrDeleted" fxFlex="none" style="margin-right: 10px;">
-              <button mat-raised-button color="primary" (click)="closeAd($event)">Završi objavu</button>
+              <button mat-raised-button style="background-color: #283316; color: #c5b391;" (click)="closeAd($event)">Završi objavu</button>
             </div>
             <div *ngIf="canJobBeReactivated" fxFlex="none">
-              <button mat-raised-button color="primary" (click)="reactivateAd($event)">Reaktiviraj objavu</button>
+              <button mat-raised-button style="background-color: #c5b391; color: #283316;" (click)="reactivateAd($event)">Reaktiviraj objavu</button>
+            </div>
+            <div *ngIf="!job.isDeleted" fxFlex="none" style="margin-right: 10px;">
+              <button mat-button color="warn" (click)="deleteAd($event)">Obriši objavu</button>
             </div>
           </div>
           
-          <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 40px; border: 1px solid #129781; padding: 20px; border-radius: 4px;">
+          <div style="display: flex; background-color: #f3e0be; flex-direction: column; gap: 10px; margin-bottom: 40px; border: 1px solid #c5b391; padding: 20px; border-radius: 4px;">
             <div style="display: flex; text-align: start;">
               <span style="font-weight: bold; margin-right: 10px; width: 200px;">Status oglasa:</span>
               <span [ngStyle]="{

@@ -240,7 +240,7 @@ export class CompanyMyAdManagerComponent {
   }
 
   getEnumStatusValue(value: number): string {
-    return value == JobPostStatus.Active ? "Aktivan Oglas" : value == JobPostStatus.Closed ? "Istekao Oglas" : "Obrisan Oglas";
+    return value == JobPostStatus.Active ? "Aktivan Oglas" : value == JobPostStatus.Closed ? "Završen Oglas" : "Obrisan Oglas";
   }
 
   disableForm() {

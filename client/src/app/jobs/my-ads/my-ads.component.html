@@ -16,13 +16,17 @@
                 <mat-card-header style="background-color: #283316; color: white; padding: 10px; border-radius: 4px;"
                   fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
                   <div fxFlex="grow">
-                    <mat-card-title><span style="font-size: 17px; font-weight: 500; color: #c5b391">Naslov: </span>{{ job.adTitle }}</mat-card-title>
+                    <mat-card-title><span style="font-size: 17px; font-weight: 500; color: #c5b391;">Naziv: </span>{{ job.adTitle }}</mat-card-title>
                     <p><span style="font-size: 17px; font-weight: 500; color: #c5b391">Ime i prezime:</span> {{
                       job.applicantFirstName
                       }} {{ job.applicantLastName }}</p>
                     <p *ngIf="job?.advertisementTypeId === 1">
                       <span style="font-size: 17px; font-weight: 500; color: #c5b391">Kategorija:</span>
                       {{ getCategoryName(job.jobCategoryId) }}
+                    </p>
+                    <p>
+                      <span style="font-size: 17px; font-weight: 500; color: #c5b391">Lokacija:</span>
+                      {{ getCityName(job.cityId) }}
                     </p>
                     <p *ngIf="job?.advertisementTypeId === 2">
                       <span style="font-size: 17px; font-weight: 500; color: #c5b391">Cijena:</span>
@@ -31,25 +35,25 @@
 
                   </div>
                   <div fxFlex>
-                    <p style="min-width: 150px;">
-                      <span style="font-weight: 500; font-size: 17px; color: #c5b391">Tip Oglasa:</span> {{
+                    <p style="min-width: 100px;">
+                      <span style="font-weight: 500; font-size: 14px; color: #c5b391">Tip Oglasa:</span> {{
                       getEnumName(job?.advertisementTypeId) }}
                     </p>
-                    <p style="min-width: 200px;">
-                      <span style="font-weight: 500; font-size: 17px; color: #c5b391">Status:</span> {{
+                    <p style="min-width: 150px;">
+                      <span style="font-weight: 500; font-size: 14px; color: #c5b391">Status:</span> {{
                       getStatusEnumValue(job?.jobPostStatusId) }}
                     </p>
-                    <p style="min-width: 250px;">
-                      <span style="font-weight: 500; font-size: 17px; color: #c5b391">Datum objave oglasa:</span> {{
+                    <p style="min-width: 220px;">
+                      <span style="font-weight: 500; font-size: 14px; color: #c5b391">Datum objave oglasa:</span> {{
                       getFormattedDate(job?.adStartDate) }}
                     </p>
-                    <p style="min-width: 250px;">
-                      <span style="font-weight: 500; font-size: 17px; color: #c5b391">Datum isteka oglasa:</span> {{
+                    <p style="min-width: 220px;">
+                      <span style="font-weight: 500; font-size: 14px; color: #c5b391">Datum isteka oglasa:</span> {{
                       getFormattedDate(job?.adEndDate) }}
                     </p>
                   </div>
                 </mat-card-header>
-                <mat-card-content class="job-info-card">
+                <mat-card-content class="job-info-card" style="height: 40px;">
                   <div class="job-info">
                     <p>
                       <ng-container *ngIf="getFormattedDate(job?.applicantDateOfBirth) !== ''">
@@ -89,7 +93,7 @@
                     <p>{{ job.biography | truncate:150:true }}</p>
                   </div> -->
                 </mat-card-content>
-                <mat-card-actions>
+                <mat-card-actions style="margin-left: 1px;">
                   <button mat-button style="color: white; background-color: #283316;"
                     [routerLink]="['/my-ads', job.id]">Uredi objavu</button>
                   <button mat-button color="warn" (click)="deleteAd(job.id)">Obriši objavu</button>
@@ -110,32 +114,47 @@
 
             <div *ngFor="let job of closedJobs" class="job-link" style="margin-bottom: 10px;">
               <mat-card class="job-card">
-                <mat-card-header fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
+                <mat-card-header style="background-color: #283316; color: white; padding: 10px; border-radius: 4px;"
+                  fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
                   <div fxFlex="grow">
-                    <mat-card-title>{{ job.position }}</mat-card-title>
-                    <p><span style="font-size: 17px; font-weight: 500;">Ime i prezime:</span> {{ job.applicantFirstName
+                    <mat-card-title><span style="font-size: 17px; font-weight: 500; color: #c5b391;">Naziv: </span>{{ job.adTitle }}</mat-card-title>
+                    <p><span style="font-size: 17px; font-weight: 500; color: #c5b391">Ime i prezime:</span> {{
+                      job.applicantFirstName
                       }} {{ job.applicantLastName }}</p>
                     <p *ngIf="job?.advertisementTypeId === 1">
                       <span style="font-size: 17px; font-weight: 500; color: #c5b391">Kategorija:</span>
                       {{ getCategoryName(job.jobCategoryId) }}
                     </p>
+                    <p>
+                      <span style="font-size: 17px; font-weight: 500; color: #c5b391">Lokacija:</span>
+                      {{ getCityName(job.cityId) }}
+                    </p>
                     <p *ngIf="job?.advertisementTypeId === 2">
                       <span style="font-size: 17px; font-weight: 500; color: #c5b391">Cijena:</span>
                       {{ job.price }} KM
                     </p>
+
                   </div>
                   <div fxFlex>
-                    <p style="min-width: 150px;">
-                      <span style="font-weight: 500; font-size: 17px;">Tip Oglasa:</span> {{
+                    <p style="min-width: 100px;">
+                      <span style="font-weight: 500; font-size: 14px; color: #c5b391">Tip Oglasa:</span> {{
                       getEnumName(job?.advertisementTypeId) }}
                     </p>
-                    <p style="min-width: 200px;">
-                      <span style="font-weight: 500; font-size: 17px;">Status Oglasa:</span> {{
+                    <p style="min-width: 150px;">
+                      <span style="font-weight: 500; font-size: 14px; color: #c5b391">Status:</span> {{
                       getStatusEnumValue(job?.jobPostStatusId) }}
+                    </p>
+                    <p style="min-width: 220px;">
+                      <span style="font-weight: 500; font-size: 14px; color: #c5b391">Datum objave oglasa:</span> {{
+                      getFormattedDate(job?.adStartDate) }}
+                    </p>
+                    <p style="min-width: 220px;">
+                      <span style="font-weight: 500; font-size: 14px; color: #c5b391">Datum isteka oglasa:</span> {{
+                      getFormattedDate(job?.adEndDate) }}
                     </p>
                   </div>
                 </mat-card-header>
-                <mat-card-content class="job-info-card">
+                <mat-card-content class="job-info-card" style="height: 40px;">
                   <div class="job-info">
                     <p>
                       <ng-container *ngIf="getFormattedDate(job?.applicantDateOfBirth) !== ''">
@@ -175,9 +194,10 @@
                     <p>{{ job.biography | truncate:150:true }}</p>
                   </div> -->
                 </mat-card-content>
-                <mat-card-actions>
+                <mat-card-actions style="margin-left: 1px;">
                   <button mat-button style="color: white; background-color: #283316;"
                     [routerLink]="['/my-ads', job.id]">Uredi objavu</button>
+                  <button mat-button color="warn" (click)="deleteAd(job.id)">Obriši objavu</button>
                 </mat-card-actions>
               </mat-card>
             </div>
