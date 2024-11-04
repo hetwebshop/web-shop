@@ -12,6 +12,7 @@ import { AccountService } from 'src/app/services/account.service';
 import { CompanyJobService } from 'src/app/services/company-job.service';
 import { JobService } from 'src/app/services/job.service';
 import { LocationService } from 'src/app/services/location.service';
+import { ToastrService } from 'src/app/services/toastr.service';
 import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
@@ -37,7 +38,7 @@ export class CompanyMyAdManagerComponent {
 
   constructor(private jobService: JobService, private companyJobService: CompanyJobService, private locationService: LocationService, utility: UtilityService, 
     private route: ActivatedRoute, private cdr: ChangeDetectorRef, 
-    private fb: FormBuilder, private accountService: AccountService, private router: Router) {
+    private fb: FormBuilder, private accountService: AccountService, private toastr: ToastrService, private router: Router) {
     utility.setTitle('Detalji oglasa');
   }
 
@@ -122,7 +123,14 @@ export class CompanyMyAdManagerComponent {
     if (this.adUpdateForm.valid) {
       const formData = this.adUpdateForm.getRawValue();
       const model = this.prepareModel(formData);
-      this.subscription = this.companyJobService.upsertJob(this.isEditMode, model).subscribe();
+      this.subscription = this.companyJobService.upsertJob(this.isEditMode, model).subscribe({
+        next: () => {
+          this.toastr.success('Uspješno ste uredili oglas!');
+        },
+        error: () => {
+          this.toastr.error('Desila se greška prilikom uređivanja objave!');
+        }
+      });
     } 
     else {
       Object.keys(this.adUpdateForm.controls).forEach(field => {
@@ -172,18 +180,27 @@ export class CompanyMyAdManagerComponent {
 
   deleteAd(event): void {
     event.preventDefault();
-    this.companyJobService.deleteAd(this.job.id).subscribe((response) => {
+    this.companyJobService.deleteAd(this.job.id).subscribe({
+      next: (response) => {
       if(response == true) {
         this.job = { ...this.job, isDeleted: true, jobPostStatusId: JobPostStatus.Deleted };
         this.isJobInStatusClosedOrDeleted = true;
         this.disableForm();
+        this.toastr.success("Uspješno obrisana objava!");
       }
+      else
+      this.toastr.error("Desila se greška prilikom brisanja objave!");
+    },
+    error: () => {
+      this.toastr.error("Desila se greška prilikom brisanja objave!");
+    }
     });
   }
 
   closeAd(event): void {
     event.preventDefault();
-    this.companyJobService.closeAd(this.job.id).subscribe((response) => {
+    this.companyJobService.closeAd(this.job.id).subscribe({
+      next: (response) => {
       if(response == true) {
         this.job = { ...this.job, jobPostStatusId: JobPostStatus.Closed };
         this.isJobInStatusClosedOrDeleted = true;
@@ -191,19 +208,34 @@ export class CompanyMyAdManagerComponent {
         if(this.job && moment(this.job.adEndDate) > moment()){
           this.canJobBeReactivated = true;
         }
+        this.toastr.success("Uspješno ste zatvorili oglas!");
       }
+      else
+        this.toastr.error("Desila se greška prilikom zatvaranja oglasa!");
+    },
+    error: () => {
+      this.toastr.error("Desila se greška prilikom zatvaranja oglasa!");
+    }
     });
   }
 
   reactivateAd(event): void {
     event.preventDefault();
-    this.companyJobService.closeAd(this.job.id).subscribe((response) => {
+    this.companyJobService.closeAd(this.job.id).subscribe({
+      next: (response) => {
       if(response == true) {
         this.job = { ...this.job, jobPostStatusId: JobPostStatus.Active };
         this.isJobInStatusClosedOrDeleted = false;
         this.canJobBeReactivated = false;
         this.enableForm();
+        this.toastr.success("Uspješno ste aktivirali oglas!");
       }
+      else
+        this.toastr.error("Desila se greška prilikom ponovnog aktiviranja oglasa!");
+    },
+    error: () => {
+      this.toastr.error("Desila se greška prilikom ponovnog aktiviranja oglasa!");
+    }
     });
   }
 

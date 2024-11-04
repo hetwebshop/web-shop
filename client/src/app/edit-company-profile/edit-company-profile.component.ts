@@ -33,7 +33,6 @@ export class EditCompanyProfileComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log("TEST KOMP");
     this.loadCities();
     
     this.accountService.getProfile().subscribe((response: UserProfile) => {
@@ -73,12 +72,15 @@ export class EditCompanyProfileComponent implements OnInit {
   onSubmit() {
     this.accountService
       .updateCompanyProfile(this.companyProfileUpdate.value)
-      .subscribe((response) => {
-        console.log("Update user profile");
-        console.log(response);
-        this.company = response;
-        this.initilizeProfileForm();
-        this.toastr.success('Profile updated.');
+      .subscribe({
+        next:(response) => {
+          this.company = response;
+          this.initilizeProfileForm();
+          this.toastr.success('Uspješno ste uredili profil kompanije!');
+        },
+        error: () => {
+          this.toastr.error('Desila se greška prilikom uređivanja profila kompanije!');
+        }
       });
   }
 

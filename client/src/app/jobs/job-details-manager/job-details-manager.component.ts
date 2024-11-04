@@ -241,7 +241,6 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
     const formData = this.form.getRawValue();
     if (this.form.valid) {
       const model = this.prepareModel(formData);
-      console.log("FORM IS", formData);
       this.subscription = this.jobService.upsertJob(this.isEditMode, model).subscribe({
         next: () => {
           this.toastrService.success("Uspješno ste kreirali objavu!");

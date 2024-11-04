@@ -13,6 +13,7 @@ import { AdvertisementType, ApplicantEducation, JobCategory, JobType, UserJobPos
 import { AccountService } from 'src/app/services/account.service';
 import { JobService } from 'src/app/services/job.service';
 import { LocationService } from 'src/app/services/location.service';
+import { ToastrService } from 'src/app/services/toastr.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { FiltersQuery } from 'src/app/store/filters/filters.query';
 import { FiltersStore } from 'src/app/store/filters/filters.store';
@@ -58,7 +59,7 @@ export class MyAdComponent {
 
   constructor(private jobService: JobService, private locationService: LocationService, utility: UtilityService, 
     private route: ActivatedRoute, private cdr: ChangeDetectorRef, 
-    private fb: FormBuilder, private accountService: AccountService, private router: Router, private dialog: MatDialog) {
+    private fb: FormBuilder, private accountService: AccountService, private toastr: ToastrService, private router: Router, private dialog: MatDialog) {
     utility.setTitle('Detalji oglasa');
   }
 
@@ -196,11 +197,6 @@ export class MyAdComponent {
                 });
             });
         } 
-        // else if (typeof value === 'object' && value !== null) {
-        //     Object.entries(value).forEach(([objKey, objValue]) => {
-        //       formData.append(`${key}.${objKey}`, objValue as string);
-        //     });
-        //} 
         else {
           console.log("KEY", key, value);
           if(key !== 'cvFile' && value != null){
@@ -252,8 +248,14 @@ private updateApplicantEducations(educations: any[]): void {
     if (this.adUpdateForm.valid) {
       const formData = this.adUpdateForm.getRawValue();
       const model = this.prepareModel(formData);
-      this.subscription = this.jobService.upsertJob(this.isEditMode, model).subscribe((updatedJob) => {
-        this.job = updatedJob;
+      this.subscription = this.jobService.upsertJob(this.isEditMode, model).subscribe({
+        next: (updatedJob) => {
+          this.job = updatedJob;
+          this.toastr.success('Uspješno ste uredili objavu!');
+        },
+        error: () => {
+          this.toastr.error('Desila se greška prilikom uređivanja objave!');
+        } 
       });
     } 
     else {
@@ -333,18 +335,27 @@ private updateApplicantEducations(educations: any[]): void {
 
   deleteAd(event): void {
     event.preventDefault();
-    this.jobService.deleteAd(this.job.id).subscribe((response) => {
+    this.jobService.deleteAd(this.job.id).subscribe({
+      next: (response) => {
       if(response == true) {
         this.job = { ...this.job, isDeleted: true, jobPostStatusId: JobPostStatus.Deleted };
         this.isJobInStatusClosedOrDeleted = true;
         this.disableForm();
+        this.toastr.success("Uspješno obrisana objava!");
+      }
+      else
+        this.toastr.error("Desila se greška prilikom brisanja objave!");
+    },
+      error: () => {
+        this.toastr.error("Desila se greška prilikom brisanja objave!");
       }
     });
   }
 
   closeAd(event): void {
     event.preventDefault();
-    this.jobService.closeAd(this.job.id).subscribe((response) => {
+    this.jobService.closeAd(this.job.id).subscribe({
+      next: (response) => {
       if(response == true) {
         this.job = { ...this.job, jobPostStatusId: JobPostStatus.Closed };
         this.isJobInStatusClosedOrDeleted = true;
@@ -352,19 +363,34 @@ private updateApplicantEducations(educations: any[]): void {
         if(this.job && moment(this.job.adEndDate) > moment()){
           this.canJobBeReactivated = true;
         }
+        this.toastr.success("Uspješno ste zatvorili oglas!");
       }
+      else
+        this.toastr.error("Desila se greška prilikom zatvaranja oglasa!");
+    },
+    error: () => {
+      this.toastr.error("Desila se greška prilikom zatvaranja oglasa!");
+    }
     });
   }
 
   reactivateAd(event): void {
     event.preventDefault();
-    this.jobService.closeAd(this.job.id).subscribe((response) => {
+    this.jobService.closeAd(this.job.id).subscribe({
+      next: (response) => {
       if(response == true) {
         this.job = { ...this.job, jobPostStatusId: JobPostStatus.Active };
         this.isJobInStatusClosedOrDeleted = false;
         this.canJobBeReactivated = false;
         this.enableForm();
+        this.toastr.success("Uspješno ste aktivirali oglas!");
       }
+      else
+        this.toastr.error("Desila se greška prilikom ponovnog aktiviranja oglasa!");
+    },
+    error: () => {
+      this.toastr.error("Desila se greška prilikom ponovnog aktiviranja oglasa!");
+    }
     });
   }
 

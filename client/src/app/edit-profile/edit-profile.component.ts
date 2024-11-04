@@ -24,7 +24,7 @@ export class EditProfileComponent implements OnInit {
   user: UserProfile;
   profileUpdate: UntypedFormGroup;
   genders = Object.keys(Gender) as Array<keyof typeof Gender>;
-  genderMap = Gender; 
+  genderMap = Gender;
   jobTypes: JobType[] = [];
   jobCategories: JobCategory[] = [];
   loading: string;
@@ -53,7 +53,7 @@ export class EditProfileComponent implements OnInit {
     this.loadCities();
     this.loadJobTypes();
     this.loadJobCategories();
-    
+
     this.accountService.getProfile().subscribe((response: UserProfile) => {
       this.user = response;
       this.initilizeProfileForm();
@@ -73,23 +73,23 @@ export class EditProfileComponent implements OnInit {
     this.userEducations = this.profileUpdate.get('userEducations') as FormArray;
     console.log(this.userEducations);
     this.userEducations.clear();
-  
+
     educations.forEach(education => {
       this.userEducations.push(this.createEducationFormGroup(education));
     });
   }
-  
+
   private createEducationFormGroup(education: any): FormGroup {
     return this.fb.group({
-        degree: new FormControl(education.degree, Validators.required),
-        institutionName: new FormControl(education.institutionName, Validators.required),
-        fieldOfStudy: new FormControl(education.fieldOfStudy, Validators.required),
-        educationStartYear: new FormControl(education.educationStartYear, Validators.required),
-        educationEndYear: new FormControl(education.educationEndYear),
-        university: new FormControl(education.university, Validators.required)
+      degree: new FormControl(education.degree, Validators.required),
+      institutionName: new FormControl(education.institutionName, Validators.required),
+      fieldOfStudy: new FormControl(education.fieldOfStudy, Validators.required),
+      educationStartYear: new FormControl(education.educationStartYear, Validators.required),
+      educationEndYear: new FormControl(education.educationEndYear),
+      university: new FormControl(education.university, Validators.required)
     });
   }
-  
+
   loadJobTypes(): void {
     this.jobService.getJobTypes()
       .subscribe(types => {
@@ -151,7 +151,6 @@ export class EditProfileComponent implements OnInit {
 
   onSubmit() {
     const formData = new FormData();
-    console.log("FORM ", this.profileUpdate.value);
     // Append form data fields
     Object.keys(this.profileUpdate.value).forEach(key => {
       if (key === 'userEducations') {
@@ -165,7 +164,7 @@ export class EditProfileComponent implements OnInit {
       else if (key === 'dateOfBirth' && this.profileUpdate.get(key).value) {
         const dateOfBirth = moment(this.profileUpdate.get(key).value).format('YYYY-MM-DD');
         formData.append(key, dateOfBirth);
-      }      
+      }
       else {
         formData.append(key, this.profileUpdate.get(key).value);
       }
@@ -175,16 +174,17 @@ export class EditProfileComponent implements OnInit {
     if (this.selectedFile) {
       formData.append('cvFile', this.selectedFile, this.selectedFile.name);
     }
-    this.accountService
-      .updateProfile(formData)
-      .subscribe((response) => {
-        console.log("Update user profile");
-        console.log(response);
+    this.accountService.updateProfile(formData).subscribe({
+      next: (response) => {
         this.user = response;
         this.initilizeProfileForm();
         this.updateUserEducations(this.user?.userEducations);
-        this.toastr.success('Profile updated.');
-      });
+        this.toastr.success('Uspješno ste uredili profil!');
+      },
+      error: () => {
+        this.toastr.error('Desila se greška prilikom uređivanja profila!');
+      }
+    });
   }
 
   updateAddress(form: NgForm) {
@@ -212,9 +212,9 @@ export class EditProfileComponent implements OnInit {
 
   onFileSelected(event): void {
     event.preventDefault();
-    event.stopPropagation(); 
+    event.stopPropagation();
     const input = event.target as HTMLInputElement;
-    
+
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
       this.selectedFileName = file.name;
@@ -223,7 +223,7 @@ export class EditProfileComponent implements OnInit {
       this.profileUpdate.patchValue({ cvFile: this.selectedFile });
       this.profileUpdate.markAsDirty();
       // Clear input value to allow re-upload of the same file
-      input.value = ''; 
+      input.value = '';
     }
   }
 
@@ -231,7 +231,7 @@ export class EditProfileComponent implements OnInit {
     event.stopPropagation();
     this.selectedFileName = null;
     this.selectedFilePath = null;
-    this.profileUpdate.patchValue({cvFile: null});
+    this.profileUpdate.patchValue({ cvFile: null });
     this.user.cvFilePath = null;
     this.profileUpdate.markAsDirty();
   }
@@ -261,7 +261,7 @@ export class EditProfileComponent implements OnInit {
   genderName(gender: Gender): string {
     return this.genderMap[gender] || 'Ostali';
   }
-  
+
 
   createEducation(education?: UserEducation): FormGroup {
     return this.fb.group({
@@ -277,17 +277,19 @@ export class EditProfileComponent implements OnInit {
   addEducation(): void {
     this.userEducations.push(this.createEducation());
   }
-  
+
   removeEducation(index: number): void {
     this.userEducations.removeAt(index);
   }
 
   openCancelConfirmationModal(index: number): void {
     const cancelDialogRef = this.dialog.open(CancelConfirmationModalComponent,
-      {data: {
-        title: "Obriši obrazovanje",
-        message: "Da li ste sigurni da želite obrisati obrazovanje?"
-      }});
+      {
+        data: {
+          title: "Obriši obrazovanje",
+          message: "Da li ste sigurni da želite obrisati obrazovanje?"
+        }
+      });
 
     cancelDialogRef.afterClosed().subscribe(result => {
       if (result === true) {
