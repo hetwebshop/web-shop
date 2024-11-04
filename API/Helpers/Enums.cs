@@ -37,4 +37,18 @@ namespace API.Helpers
         JobAd = 1,
         Service
     }
+
+    public enum AdDuration
+    {
+        SevenDays = 7,
+        FifteenDays = 15,
+        Month = 30
+    }
+
+    public static class PricingPlanName
+    {
+        public const string Base = "Base";
+        public const string Plus = "Plus";
+        public const string Premium = "Premium";
+    }
 }

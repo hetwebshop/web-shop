@@ -85,6 +85,10 @@ namespace API.Data.ICompanyJobPostRepository
         {
             try
             {
+                var pricingPlan = DataContext.PricingPlans.FirstOrDefault(r => r.Name.Equals(newCompanyJobPost.PricingPlan.Name) && r.AdActiveDays == newCompanyJobPost.PricingPlan.AdActiveDays);
+                if (pricingPlan == null)
+                    return null;
+                newCompanyJobPost.PricingPlan = pricingPlan;
                 await DataContext.CompanyJobPosts.AddAsync(newCompanyJobPost);
                 await DataContext.SaveChangesAsync();
                 return newCompanyJobPost;

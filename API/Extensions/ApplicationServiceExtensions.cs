@@ -15,6 +15,8 @@ using API.Data.IUserOfferRepository;
 using API.Data.Pagination;
 using API.Services.CompanyJobPostServices;
 using API.Data.ICompanyJobPostRepository;
+using API.Mappers;
+using AutoMapper;
 
 namespace API.Extensions
 {
@@ -47,10 +49,14 @@ namespace API.Extensions
             services.AddScoped<IUserJobPostRepository, UserJobPostRepository>();
             services.AddScoped<ICompanyJobPostService, CompanyJobPostService>();
             services.AddScoped<ICompanyJobPostRepository, CompanyJobPostRepository>();
+            
 
             //locations
             services.AddScoped<ILocationRepository, LocationRepository>();
             services.AddScoped<ILocationService, LocationService>();
+
+            services.AddScoped<IPricingPlanRepository, PricingPlanRepository>();
+            services.AddScoped<IPricingPlanService, PricingPlanService>();
 
             services.AddIdentity<User, Role>(opt => { opt.Password.RequireNonAlphanumeric = false; })
                 .AddEntityFrameworkStores<DataContext>();

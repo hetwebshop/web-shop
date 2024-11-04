@@ -75,8 +75,8 @@ export class ErrorInterceptor implements HttpInterceptor {
   }
 
   handleServerError(error) {
-    this.toastr.error('Internal server error');
-    let extras: NavigationExtras = { state: { error: error.error } };
-    this.router.navigateByUrl('/server-error', extras);
+    this.toastr.error('Desila se greška');
+    //let extras: NavigationExtras = { state: { error: error.error } };
+    //this.router.navigateByUrl('/server-error', extras);
   }
 }

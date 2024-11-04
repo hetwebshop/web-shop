@@ -37,7 +37,7 @@ export class UserJobsListComponent {
   selectedFilePath: string | null = null;
   @ViewChild('filePreviewModal') filePreviewModal!: TemplateRef<any>;
   fileUrl: string = ""
-  showFilters: boolean = true;
+  showFilters: boolean = false;
   isGridView: boolean = true;
   isGridViewUserSelection: boolean = this.isGridView;
 

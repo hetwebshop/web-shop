@@ -4,6 +4,7 @@ using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20241103112639_RenameSubscriptionPlanWithPricingPlan")]
+    partial class RenameSubscriptionPlanWithPricingPlan
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -104,12 +106,6 @@ namespace API.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(1);
 
-                    b.Property<string>("CompanyCity")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CompanyName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -136,9 +132,6 @@ namespace API.Migrations
                     b.Property<string>("Position")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PricingPlanId")
-                        .HasColumnType("int");
-
                     b.Property<int>("SubmittingUserId")
                         .HasColumnType("int");
 
@@ -156,8 +149,6 @@ namespace API.Migrations
                     b.HasIndex("JobPostStatusId");
 
                     b.HasIndex("JobTypeId");
-
-                    b.HasIndex("PricingPlanId");
 
                     b.HasIndex("SubmittingUserId");
 
@@ -355,7 +346,7 @@ namespace API.Migrations
                     b.Property<decimal?>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("PricingPlanId")
+                    b.Property<int?>("PricingPlanId")
                         .HasColumnType("int");
 
                     b.Property<int>("SubmittingUserId")
@@ -415,12 +406,6 @@ namespace API.Migrations
                     b.Property<int>("AdActiveDays")
                         .HasColumnType("int");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Label")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
@@ -429,7 +414,7 @@ namespace API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PricingPlans");
+                    b.ToTable("SubscriptionPlans");
                 });
 
             modelBuilder.Entity("API.Entities.Role", b =>
@@ -774,12 +759,6 @@ namespace API.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("API.Entities.PricingPlan", "PricingPlan")
-                        .WithMany()
-                        .HasForeignKey("PricingPlanId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.HasOne("API.Entities.User", "User")
                         .WithMany("CompanyJobPosts")
                         .HasForeignKey("SubmittingUserId")
@@ -793,8 +772,6 @@ namespace API.Migrations
                     b.Navigation("JobPostStatus");
 
                     b.Navigation("JobType");
-
-                    b.Navigation("PricingPlan");
 
                     b.Navigation("User");
                 });
@@ -844,8 +821,7 @@ namespace API.Migrations
                     b.HasOne("API.Entities.PricingPlan", "PricingPlan")
                         .WithMany()
                         .HasForeignKey("PricingPlanId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("API.Entities.User", "User")
                         .WithMany("UserJobPosts")

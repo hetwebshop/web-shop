@@ -24,10 +24,13 @@ namespace API.Mappers
                 .ForMember(dest => dest.ApplicantGender, src => src.MapFrom(x => x.ApplicantGender))
                 .ForMember(dest => dest.ApplicantEducations, src => src.MapFrom(x => x.ApplicantEducations))
                 .ForMember(dest => dest.AdvertisementTypeId, src => src.MapFrom(x => x.AdvertisementTypeId))
-                .ForMember(dest => dest.CvFilePath, src => src.MapFrom(x => Path.GetFileName(x.CvFilePath)));
+                .ForMember(dest => dest.CvFilePath, src => src.MapFrom(x => Path.GetFileName(x.CvFilePath)))
+                .ForMember(dest => dest.PricingPlanName, src => src.MapFrom(x => x.PricingPlan.Name))
+                .ForMember(dest => dest.AdDuration, src => src.MapFrom(x => x.PricingPlan.AdActiveDays));
 
             this.CreateMap<UserJobPostDto, UserJobPost>()
-                .ForMember(dest => dest.JobPostStatusId, src => src.MapFrom(x => x.JobPostStatusId != 0 ? x.JobPostStatusId : (int)Helpers.JobPostStatus.Active));
+                .ForMember(dest => dest.JobPostStatusId, src => src.MapFrom(x => x.JobPostStatusId != 0 ? x.JobPostStatusId : (int)Helpers.JobPostStatus.Active))
+                .ForMember(dest => dest.PricingPlan, src => src.MapFrom(x => new PricingPlan { AdActiveDays = x.AdDuration, Name = x.PricingPlanName}));
 
             this.CreateMap<ApplicantEducation, ApplicantEducationDto>();
             this.CreateMap<ApplicantEducationDto, ApplicantEducation>();

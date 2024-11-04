@@ -38,3 +38,33 @@
     margin-right: 15px;
   }
   
+  
+  .plan-card-row {
+    display: flex; /* Use flexbox to arrange children in a row */
+    justify-content: space-between; /* Space out the cards evenly */
+    flex-wrap: wrap; /* Allow wrapping to next line if necessary */
+    margin-top: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .plan-card {
+    flex: 1; /* Allow cards to grow equally */
+    cursor: pointer;
+    transition: box-shadow 0.3s;
+    border: 1px solid #ccc; /* Optional: border for cards */
+  }
+
+  .plan-card:nth-child(2) {
+    margin-left: 20px; /* Adjust this value as needed */
+    margin-right: 20px; /* Adjust this value as needed */
+  }
+  
+  .plan-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Hover effect */
+  }
+  
+  .selected-plan-card {
+    background-color: #283316; /* Darker variation for the border */
+    color: #c5b391;
+    box-shadow: 0 4px 16px rgba(40, 51, 22, 0.3); /* Lighter variation for the shadow */
+  }

@@ -14,6 +14,8 @@ import { AccountService } from 'src/app/services/account.service';
 import * as moment from 'moment';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastrService } from 'src/app/services/toastr.service';
+import { PricingPlan } from 'src/app/models/pricingPlan';
+import { PricingPlanService } from 'src/app/services/pricingPlan.service';
 
 @Component({
   selector: 'app-job-details-manager',
@@ -35,7 +37,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
   selectedCategory: any;
   applicantEducations: FormArray;
   genders = Object.keys(Gender) as Array<keyof typeof Gender>;
-  genderMap = Gender; 
+  genderMap = Gender;
   selectedAdvertisementType: any;
   AdvertisementTypeEnum = AdvertisementTypeEnum;
   selectAllId: number = 0;
@@ -47,75 +49,48 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
   selectedFilePath: string | null = null;
   @ViewChild('filePreviewModal') filePreviewModal!: TemplateRef<any>;
   populateFormWithUserProfileData: boolean = false;
+  selectedPlan: string;
+  pricingPlans: PricingPlan[];
+  filteredPricingPlans: PricingPlan[];
 
   @ViewChild('allSelected', { static: true }) private allSelected: MatOption;
 
-  constructor(private jobService: JobService, private locationService: LocationService, utility: UtilityService, 
-    private route: ActivatedRoute, private cdr: ChangeDetectorRef, 
-    private fb: FormBuilder, private accountService: AccountService, private toastrService: ToastrService, private router: Router, private dialog: MatDialog) {
-      this.route.url.subscribe(urlSegment => {
-        this.isJobAd = !urlSegment.some(segment => segment.path.includes('service'));
-      });
+  constructor(private jobService: JobService, private locationService: LocationService, utility: UtilityService,
+    private route: ActivatedRoute, private cdr: ChangeDetectorRef,
+    private fb: FormBuilder, private accountService: AccountService, private pricingPlanService: PricingPlanService, private toastrService: ToastrService, private router: Router, private dialog: MatDialog) {
+    this.route.url.subscribe(urlSegment => {
+      this.isJobAd = !urlSegment.some(segment => segment.path.includes('service'));
+    });
     utility.setTitle('Detalji oglasa');
   }
 
   ngOnInit(): void {
     this.form = this.createForm();
+    this.form.get('adDuration')?.valueChanges.subscribe(() => {
+      this.filterPricingPlans();
+    });
+    this.pricingPlanService.getAllPricingPlans()
+      .subscribe(pplans => {
+        this.pricingPlans = pplans;
+        this.selectedPlan = pplans.find(r => r.name === 'Plus').name;
+        if (this.selectedPlan) {
+          this.form.get('pricingPlanName')?.setValue(this.selectedPlan);
+        }
+        this.filterPricingPlans();
+        this.cdr.detectChanges();
+    });
+
     this.accountService.getProfile().subscribe((user: UserProfile) => {
       this.user = user;
       if (this.user.cvFilePath) {
         this.existingFilePath = this.user.cvFilePath;
       }
-      // if(this.user == null || this.user == undefined){
-      //   this.router.navigateByUrl("")
-      // }
     })
     this.loadCountries();
     this.loadCities();
     this.loadJobTypes();
     this.loadJobCategories();
     this.loadAdTypes();
-
-    this.route.params.subscribe(params => {
-      if (params['id']) {
-        this.isEditMode = true;
-        this.jobId = +params['id'];
-        this.subscription = this.jobService.getJobById(this.jobId)
-          .subscribe({
-            next: (response) => {
-              this.job = response;
-              this.existingFilePath = this.job.cvFilePath;
-              this.updateApplicantEducations(this.job?.applicantEducations);
-              this.onCategoryChange(this.job.jobCategoryId);
-              this.form.patchValue({
-                id: this.job.id,
-                position: this.job.position,
-                biography: this.job.biography,
-                applicantFirstName: this.job.applicantFirstName,
-                applicantLastName: this.job.applicantLastName,
-                applicantEmail: this.job.applicantEmail,
-                applicantDateOfBirth: this.job.applicantDateOfBirth,
-                applicantPhoneNumber: this.job.applicantPhoneNumber,
-                applicantGender: this.job.applicantGender,
-                jobTypeId: this.job.jobTypeId,
-                jobCategoryId: this.job.jobCategoryId,
-                cityId: this.job.cityId,
-                countryId: this.job.countryId,
-                price: this.job.price,
-                cvFile: this.job.cvFile,
-                adTitle: this.job.adTitle,
-                adAdditionalDescription: this.job.adAdditionalDescription
-              });
-              this.cdr.detectChanges();
-            },
-            error: (errorResponse) => {
-              console.log('Error fetching job', errorResponse);
-            }
-          });
-      } else {
-        this.isEditMode = false;
-      }
-    });
   }
 
   genderName(gender: Gender): string {
@@ -138,14 +113,15 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
       applicantEducations: this.applicantEducations,
       jobTypeId: new FormControl('', Validators.required),
       cityId: new FormControl('', Validators.required),
-      countryId: new FormControl({ value: null, disabled: true}, Validators.required),
+      countryId: new FormControl({ value: null, disabled: true }, Validators.required),
       jobCategoryId: new FormControl('', Validators.required),
-      advertisementTypeId: new FormControl({ value: this.isJobAd ? this.AdvertisementTypeEnum.JobAd : this.AdvertisementTypeEnum.Service, disabled: true}, Validators.required),
+      advertisementTypeId: new FormControl({ value: this.isJobAd ? this.AdvertisementTypeEnum.JobAd : this.AdvertisementTypeEnum.Service, disabled: true }, Validators.required),
       price: new FormControl(''),
       cvFile: new FormControl(null),
       adDuration: new FormControl("7", Validators.required),
       adTitle: new FormControl(null, Validators.required),
-      adAdditionalDescription: new FormControl(null, Validators.required)
+      adAdditionalDescription: new FormControl(null, Validators.required),
+      pricingPlanName: new FormControl("Plus", Validators.required)
     });
 
     if (!this.isJobAd) {
@@ -158,7 +134,13 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
     return formGroup;
   }
 
-  prepareModel(data: any) : FormData {
+  selectPlan(value: string) {
+    console.log('Selected plan:', value);
+    this.selectedPlan = value;
+    this.form.get('pricingPlanName').setValue(this.selectedPlan); // Update form control value
+  }
+
+  prepareModel(data: any): FormData {
     const applicantEducations: ApplicantEducation[] = [];
     this.applicantEducations.controls.forEach(control => {
       const educationModel: ApplicantEducation = {
@@ -197,45 +179,40 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
       adEndDate: moment(now).add(data.adDuration, 'days'),
       adAdditionalDescription: data.adAdditionalDescription,
       adTitle: data.adTitle,
-      price: data.price
+      price: data.price,
+      pricingPlanName: data.pricingPlanName
     };
 
     const formData = new FormData();
     for (const [key, value] of Object.entries(model)) {
-        if (value instanceof Date || moment.isMoment(value)) {
-          formData.append(key, moment(value).toISOString());
-        } else if (Array.isArray(value)) {
-            value.forEach((item, index) => {
-                Object.entries(item).forEach(([itemKey, itemValue]) => {
-                  formData.append(`${key}[${index}].${itemKey}`, itemValue as string);
-                });
-            });
-        } 
-        // else if (typeof value === 'object' && value !== null) {
-        //     Object.entries(value).forEach(([objKey, objValue]) => {
-        //       formData.append(`${key}.${objKey}`, objValue as string);
-        //     });
-        //} 
-        else {
-          //console.log("KEY", key, value);
-          if(key !== 'cvFile' && value != null){
-            formData.append(key, value.toString());
-          }
+      if (value instanceof Date || moment.isMoment(value)) {
+        formData.append(key, moment(value).toISOString());
+      } else if (Array.isArray(value)) {
+        value.forEach((item, index) => {
+          Object.entries(item).forEach(([itemKey, itemValue]) => {
+            formData.append(`${key}[${index}].${itemKey}`, itemValue as string);
+          });
+        });
+      }
+      else {
+        if (key !== 'cvFile' && value != null) {
+          formData.append(key, value.toString());
         }
+      }
     }
     formData.append('cvFile', model.cvFile);
     return formData;
   }
 
-private updateApplicantEducations(educations: any[]): void {
-  this.applicantEducations = this.form.get('applicantEducations') as FormArray;
+  private updateApplicantEducations(educations: any[]): void {
+    this.applicantEducations = this.form.get('applicantEducations') as FormArray;
 
-  this.applicantEducations.clear();
+    this.applicantEducations.clear();
 
-  educations.forEach(education => {
-    this.applicantEducations.push(this.createEducation(education));
-  });
-}
+    educations.forEach(education => {
+      this.applicantEducations.push(this.createEducation(education));
+    });
+  }
 
   onCategoryChange(categoryId: number): void {
     this.selectedCategory = this.jobCategories.find(category => category.id === categoryId);
@@ -248,16 +225,13 @@ private updateApplicantEducations(educations: any[]): void {
     Object.keys(formGroup.controls).forEach(key => {
       const control = formGroup.get(key);
       if (control instanceof FormControl && control.invalid) {
-        //console.log(`Invalid Field: ${key}`);
       } else if (control instanceof FormGroup) {
         this.logInvalidControls(control);
       } else if (control instanceof FormArray) {
         control.controls.forEach((ctrl, index) => {
           if (ctrl instanceof FormGroup) {
-            //console.log(`FormArray Group Index: ${index}`);
             this.logInvalidControls(ctrl);
           } else if (ctrl instanceof FormControl && ctrl.invalid) {
-            //console.log(`Invalid Field in FormArray: ${key}[${index}]`);
           }
         });
       }
@@ -279,7 +253,7 @@ private updateApplicantEducations(educations: any[]): void {
           this.toastrService.error("Desila se greška prilikom kreiranja objave!");
         }
       });
-    } 
+    }
     else {
       this.logInvalidControls(this.form);
       Object.keys(this.form.controls).forEach(field => {
@@ -298,6 +272,16 @@ private updateApplicantEducations(educations: any[]): void {
         const defaultCountry = countries[0];
         this.form.get('countryId').setValue(defaultCountry.id);
       });
+  }
+
+
+  filterPricingPlans(): void {
+    const selectedDuration = this.form.get('adDuration')?.value ?? "7";
+    if (this.pricingPlans && this.pricingPlans.length > 0) {
+      this.filteredPricingPlans = this.pricingPlans.filter(r => r.adActiveDays === +selectedDuration);
+    } else {
+      this.filteredPricingPlans = []; // Reset if there are no plans
+    }
   }
 
   loadCities(): void {
@@ -328,7 +312,7 @@ private updateApplicantEducations(educations: any[]): void {
         this.advertisementTypes = adTypes;
         const defaultType = this.isJobAd ? this.AdvertisementTypeEnum.JobAd : this.AdvertisementTypeEnum.Service;
         this.form.get('advertisementTypeId').setValue(defaultType);
-        console.log("FETCH TYPES" ,this.form.get('advertisementTypeId').value);
+        console.log("FETCH TYPES", this.form.get('advertisementTypeId').value);
       });
   }
 
@@ -346,7 +330,7 @@ private updateApplicantEducations(educations: any[]): void {
   addEducation(): void {
     this.applicantEducations.push(this.createEducation());
   }
-  
+
   removeEducation(index: number): void {
     this.applicantEducations.removeAt(index);
   }
@@ -395,18 +379,18 @@ private updateApplicantEducations(educations: any[]): void {
 
   onFileSelected(event): void {
     event.preventDefault();
-    event.stopPropagation(); 
+    event.stopPropagation();
     const input = event.target as HTMLInputElement;
-    
+
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
       this.selectedFileName = file.name;
       this.selectedFilePath = URL.createObjectURL(file);
       this.selectedFile = file;
       this.form.patchValue({ cvFile: this.selectedFile });
-  
+
       // Clear input value to allow re-upload of the same file
-      input.value = ''; 
+      input.value = '';
     }
   }
 

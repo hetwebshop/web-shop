@@ -28,6 +28,7 @@ namespace API.Data
         public DbSet<UserEducation> UserEducations { get; set; }
         public DbSet<Company> Companies { get; set; }
         public DbSet<CompanyJobPost> CompanyJobPosts { get; set; }
+        public DbSet<PricingPlan> PricingPlans { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -71,7 +72,13 @@ namespace API.Data
                       .HasForeignKey(e => e.CityId)
                       .OnDelete(DeleteBehavior.NoAction);
                 entity.Property(c => c.CityId).HasDefaultValue(1);
-            });;
+
+                entity.HasOne(e => e.PricingPlan)
+                  .WithMany()
+                  .HasForeignKey(e => e.PricingPlanId)
+                  .IsRequired(true)
+                  .OnDelete(DeleteBehavior.NoAction);
+            });
         }
 
         private void RegisterJobPostTables(ModelBuilder builder)
@@ -119,7 +126,14 @@ namespace API.Data
                       .HasForeignKey(e => e.AdvertisementTypeId)
                       .IsRequired(true)
                       .OnDelete(DeleteBehavior.NoAction);
-                
+
+                entity.HasOne(e => e.PricingPlan)
+                      .WithMany()
+                      .HasForeignKey(e => e.PricingPlanId)
+                      .IsRequired(true)
+                      .OnDelete(DeleteBehavior.NoAction);
+
+
                 //entity.Property(c => c.AdvertisementType).HasDefaultValue(1);
             });
 

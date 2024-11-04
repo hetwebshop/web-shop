@@ -10,6 +10,7 @@ export interface CompanyJobPost {
     countryId: number;
     jobDescription: string;
     adDuration: number;
+    pricingPlanName: string;
     adStartDate: Moment;
     adEndDate: Moment;
     isDeleted?: boolean;

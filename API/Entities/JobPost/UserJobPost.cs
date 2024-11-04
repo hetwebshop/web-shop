@@ -34,10 +34,11 @@ namespace API.Entities.JobPost
         public string CvFilePath { get; set; }
         public DateTime AdStartDate { get; set; }
         public DateTime AdEndDate { get; set; }
-        public int AdDuration { get; set; }
         public bool IsDeleted { get; set; } = false;
         public string AdTitle { get; set; }
         public string AdAdditionalDescription { get; set; }
+        public PricingPlan PricingPlan { get; set; }
+        public int PricingPlanId { get; set; }
 
         public ICollection<ApplicantEducation> ApplicantEducations { get; set; }
     }

@@ -36,7 +36,7 @@ export class CompanyJobAdsComponent {
   jobCategories$ = this.jobCategoryQuery.selectAll();
   jobTypes: JobType[];
   jobTypes$ = this.jobTypeQuery.selectAll();
-  showFilters: boolean = true;
+  showFilters: boolean = false;
   
   constructor(private jobService: JobService, private companyJobService: CompanyJobService, utility: UtilityService, private route: ActivatedRoute,
     private router: Router, private datePipe: DatePipe, public dialog: MatDialog,

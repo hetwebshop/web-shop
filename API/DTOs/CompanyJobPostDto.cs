@@ -17,6 +17,7 @@ namespace API.DTOs
         public string City { get; set; }
         public int SubmittingUserId { get; set; }
         public int AdDuration { get; set; }
+        public string PricingPlanName { get; set; }
         public DateTime AdStartDate { get; set; }
         public DateTime AdEndDate { get; set; }
         public bool IsDeleted { get; set; } = false;

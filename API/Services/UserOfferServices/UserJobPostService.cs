@@ -6,6 +6,7 @@ using API.Entities.JobPost;
 using API.Helpers;
 using API.Mappers;
 using API.PaginationEntities;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -42,11 +43,21 @@ namespace API.Services.UserOfferServices
 
         public async Task<UserJobPostDto> CreateUserJobPostAsync(UserJobPostDto userJobPostDto)
         {
-            var newItem = await userJobPostRepository.CreateUserJobPostAsync(userJobPostDto.ToEntity());
-            var dto = newItem.ToDto();
-            var user = await _uow.UserRepository.GetUserByIdAsync(dto.SubmittingUserId);
-            dto.CurrentUserCredits = user.Credits;
-            return dto;
+            try
+            {
+                var entity = userJobPostDto.ToEntity();
+                var newItem = await userJobPostRepository.CreateUserJobPostAsync(entity);
+                if (newItem == null)
+                    throw new Exception("Pretplata koju ste postavili ne postoji");
+                var dto = newItem.ToDto();
+                var user = await _uow.UserRepository.GetUserByIdAsync(dto.SubmittingUserId);
+                dto.CurrentUserCredits = user.Credits;
+                return dto;
+            }
+            catch(Exception ex)
+            {
+                throw;
+            }
         }
 
         public async Task<UserJobPostDto> UpdateUserJobPostAsync(UserJobPostDto userJobPostDto)

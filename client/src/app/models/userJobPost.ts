@@ -28,6 +28,7 @@ export interface UserJobPost {
     adTitle: string;
     adAdditionalDescription: string;
     currentUserCredits?: number;
+    pricingPlanName: string;
 }
 
 export interface AdvertisementType {

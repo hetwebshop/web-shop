@@ -4,6 +4,7 @@ using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20241104134849_CompanyJobPostAddCompanyNameCityAndPricingPlan")]
+    partial class CompanyJobPostAddCompanyNameCityAndPricingPlan
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -136,7 +138,7 @@ namespace API.Migrations
                     b.Property<string>("Position")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PricingPlanId")
+                    b.Property<int?>("PricingPlanId")
                         .HasColumnType("int");
 
                     b.Property<int>("SubmittingUserId")
@@ -777,8 +779,7 @@ namespace API.Migrations
                     b.HasOne("API.Entities.PricingPlan", "PricingPlan")
                         .WithMany()
                         .HasForeignKey("PricingPlanId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("API.Entities.User", "User")
                         .WithMany("CompanyJobPosts")

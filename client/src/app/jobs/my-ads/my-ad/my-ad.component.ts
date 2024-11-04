@@ -180,7 +180,8 @@ export class MyAdComponent {
       adEndDate: moment(now).add(data.adDuration, 'days'),
       adAdditionalDescription: data.adAdditionalDescription,
       adTitle: data.adTitle,
-      price: data.price
+      price: data.price,
+      pricingPlanName: this.job.pricingPlanName
     };
 
     const formData = new FormData();

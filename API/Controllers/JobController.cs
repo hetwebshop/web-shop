@@ -7,6 +7,8 @@ using API.PaginationEntities;
 using API.Services.UserOfferServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -65,32 +67,50 @@ namespace API.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateUserJobPost([FromForm]UserJobPostDto userJobPostDto)
         {
-            var currentUserId = HttpContext.User.GetUserId();
-            var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
-            if(user.Credits == 0)
+            try
             {
+                var currentUserId = HttpContext.User.GetUserId();
+                var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
+                if (user.Credits == 0)
+                {
 
+                }
+                if (!Enum.IsDefined(typeof(AdDuration), userJobPostDto.AdDuration))
+                {
+                    return BadRequest("Dužina trajanja oglasa nije ispravna.");
+                }
+                //userJobPostDto.PricingPlanName = PricingPlanName.Base;
+                var validPricingPlans = new List<string> { PricingPlanName.Base, PricingPlanName.Plus, PricingPlanName.Premium };
+                if (!validPricingPlans.Contains(userJobPostDto.PricingPlanName))
+                {
+                    return BadRequest("Paket pretplate oglasa nije ispravna.");
+                }
+
+                userJobPostDto.SubmittingUserId = currentUserId;
+                if (userJobPostDto.CvFile != null)
+                {
+                    var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+                    if (!Directory.Exists(uploadsDir))
+                    {
+                        Directory.CreateDirectory(uploadsDir);
+                    }
+                    var uniqueFileName = Helpers.GetUniqueFileName(uploadsDir, userJobPostDto.CvFile.FileName);
+                    var filePath = Path.Combine(uploadsDir, uniqueFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await userJobPostDto.CvFile.CopyToAsync(stream);
+                    }
+                    userJobPostDto.CvFilePath = filePath;
+                }
+
+                var newItem = await _jobPostService.CreateUserJobPostAsync(userJobPostDto);
+                return Ok(newItem);
             }
-            userJobPostDto.SubmittingUserId = currentUserId;
-            if(userJobPostDto.CvFile != null)
+            catch(Exception ex)
             {
-                var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-                if (!Directory.Exists(uploadsDir))
-                {
-                    Directory.CreateDirectory(uploadsDir);
-                }
-                var uniqueFileName = Helpers.GetUniqueFileName(uploadsDir, userJobPostDto.CvFile.FileName);
-                var filePath = Path.Combine(uploadsDir, uniqueFileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await userJobPostDto.CvFile.CopyToAsync(stream);
-                }
-                userJobPostDto.CvFilePath = filePath;
+                throw;
             }
-
-            var newItem = await _jobPostService.CreateUserJobPostAsync(userJobPostDto);
-            return Ok(newItem);
         }
 
         [HttpPut("update/{id}")]

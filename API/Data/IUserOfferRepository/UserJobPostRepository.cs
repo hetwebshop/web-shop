@@ -93,6 +93,10 @@ namespace API.Data.IUserOfferRepository
         {
             try
             {
+                var pricingPlan = DataContext.PricingPlans.FirstOrDefault(r => r.Name.Equals(newUserJobPost.PricingPlan.Name) && r.AdActiveDays == newUserJobPost.PricingPlan.AdActiveDays);
+                if (pricingPlan == null)
+                    return null;
+                newUserJobPost.PricingPlan = pricingPlan;
                 await DataContext.UserJobPosts.AddAsync(newUserJobPost);
                 var user = DataContext.Users.First(r => r.Id == newUserJobPost.SubmittingUserId);
                 user.Credits -= 1;
@@ -131,7 +135,7 @@ namespace API.Data.IUserOfferRepository
                 existingUserJobPost.UpdatedAt = updatedUserJobPost.UpdatedAt;
                 existingUserJobPost.JobTypeId = updatedUserJobPost.JobTypeId;
                 existingUserJobPost.JobCategoryId = updatedUserJobPost.JobCategoryId;
-                existingUserJobPost.JobPostStatusId = updatedUserJobPost.JobPostStatusId;
+                //existingUserJobPost.JobPostStatusId = updatedUserJobPost.JobPostStatusId;
                 existingUserJobPost.CityId = updatedUserJobPost.CityId;
                 existingUserJobPost.CvFilePath = updatedUserJobPost.CvFilePath;
                 existingUserJobPost.AdTitle = updatedUserJobPost.AdTitle;

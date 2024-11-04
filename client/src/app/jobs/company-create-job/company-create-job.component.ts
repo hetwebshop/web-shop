@@ -13,6 +13,8 @@ import { CompanyJobService } from 'src/app/services/company-job.service';
 import * as moment from 'moment';
 import { JobPostStatus } from 'src/app/models/enums';
 import { ToastrService } from 'src/app/services/toastr.service';
+import { PricingPlan } from 'src/app/models/pricingPlan';
+import { PricingPlanService } from 'src/app/services/pricingPlan.service';
 
 @Component({
   selector: 'app-company-create-job',
@@ -31,15 +33,31 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
   jobTypes: JobType[] = [];
   jobCategories: JobCategory[] = [];
   selectedCategory: any;
+  selectedPlan: string;
+  pricingPlans: PricingPlan[];
+  filteredPricingPlans: PricingPlan[];
 
   constructor(private jobService: JobService, private companyJobService: CompanyJobService, private locationService: LocationService, utility: UtilityService, 
     private route: ActivatedRoute, private cdr: ChangeDetectorRef, 
-    private fb: FormBuilder, private accountService: AccountService, private toastrService: ToastrService, private router: Router) {
+    private fb: FormBuilder, private accountService: AccountService, private pricingPlanService: PricingPlanService, private toastrService: ToastrService, private router: Router) {
     utility.setTitle('Detalji oglasa za posao');
   }
 
   ngOnInit(): void {
     this.form = this.createForm();
+    this.form.get('adDuration')?.valueChanges.subscribe(() => {
+      this.filterPricingPlans();
+    });
+    this.pricingPlanService.getAllPricingPlans()
+      .subscribe(pplans => {
+        this.pricingPlans = pplans;
+        this.selectedPlan = pplans.find(r => r.name === 'Plus').name;
+        if (this.selectedPlan) {
+          this.form.get('pricingPlanName')?.setValue(this.selectedPlan);
+        }
+        this.filterPricingPlans();
+        this.cdr.detectChanges();
+    });
     this.loadCountries();
     this.loadCities();
     this.loadJobTypes();
@@ -74,6 +92,15 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
     });
   }
 
+  filterPricingPlans(): void {
+    const selectedDuration = this.form.get('adDuration')?.value ?? "7";
+    if (this.pricingPlans && this.pricingPlans.length > 0) {
+      this.filteredPricingPlans = this.pricingPlans.filter(r => r.adActiveDays === +selectedDuration);
+    } else {
+      this.filteredPricingPlans = []; // Reset if there are no plans
+    }
+  }
+
   private createForm(): FormGroup {
     return this.fb.group({
       id: new FormControl(0),
@@ -82,10 +109,11 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
       cityId: new FormControl('', Validators.required),
       countryId: new FormControl({ value: null, disabled: true}, Validators.required),
       jobCategoryId: new FormControl('', Validators.required),
-      adDuration: new FormControl(null, Validators.required),
+      adDuration: new FormControl("7", Validators.required),
       position: new FormControl('', Validators.required),
       adName: new FormControl('', Validators.required),
-      emailForReceivingApplications: new FormControl('', [Validators.email, Validators.required])
+      emailForReceivingApplications: new FormControl('', [Validators.email, Validators.required]),
+      pricingPlanName: new FormControl("Plus", Validators.required)
     });
   }
 
@@ -108,7 +136,8 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
       adEndDate: moment(now).add(data.adDuration, 'days'),
       position: data.position,
       adName: data.adName,
-      emailForReceivingApplications: data.emailForReceivingApplications
+      emailForReceivingApplications: data.emailForReceivingApplications,
+      pricingPlanName: data.pricingPlanName
     };
     return model;
   }
@@ -174,5 +203,11 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
+  }
+
+  selectPlan(value: string) {
+    console.log('Selected plan:', value);
+    this.selectedPlan = value;
+    this.form.get('pricingPlanName').setValue(this.selectedPlan); // Update form control value
   }
 }

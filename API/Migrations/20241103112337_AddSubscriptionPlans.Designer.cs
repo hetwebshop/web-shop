@@ -4,6 +4,7 @@ using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20241103112337_AddSubscriptionPlans")]
+    partial class AddSubscriptionPlans
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -104,12 +106,6 @@ namespace API.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(1);
 
-                    b.Property<string>("CompanyCity")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CompanyName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -136,9 +132,6 @@ namespace API.Migrations
                     b.Property<string>("Position")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PricingPlanId")
-                        .HasColumnType("int");
-
                     b.Property<int>("SubmittingUserId")
                         .HasColumnType("int");
 
@@ -156,8 +149,6 @@ namespace API.Migrations
                     b.HasIndex("JobPostStatusId");
 
                     b.HasIndex("JobTypeId");
-
-                    b.HasIndex("PricingPlanId");
 
                     b.HasIndex("SubmittingUserId");
 
@@ -355,10 +346,10 @@ namespace API.Migrations
                     b.Property<decimal?>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("PricingPlanId")
+                    b.Property<int>("SubmittingUserId")
                         .HasColumnType("int");
 
-                    b.Property<int>("SubmittingUserId")
+                    b.Property<int?>("SubscriptionPlanId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -378,9 +369,9 @@ namespace API.Migrations
 
                     b.HasIndex("JobTypeId");
 
-                    b.HasIndex("PricingPlanId");
-
                     b.HasIndex("SubmittingUserId");
+
+                    b.HasIndex("SubscriptionPlanId");
 
                     b.ToTable("UserJobPosts");
                 });
@@ -402,34 +393,6 @@ namespace API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Photos");
-                });
-
-            modelBuilder.Entity("API.Entities.PricingPlan", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("AdActiveDays")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Label")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PriceInCredits")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PricingPlans");
                 });
 
             modelBuilder.Entity("API.Entities.Role", b =>
@@ -460,6 +423,28 @@ namespace API.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+                });
+
+            modelBuilder.Entity("API.Entities.SubscriptionPlan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("AdActiveDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PriceInCredits")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SubscriptionPlans");
                 });
 
             modelBuilder.Entity("API.Entities.User", b =>
@@ -774,12 +759,6 @@ namespace API.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("API.Entities.PricingPlan", "PricingPlan")
-                        .WithMany()
-                        .HasForeignKey("PricingPlanId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.HasOne("API.Entities.User", "User")
                         .WithMany("CompanyJobPosts")
                         .HasForeignKey("SubmittingUserId")
@@ -793,8 +772,6 @@ namespace API.Migrations
                     b.Navigation("JobPostStatus");
 
                     b.Navigation("JobType");
-
-                    b.Navigation("PricingPlan");
 
                     b.Navigation("User");
                 });
@@ -841,17 +818,16 @@ namespace API.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("API.Entities.PricingPlan", "PricingPlan")
-                        .WithMany()
-                        .HasForeignKey("PricingPlanId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.HasOne("API.Entities.User", "User")
                         .WithMany("UserJobPosts")
                         .HasForeignKey("SubmittingUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("API.Entities.SubscriptionPlan", "SubscriptionPlan")
+                        .WithMany()
+                        .HasForeignKey("SubscriptionPlanId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("AdvertisementType");
 
@@ -863,7 +839,7 @@ namespace API.Migrations
 
                     b.Navigation("JobType");
 
-                    b.Navigation("PricingPlan");
+                    b.Navigation("SubscriptionPlan");
 
                     b.Navigation("User");
                 });

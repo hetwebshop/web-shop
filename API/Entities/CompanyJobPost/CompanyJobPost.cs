@@ -26,5 +26,9 @@ namespace API.Entities.CompanyJobPost
         public string AdName { get; set; }
         public string Position { get; set; }
         public string EmailForReceivingApplications { get; set; }
+        public PricingPlan PricingPlan { get; set; }
+        public int PricingPlanId { get; set; }
+        public string CompanyName { get; set; }
+        public string CompanyCity { get; set; }
     }
 }

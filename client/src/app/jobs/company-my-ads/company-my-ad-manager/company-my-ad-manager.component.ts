@@ -106,7 +106,8 @@ export class CompanyMyAdManagerComponent {
       adEndDate: moment(now).add(data.adDuration, 'days'),
       position: data.position,
       adName: data.adName,
-      emailForReceivingApplications: data.emailForReceivingApplications
+      emailForReceivingApplications: data.emailForReceivingApplications,
+      pricingPlanName: this.job.pricingPlanName
     };
     
     return model;
