@@ -54,7 +54,7 @@
 }
 
 .mat-form-field-disabled .mat-form-field-underline {
-  background-color: #2196F3;
+  background-color: #283316;
 }
 
 .readonly-input {
@@ -64,4 +64,19 @@
 .section-title {
   font-weight: 500;
   color: #283316;
+}
+
+.header {
+  background-color: #283316;
+  color: white;
+  border-radius: 8px;
+  padding: 0px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-radius: 8px;
+  padding-top: 10px;
+}
+
+:host ::ng-deep .mat-card-header-text {
+  margin: 0px 0px !important;
 }

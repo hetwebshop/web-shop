@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, ElementRef, Inject, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AdvertisementTypeEnum, Gender } from 'src/app/models/enums';
-import { JobCategory, UserJobPost } from 'src/app/models/userJobPost';
+import { JobCategory, JobType, UserJobPost } from 'src/app/models/userJobPost';
 import { JobService } from 'src/app/services/job.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { DatePipe } from '@angular/common';
@@ -42,6 +42,7 @@ export class UserJobsListComponent {
   isGridView: boolean = true;
   isGridViewUserSelection: boolean = this.isGridView;
   cities: City[];
+  jobTypes: JobType[];
 
   constructor(private cdr: ChangeDetectorRef, private jobService: JobService, utility: UtilityService, private route: ActivatedRoute,
     private router: Router, private datePipe: DatePipe, public dialog: MatDialog,
@@ -70,6 +71,7 @@ export class UserJobsListComponent {
   ngOnInit(): void {
     this.loadCities();
     this.loadJobCategories();
+    this.loadJobTypes();
     this.breakpointObserver.observe([
       "(min-width: 768px)"
     ]).subscribe(result => {
@@ -126,7 +128,7 @@ export class UserJobsListComponent {
   }
 
   getEnumName(value: number): string {
-    return value == AdvertisementTypeEnum.JobAd ? "Posao" : "Servis";
+    return value == AdvertisementTypeEnum.JobAd ? "Posao" : "Usluga";
   }
 
   getFormattedDate(date: Date): string {
@@ -135,6 +137,17 @@ export class UserJobsListComponent {
 
   getCityName(cityId: number) : string {
     return this.cities.find(r => r.id == cityId)?.name;
+  }
+
+  loadJobTypes(): void {
+    this.jobService.getJobTypes()
+      .subscribe(types => {
+        this.jobTypes = types
+      });
+  }
+
+  getJobType(jobTypeId: number): string {
+    return this.jobTypes?.find(r => r.id == jobTypeId)?.name;
   }
 
   loadCities(): void {

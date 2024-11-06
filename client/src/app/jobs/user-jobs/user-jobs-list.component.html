@@ -59,7 +59,7 @@
         </button>
       </div>
       <div [ngClass]="{'container': isGridView}" [ngStyle]="{'margin-bottom': isGridView ? '200px' : '0px'}">
-        <div *ngFor="let job of allJobs$ | async" class="item" [ngStyle]="{'margin-bottom': '10px', 'max-height': isGridView ? '430px' : 'none'}">
+        <div *ngFor="let job of allJobs$ | async" class="item" [ngStyle]="{'margin-bottom': '10px', 'max-height': isGridView ? '450px' : 'none'}">
           <mat-card class="job-card">
             <a class="job-link" [routerLink]="['/ads', job.id]">
               <mat-card-header fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
@@ -72,8 +72,12 @@
                     {{ job.applicantLastName }}</p>
                   <p><span style="font-size: 15px; font-weight: 500;">Kategorija:</span> {{
                     getCategoryName(job.jobCategoryId) }}</p>
+                  <p *ngIf="isJobAd"><span style="font-size: 15px; font-weight: 500;">Tip posla:</span> {{
+                    getJobType(job?.jobTypeId) }}</p>
                     <p><span style="font-size: 15px; font-weight: 500;">Lokacija:</span> {{
                     getCityName(job?.cityId) }}</p>
+                  <p style="font-size: 19px;" *ngIf="!isJobAd"><span style="font-size: 19px; font-weight: 500;">Cijena:</span> {{
+                    job?.price ?? 0 }} KM</p>
                 </div>
                 <div fxFlex>
                   <p style="min-width: 100px;">

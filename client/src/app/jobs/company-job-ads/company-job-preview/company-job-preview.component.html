@@ -1,37 +1,48 @@
 <div class="job-details-container">
   <div class="job-details-content">
-    <div fxLayout="row" fxLayoutAlign="space-between" class="top-buttons">
+    <!-- <div fxLayout="row" fxLayoutAlign="space-between" class="top-buttons">
       <button mat-button class="back-button" backButton>
         <mat-icon class="icon">arrow_back</mat-icon>
         <span>Nazad</span>
       </button>
-    </div>
+    </div> -->
 
     <ng-container *ngIf="job != null && job != undefined">
-      <div style="display: flex; justify-content: center;">
-        <h1 class="section-title">Detalji oglasa za posao</h1>
+      <div
+        style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 20px; margin-bottom: 20px;">
+
+        <!-- Title Card -->
+        <mat-card style="border: 1px solid #283316; display: flex; justify-content: center; 
+             text-align: center; padding: 20px; width: 100%; max-width: 600px; background-color: #eee9e0;">
+          <h1 class="section-title">Detalji oglasa za posao</h1>
+
+        </mat-card>
       </div>
-      <mat-card class="main-card" style="border: 1px solid #00ACC1">
-        <mat-card-header>
+      <mat-card class="main-card" style="border: 1px solid #283316; margin-bottom: 20px;">
+        <mat-card-header class="header" style="border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; padding-left: 22px;">
           <h2>{{ job?.adName }}</h2>
-          <h2>{{ job?.position }}</h2>
+        </mat-card-header>
+        <mat-card-header fxLayout="row" fxLayoutAlign="space-between" style="background-color: #FFEBEE; padding-top: 10px; padding-left: 22px;">
+          <div fxFlex="grow">
+            <h2><strong>Pozicija -</strong> {{ job?.position }}</h2>
+            <h4><strong>Kategorija posla -</strong> {{ getCategoryName(job?.jobCategoryId) }}</h4>
+            <h4><strong>Tip posla -</strong> {{ getJobType(job?.jobTypeId) }}</h4>
+            <!-- <h4><strong>Datum početka objave -</strong> {{ job?.adStartDate | date: 'dd.MM.yyyy' }}</h4>
+            <h4><strong>Datum kraja objave -</strong> {{ job?.adEndDate | date: 'dd.MM.yyyy' }}</h4> -->
+          </div>
+          <mat-card-actions style="margin-right: 16px;">
+            <button *ngIf="job?.emailForReceivingApplications" mat-raised-button style="color: #edd79c; background-color: #283316;"
+              (click)="openSubmitApplicationModal(job?.emailForReceivingApplications)">Apliciraj na oglas</button>
+          </mat-card-actions>
         </mat-card-header>
         <mat-card-content fxLayout="row" fxLayoutAlign="space-between" class="header-content">
           <div fxFlex="grow">
-            <h4><strong>Kategorija posla -</strong> {{ getCategoryName(job?.jobCategoryId) }}</h4>
-            <h4><strong>Tip posla -</strong> {{ getJobType(job?.jobTypeId) }}</h4>
             <p><strong>Opis posla -</strong> <span>{{ job?.jobDescription }}</span></p>
-            <h4><strong>Datum početka objave -</strong> {{ job?.adStartDate | date: 'dd.MM.yyyy' }}</h4>
-            <h4><strong>Datum kraja objave -</strong> {{ job?.adEndDate | date: 'dd.MM.yyyy' }}</h4>
-          </div>
-          <div fxFlex class="apply-button">
-            <mat-card-actions>
-              <button *ngIf="job?.emailForReceivingApplications" mat-raised-button color="primary" (click)="openSubmitApplicationModal(job?.emailForReceivingApplications)">Apliciraj na oglas</button>
-            </mat-card-actions>
           </div>
         </mat-card-content>
         <mat-card-actions class="bottom-apply-button">
-          <button *ngIf="job?.emailForReceivingApplications" mat-raised-button color="primary" (click)="openSubmitApplicationModal(job?.emailForReceivingApplications)">Apliciraj na oglas</button>
+          <button *ngIf="job?.emailForReceivingApplications" mat-raised-button style="color: #edd79c; background-color: #283316;"
+            (click)="openSubmitApplicationModal(job?.emailForReceivingApplications)">Apliciraj na oglas</button>
         </mat-card-actions>
       </mat-card>
     </ng-container>

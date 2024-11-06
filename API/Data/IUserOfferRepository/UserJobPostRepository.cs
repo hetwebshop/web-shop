@@ -65,8 +65,11 @@ namespace API.Data.IUserOfferRepository
                 );
             }
 
-            userJobPosts = userJobPosts.Include(u => u.PricingPlan);
-            userJobPosts = _sortHelper.ApplySort(userJobPosts, adsParameters.OrderBy);
+            userJobPosts = userJobPosts
+                .Include(u => u.PricingPlan)
+                .OrderBy(u => u.PricingPlan.Priority)
+                .ThenByDescending(u => u.AdStartDate);
+           // userJobPosts = _sortHelper.ApplySort(userJobPosts, adsParameters.OrderBy);
             return await PagedList<UserJobPost>.ToPagedListAsync(userJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }
 

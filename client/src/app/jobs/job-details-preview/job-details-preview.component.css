@@ -1,5 +1,3 @@
-
-
 .job-details-content {
   flex-grow: 1;
 }
@@ -61,38 +59,139 @@
 }
 
 .mat-form-field-disabled .mat-form-field-wrapper {
-  background-color: transparent; /* Change background color */
+  background-color: transparent;
+  /* Change background color */
 }
 
 .mat-form-field-disabled .mat-form-field-label {
-  color: black; /* Change label color */
+  color: black;
+  /* Change label color */
 }
 
 .mat-form-field-disabled .mat-form-field-underline {
-  background-color: #2196F3; /* Change underline color */
+  background-color: #2196F3;
+  /* Change underline color */
 }
 
 .readonly-input {
-  cursor: default; /* Prevent cursor change */
+  cursor: default;
+  /* Prevent cursor change */
 }
+
 .email-button {
   background-color: #c5b391;
   color: #283316;
   transition: background-color 0.3s;
 
   &:hover {
-    background-color: #a8996e; /* Darker version of #c5b391 */
+    background-color: #a8996e;
+    /* Darker version of #c5b391 */
   }
+
   .email-icon {
-      margin-right: 4px; /* Space between icon and text */
-    }
+    margin-right: 4px;
+    /* Space between icon and text */
+  }
 }
+
 .custom-modal-background {
-  background-color: #c5b391; /* Set to your desired color */
-  color: #283316; /* Optional: Set text color if needed */
+  background-color: #c5b391;
+  /* Set to your desired color */
+  color: #283316;
+  /* Optional: Set text color if needed */
 }
 
 ::ng-deep .mat-dialog-container {
   background-color: #faf8f6 !important;
   color: #283316;
+}
+
+.job-card mat-card-header {
+  background-color: #283316;
+  /* Light teal background for the header */
+  color: #edd79c;
+  /* Dark teal text for contrast */
+}
+
+.header {
+  background-color: #283316;
+  color: white;
+  border-radius: 8px;
+  padding: 0px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-radius: 0;
+  padding-top: 10px;
+}
+
+.badge {
+  width: 100%;
+  height: 40px;
+  color: white;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  font-size: 25px;
+  border-radius: 9px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Badge Colors for Different Packages */
+.badge.Base {
+  background-color: #336699 !important;
+  color: white !important;
+}
+
+.badge.Plus {
+  background-color: #FF9800  !important;
+  color: white !important;
+}
+
+.badge.Premium {
+  background-color: #8E44AD !important;
+  color: white !important;
+}
+
+.actions-container {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 10px;
+  /* Adjust spacing as needed */
+}
+
+
+.subsection-title {
+  font-size: 1.5em;
+  margin-bottom: 15px;
+}
+
+.education-title {
+  font-weight: bold;
+  color: #edd79c; /* Customize title color */
+}
+
+.education-card {
+  background-color: #c5b391;
+  padding: 0;
+  border-radius: 0px;
+  margin-bottom: 15px;
+}
+
+mat-divider {
+  margin-top: 10px;
+}
+
+
+
+.education-header {
+  padding-top: 10px;
+}
+
+.education-content {
+  background-color: #c5b391;
+  margin-left: 16px;
+  margin-top: 20px;
+  margin-bottom: 20px;
 }

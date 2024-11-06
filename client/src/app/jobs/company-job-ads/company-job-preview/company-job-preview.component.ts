@@ -8,10 +8,12 @@ import { User } from 'src/app/modal/user';
 import { CompanyJobPost } from 'src/app/models/companyJobAd';
 import { AdvertisementTypeEnum } from 'src/app/models/enums';
 import { AdsPaginationParameters } from 'src/app/models/filterCriteria';
+import { City } from 'src/app/models/location';
 import { JobCategory, JobType, UserJobPost } from 'src/app/models/userJobPost';
 import { AccountService } from 'src/app/services/account.service';
 import { CompanyJobService } from 'src/app/services/company-job.service';
 import { JobService } from 'src/app/services/job.service';
+import { LocationService } from 'src/app/services/location.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { FiltersQuery } from 'src/app/store/filters/filters.query';
 import { FiltersStore } from 'src/app/store/filters/filters.store';
@@ -28,9 +30,8 @@ import { JobTypeQuery } from 'src/app/store/jobsHelpers/job-type.query';
 export class CompanyJobPreviewComponent implements OnInit, OnDestroy {
   job: CompanyJobPost;
   jobCategories: JobCategory[];
-  jobCategories$ = this.jobCategoryQuery.selectAll();
   jobTypes: JobType[];
-  jobTypes$ = this.jobTypeQuery.selectAll();
+  cities: City[];
   private subscription: Subscription;
   user: User;
   
@@ -42,13 +43,16 @@ export class CompanyJobPreviewComponent implements OnInit, OnDestroy {
     private router: Router, 
     private accountService: AccountService,
     public dialog: MatDialog,
+    private locationService: LocationService,
     private adsStore: AdsStore) {
     utility.setTitle('Detalji oglasa');
     this.accountService.user$.subscribe((u) => (this.user = u));
   }
 
   ngOnInit(): void {
-
+    this.loadJobTypes();
+    this.loadJobCategories();
+    this.loadCities();
     this.subscription = this.route.params
       .pipe(
         map(params => params['id']),
@@ -73,6 +77,35 @@ export class CompanyJobPreviewComponent implements OnInit, OnDestroy {
   
     getJobType(jobTypeId: number): string {
       return this.jobTypes?.find(r => r.id == jobTypeId)?.name;
+    }
+
+    getCityName(cityId: number) : string {
+      return this.cities?.find(r => r.id == cityId)?.name;
+    }
+  
+
+    loadCities(): void {
+      this.locationService.getCities()
+        .subscribe(cities => {
+          this.cities = cities;
+          this.cdr.detectChanges();
+        });
+    }
+  
+    loadJobCategories(): void {
+      this.jobService.getJobCategories()
+        .subscribe(categories => {
+          this.jobCategories = categories.filter(r => r.parentId == null);
+          this.cdr.detectChanges();
+        });
+    }
+
+    loadJobTypes(): void {
+      this.jobService.getJobTypes()
+        .subscribe(types => {
+          this.jobTypes = types;
+          this.cdr.detectChanges();
+        });
     }
     
     openSubmitApplicationModal(toEmail: string) {

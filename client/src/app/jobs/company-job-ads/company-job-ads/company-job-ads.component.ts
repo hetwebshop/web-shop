@@ -36,7 +36,7 @@ export class CompanyJobAdsComponent {
   user: User;
   paginationResponse: PagedResponse<CompanyJobPost>;
   paginationParameters: AdsPaginationParameters;
-  filters = this.filtersQuery.getAll();
+  filters = [];
   jobCategories: JobCategory[];
   jobTypes: JobType[];
   cities: City[];
