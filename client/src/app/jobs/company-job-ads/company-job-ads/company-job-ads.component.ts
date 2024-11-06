@@ -22,6 +22,8 @@ import { SubmitApplicationModalComponent } from 'src/app/modal/submit-applicatio
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { LocationService } from 'src/app/services/location.service';
 import { City } from 'src/app/models/location';
+import { PricingPlanService } from 'src/app/services/pricingPlan.service';
+import { PricingPlan } from 'src/app/models/pricingPlan';
 
 @Component({
   selector: 'app-company-job-ads',
@@ -46,7 +48,7 @@ export class CompanyJobAdsComponent {
   constructor(private jobService: JobService, private companyJobService: CompanyJobService, utility: UtilityService, private route: ActivatedRoute,
     private router: Router, private datePipe: DatePipe, public dialog: MatDialog,
     private accountService: AccountService, private filtersStore: FiltersStore, private breakpointObserver: BreakpointObserver,
-    private filtersQuery: FiltersQuery, private jobCategoryQuery: JobCategoryQuery, private locationService: LocationService, private jobTypeQuery: JobTypeQuery) {
+    private filtersQuery: FiltersQuery, private jobCategoryQuery: JobCategoryQuery, private pricingPlanService: PricingPlanService, private locationService: LocationService, private jobTypeQuery: JobTypeQuery) {
     utility.setTitle('Oglasi kompanije');
     this.accountService.user$.subscribe((u) => (this.user = u));
   }
@@ -138,6 +140,10 @@ export class CompanyJobAdsComponent {
 
   getCityName(cityId: number) : string {
     return this.cities.find(r => r.id == cityId).name;
+  }
+
+  getPricingPlanLabel(pricingPlanName: string) : string {
+    return pricingPlanName == "Base" ? "Bazni" : pricingPlanName;
   }
 
   openSubmitApplicationModal(toEmail: string, jobPosition: string) {

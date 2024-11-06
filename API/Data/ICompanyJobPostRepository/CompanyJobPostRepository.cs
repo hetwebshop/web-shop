@@ -57,6 +57,7 @@ namespace API.Data.ICompanyJobPostRepository
                 );
             }
 
+            companyJobPosts = companyJobPosts.Include(u => u.PricingPlan);
             companyJobPosts = _sortHelper.ApplySort(companyJobPosts, adsParameters.OrderBy);
             return await PagedList<CompanyJobPost>.ToPagedListAsync(companyJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }

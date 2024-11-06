@@ -5,16 +5,14 @@
     border-radius: 8px;
     border: 1px solid #283316; /* Vibrant teal border */
     background-color: #FFFFFF; /* White background */
-}
-
-.job-card {
     transition: box-shadow 0.3s, border-color 0.3s;
-
+    position: relative;
+    height: 100%; 
+    padding: 0px;
     &:hover {
       box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4); /* Darker and larger shadow */
       border-color: #a8996e; /* Slightly darker border color on hover */
     }
-
 }
 
 .job-card mat-card-header {
@@ -27,9 +25,14 @@
     padding-left: 20px;
     color: #333; /* Dark grey text for readability */
     text-decoration: none;
+    border-top: 1px solid #283316;
     &:hover {
         text-decoration: none;
     }
+}
+
+.card-actions {
+    padding-left: 20px;
 }
 
 .job-info h4, .job-details h4 {
@@ -42,10 +45,6 @@
 .job-info p, .job-details p {
     margin-bottom: 12px;
     line-height: 1.6; /* Improved line height for readability */
-}
-
-.job-details, .job-info {
-    border-top: 1px solid #283316; /* Light teal border */
 }
 
 .job-link {
@@ -125,4 +124,29 @@
     flex: 45%; /* or - flex: 0 50% - or - flex-basis: 50% - */
     /*demo*/
     margin-bottom: 10px;
+  }
+
+  .badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    padding: 10px 15px;
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+    border-radius: 5px;
+    text-transform: uppercase;
+  }
+  
+  /* Badge Colors for Different Packages */
+  .badge.Base {
+    background-color: #336699;
+  }
+  
+  .badge.Plus {
+    background-color: #FF9800;
+  }
+  
+  .badge.Premium {
+    background-color: #8E44AD;
   }

@@ -59,11 +59,14 @@
         </button>
       </div>
       <div [ngClass]="{'container': isGridView}" [ngStyle]="{'margin-bottom': isGridView ? '200px' : '0px'}">
-        <div *ngFor="let job of allJobs$ | async" class="item" [ngStyle]="{'margin-bottom': '10px', 'max-height': isGridView ? '400px' : 'none'}">
-          <mat-card class="job-card" style="height: 100%;">
+        <div *ngFor="let job of allJobs$ | async" class="item" [ngStyle]="{'margin-bottom': '10px', 'max-height': isGridView ? '430px' : 'none'}">
+          <mat-card class="job-card">
             <a class="job-link" [routerLink]="['/ads', job.id]">
               <mat-card-header fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
                 <div fxFlex="grow">
+                  <div class="badge" [ngClass]="job.pricingPlanName">
+                    {{ getPricingPlanLabel(job.pricingPlanName) }}
+                  </div>
                   <mat-card-title>{{ job.adTitle ?? "Nema naslov" }}</mat-card-title>
                   <p><span style="font-size: 15px; font-weight: 500;">Ime i prezime:</span> {{ job.applicantFirstName }}
                     {{ job.applicantLastName }}</p>
@@ -117,13 +120,13 @@
                     </ng-container>
                   </p>
                 </div>
-                <div class="job-details" style="height: 100px;">
+                <div class="job-details">
                   <h2>Biografija</h2>
                   <p>{{ job.biography | truncate:150:false }}</p>
                 </div>
               </mat-card-content>
             </a>
-            <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
+            <div fxLayout="row" fxLayoutGap="10px" class="card-actions">
               <button *ngIf="job.applicantEmail" class="email-button" mat-raised-button (click)="openEmailModal(job.applicantEmail)" color="accent">
                 <mat-icon class="email-icon">email</mat-icon>
                 <span class="button-text">Kontaktiraj mailom</span>

@@ -31,6 +31,7 @@ namespace API.Data.IUserOfferRepository
                 Include(r => r.User).
                 Include(r => r.ApplicantEducations).
                 //Include(r => r.UserJobSubcategories).
+                Include(r => r.PricingPlan).
                 Include(r => r.City).
                 ThenInclude(r => r.Country);
         }
@@ -64,6 +65,7 @@ namespace API.Data.IUserOfferRepository
                 );
             }
 
+            userJobPosts = userJobPosts.Include(u => u.PricingPlan);
             userJobPosts = _sortHelper.ApplySort(userJobPosts, adsParameters.OrderBy);
             return await PagedList<UserJobPost>.ToPagedListAsync(userJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }

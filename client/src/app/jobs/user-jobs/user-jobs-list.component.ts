@@ -106,6 +106,10 @@ export class UserJobsListComponent {
     this.showFilters = !this.showFilters;
   }
 
+  getPricingPlanLabel(pricingPlanName: string) : string {
+    return pricingPlanName == "Base" ? "Bazni" : pricingPlanName;
+  }
+
   loadJobCategories(): void {
     this.jobService.getJobCategories()
       .subscribe(categories => {

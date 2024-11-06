@@ -43,11 +43,14 @@
           </button>
         </div>
         <div [ngClass]="{'container': isGridView}" [ngStyle]="{'margin-bottom': isGridView ? '200px' : '0px'}">
-          <div *ngFor="let job of allJobs$ | async" class="job-link" [ngStyle]="{'margin-bottom': '30px', 'max-height': isGridView ? '400px' : 'none'}">
-            <mat-card class="job-card" style="height: 100%;">
+          <div *ngFor="let job of allJobs$ | async" class="job-link" [ngStyle]="{'margin-bottom': '0px', 'max-height': isGridView ? '430px' : 'none'}">
+            <mat-card class="job-card" [ngStyle]="{'padding-bottom': !isGridView ? '15px' : '0px'}">
               <a class="job-link" [routerLink]="['/company-job-ads', job.id]">
                 <mat-card-header fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
                   <div fxFlex="grow">
+                    <div class="badge" [ngClass]="job.pricingPlanName">
+                      {{ getPricingPlanLabel(job.pricingPlanName) }}
+                    </div>
                     <mat-card-title>{{ job.adName }}</mat-card-title>
                     <p><span style="font-size: 15px; font-weight: 500;">Pozicija:</span> {{ job.position }}</p>
                     <p><span style="font-size: 15px; font-weight: 500;">Kategorija:</span> {{
@@ -75,7 +78,7 @@
                   </div>
                 </mat-card-content>
               </a>
-              <div>
+              <div class="card-actions">
                 <button *ngIf="job.emailForReceivingApplications" mat-raised-button
                   (click)="openSubmitApplicationModal(job.emailForReceivingApplications, job.position)" style="color: #edd79c; background-color: #283316;">Prijavi
                   se na oglas</button>
