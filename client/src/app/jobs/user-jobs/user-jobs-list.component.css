@@ -1,152 +1,16 @@
-/* Job Card Styles */
-.job-card {
-    margin-bottom: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    border: 1px solid #283316; /* Vibrant teal border */
-    background-color: #FFFFFF; /* White background */
-    transition: box-shadow 0.3s, border-color 0.3s;
-    position: relative;
-    height: 100%; 
-    padding: 0px;
-    &:hover {
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4); /* Darker and larger shadow */
-      border-color: #a8996e; /* Slightly darker border color on hover */
-    }
+.item {
+  width: 100%;
 }
 
-.job-card mat-card-header {
-    background-color: #283316; /* Light teal background for the header */
-    color: #edd79c; /* Dark teal text for contrast */
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2%;
 }
 
-.job-info, .job-details {
-    padding: 15px;
-    padding-left: 20px;
-    color: #333; /* Dark grey text for readability */
-    text-decoration: none;
-    border-top: 1px solid #283316;
-    &:hover {
-        text-decoration: none;
-    }
+.container>div {
+  flex: 45%;
+  /* or - flex: 0 50% - or - flex-basis: 50% - */
+  /*demo*/
+  margin-bottom: 10px;
 }
-
-.card-actions {
-    padding-left: 20px;
-}
-
-.job-info h4, .job-details h4 {
-    margin-top: 0;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #283316; /* Dark teal for headings */
-}
-
-.job-info p, .job-details p {
-    margin-bottom: 12px;
-    line-height: 1.6; /* Improved line height for readability */
-}
-
-.job-link {
-    color: #283316; /* Bright blue color for links */
-    text-decoration: none;
-}
-
-/* .job-link:hover {
-    text-decoration: underline;
-} */
-
-:host ::ng-deep .mat-card-header-text {
-    margin: 8px !important;
-}
-
-:host ::ng-deep .mat-card-content {
-    margin-bottom: 0px !important;
-}
-
-/* Filter Drawer */
-.filter-drawer {
-    width: 250px;
-}
-
-.mat-card-header {
-    border-radius: 4px 4px 0 0; /* Rounded corners on top */
-    padding: 16px; /* Adjust as needed */
-    background-color: #283316; /* Light teal background for the header */
-    color: #edd79c; 
-}
-
-.mat-card-header-content {
-    margin: 0; /* Adjust if needed */
-}
-
-.mat-card-header {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.email-button {
-    background-color: #c5b391;
-    color: #283316;
-    transition: background-color 0.3s;
-  
-    &:hover {
-      background-color: #a8996e; /* Darker version of #c5b391 */
-    }
-    .email-icon {
-        margin-right: 4px; /* Space between icon and text */
-      }
-  }
-  
-  .cv-button {
-    background-color: #242d13;
-    color: #c5b391;
-    margin-left: 10px;
-    transition: background-color 0.3s;
-  
-    &:hover {
-      background-color: #3a4623; /* Lighter version of #242d13 */
-    }
-    .cv-icon {
-        margin-right: 4px; /* Space between icon and text */
-      }
-  }
-  .item {
-    width: 100%;
-  }
-  
-  .container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2%;
-  }
-  
-  .container > div {
-    flex: 45%; /* or - flex: 0 50% - or - flex-basis: 50% - */
-    /*demo*/
-    margin-bottom: 10px;
-  }
-
-  .badge {
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    padding: 10px 15px;
-    color: white;
-    font-weight: bold;
-    font-size: 12px;
-    border-radius: 5px;
-    text-transform: uppercase;
-  }
-  
-  /* Badge Colors for Different Packages */
-  .badge.Base {
-    background-color: #336699;
-  }
-  
-  .badge.Plus {
-    background-color: #FF9800;
-  }
-  
-  .badge.Premium {
-    background-color: #8E44AD;
-  }

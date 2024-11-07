@@ -37,9 +37,6 @@ export class CompanyJobAdsComponent {
   paginationResponse: PagedResponse<CompanyJobPost>;
   paginationParameters: AdsPaginationParameters;
   filters = [];
-  jobCategories: JobCategory[];
-  jobTypes: JobType[];
-  cities: City[];
   showFilters: boolean = false;
   isGridView: boolean = true;
   isGridViewUserSelection: boolean = this.isGridView;
@@ -71,9 +68,6 @@ export class CompanyJobAdsComponent {
         {this.isLargeScreen = false;
         this.isGridView = false;}
     });
-    this.loadJobCategories();
-    this.loadJobTypes();
-    this.loadCities();
 
     if(this.filters && this.filters.length > 0){
       this.fetchPaginatedItems(this.filters[0]);
@@ -81,40 +75,6 @@ export class CompanyJobAdsComponent {
     else {
       this.fetchPaginatedItems();
     }
-  }
-
-  loadJobCategories(): void {
-    this.jobService.getJobCategories()
-      .subscribe(categories => {
-        this.jobCategories = categories.filter(r => r.parentId == null);
-        console.log("Job categories" + JSON.stringify(this.jobCategories));
-      });
-  }
-
-  loadCities(): void {
-    this.locationService.getCities()
-      .subscribe(cities => {
-        this.cities = cities;
-      });
-  }
-
-  loadJobTypes(): void {
-    this.jobService.getJobTypes()
-      .subscribe(types => {
-        this.jobTypes = types
-      });
-  }
-
-  getCategoryName(jobCategoryId: number): string {
-    return this.jobCategories?.find(r => r.id == jobCategoryId)?.name;
-  }
-
-  getJobType(jobTypeId: number): string {
-    return this.jobTypes?.find(r => r.id == jobTypeId)?.name;
-  }
-
-  getFormattedDate(date: Date): string {
-    return this.datePipe.transform(date, 'dd.MM.yyyy');
   }
 
   fetchPaginatedItems(filterCriteria?: AdsPaginationParameters): void {  
@@ -136,14 +96,6 @@ export class CompanyJobAdsComponent {
         return response.items;
       })
     );
-  }
-
-  getCityName(cityId: number) : string {
-    return this.cities.find(r => r.id == cityId).name;
-  }
-
-  getPricingPlanLabel(pricingPlanName: string) : string {
-    return pricingPlanName == "Base" ? "Bazni" : pricingPlanName;
   }
 
   openSubmitApplicationModal(toEmail: string, jobPosition: string) {

@@ -32,7 +32,6 @@ export class UserJobsListComponent {
   paginationResponse: PagedResponse<UserJobPost>;
   paginationParameters: AdsPaginationParameters;
   filters = this.filtersQuery.getAll();
-  jobCategories: JobCategory[];
   isLargeScreen = true;
   isJobAd: boolean;
   selectedFilePath: string | null = null;
@@ -41,8 +40,6 @@ export class UserJobsListComponent {
   showFilters: boolean = false;
   isGridView: boolean = true;
   isGridViewUserSelection: boolean = this.isGridView;
-  cities: City[];
-  jobTypes: JobType[];
 
   constructor(private cdr: ChangeDetectorRef, private jobService: JobService, utility: UtilityService, private route: ActivatedRoute,
     private router: Router, private datePipe: DatePipe, public dialog: MatDialog,
@@ -69,9 +66,6 @@ export class UserJobsListComponent {
   }
 
   ngOnInit(): void {
-    this.loadCities();
-    this.loadJobCategories();
-    this.loadJobTypes();
     this.breakpointObserver.observe([
       "(min-width: 768px)"
     ]).subscribe(result => {
@@ -108,54 +102,10 @@ export class UserJobsListComponent {
     this.showFilters = !this.showFilters;
   }
 
-  getPricingPlanLabel(pricingPlanName: string) : string {
-    return pricingPlanName == "Base" ? "Bazni" : pricingPlanName;
-  }
-
-  loadJobCategories(): void {
-    this.jobService.getJobCategories()
-      .subscribe(categories => {
-        this.jobCategories = categories.filter(r => r.parentId == null);
-      });
-  }
-
-  getCategoryName(jobCategoryId: number): string {
-    return this.jobCategories?.find(r => r.id == jobCategoryId)?.name;
-  }
-
   getEnumValue(name: string): AdvertisementTypeEnum {
     return AdvertisementTypeEnum[name as keyof typeof AdvertisementTypeEnum];
   }
 
-  getEnumName(value: number): string {
-    return value == AdvertisementTypeEnum.JobAd ? "Posao" : "Usluga";
-  }
-
-  getFormattedDate(date: Date): string {
-    return this.datePipe.transform(date, 'dd.MM.yyyy');
-  }
-
-  getCityName(cityId: number) : string {
-    return this.cities.find(r => r.id == cityId)?.name;
-  }
-
-  loadJobTypes(): void {
-    this.jobService.getJobTypes()
-      .subscribe(types => {
-        this.jobTypes = types
-      });
-  }
-
-  getJobType(jobTypeId: number): string {
-    return this.jobTypes?.find(r => r.id == jobTypeId)?.name;
-  }
-
-  loadCities(): void {
-    this.locationService.getCities()
-      .subscribe(cities => {
-        this.cities = cities;
-      });
-  }
   
   fetchPaginatedItems(filterCriteria?: AdsPaginationParameters): void {  
     if(filterCriteria) {
@@ -178,34 +128,6 @@ export class UserJobsListComponent {
     );
   }
 
-  openEmailModal(toEmail: string) {
-    console.log(toEmail);
-    const fromEmail = this.user.email ?? '';
-    const dialogRef = this.dialog.open(EmailModalComponent, {
-      width: '800px',
-      data: { fromEmail, toEmail }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result === true) {
-        // Perform cancellation action here
-        console.log('Changes canceled');
-      }
-    });
-  }
-
-  previewUserCV(fileName: string, event: Event) {
-    event.preventDefault();
-    event.stopPropagation();
-    this.jobService.getCVFileByName(fileName).subscribe((fileBlob) => {
-      const blobUrl = URL.createObjectURL(fileBlob);
-      this.selectedFilePath = blobUrl;
-      this.dialog.open(this.filePreviewModal, {
-        width: '80%',
-        height: 'auto',
-      });
-    })
-  }
   @ViewChild('itemListContainer') itemListContainer!: ElementRef;
     onPageChange(pageNumber: number) {
     this.paginationParameters = { ...this.paginationParameters, pageNumber: pageNumber };

@@ -82,6 +82,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { registerLocaleData } from '@angular/common';
 import localeBS from '@angular/common/locales/bs';
+import { BaseAdCardComponent } from './components/base-ad-card/base-ad-card.component';
 
 registerLocaleData(localeBS);
 
@@ -149,7 +150,8 @@ export class HammerConfig extends HammerGestureConfig {
     CompanyMyAdsComponent,
     CompanyMyAdsWrapperComponent,
     CompanyMyAdManagerComponent,
-    FilterPipe
+    FilterPipe,
+    BaseAdCardComponent
   ],
   imports: [
     BrowserModule,

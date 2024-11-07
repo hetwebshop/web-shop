@@ -28,11 +28,7 @@ export class MyAdsComponent {
   closedAdsPaginationResponse: PagedResponse<UserJobPost>;
   deletedAdsPaginationResponse: PagedResponse<UserJobPost>;
   paginationParameters: AdsPaginationParameters;
-  jobCategories: JobCategory[];
-  cities: City[];
-
   activeTabJobStatus: JobPostStatus = JobPostStatus.Active;
-  genderMap = Gender; 
 
   
   constructor(private jobService: JobService, private locationService: LocationService, utility: UtilityService,
@@ -42,25 +38,9 @@ export class MyAdsComponent {
   }
 
   ngOnInit(): void {
-    this.loadJobCategories();
-    this.loadCities();
     this.fetchPaginatedItems();
   }
   
-  loadCities(): void {
-    this.locationService.getCities()
-      .subscribe(cities => {
-        this.cities = cities;
-      });
-  }
-
-  loadJobCategories(): void {
-    this.jobService.getJobCategories()
-      .subscribe(categories => {
-        this.jobCategories = categories.filter(r => r.parentId == null);
-        console.log("Job categories" + JSON.stringify(this.jobCategories));
-      });
-  }
 
   fetchPaginatedItems(filterCriteria?: AdsPaginationParameters, isPaginationChangedByUserEvent: boolean = false): void {
     if (filterCriteria) {
@@ -103,33 +83,6 @@ export class MyAdsComponent {
         console.error('Error fetching jobs:', error);
       }
     );
-  }
-
-  getCityName(cityId: number) : string {
-    return this.cities.find(r => r.id == cityId).name;
-  }
-
-  getCategoryName(jobCategoryId: number): string | undefined {
-    return this.jobCategories?.find(r => r.id === jobCategoryId)?.name;
-  }
-  getEnumValue(name: string): AdvertisementTypeEnum {
-    return AdvertisementTypeEnum[name as keyof typeof AdvertisementTypeEnum];
-  }
-
-  getStatusEnumValue(value: number): string {
-    return value == JobPostStatus.Active ? "Aktivan Oglas" : value == JobPostStatus.Closed ? "Završen Oglas" : "Obrisan Oglas";
-  }
-
-  getEnumName(value: number): string {
-    return value === AdvertisementTypeEnum.JobAd ? "Posao" : "Usluga";
-  }
-
-  getFormattedDate(date: Date): string {
-    return this.datePipe.transform(date, 'dd.MM.yyyy');
-  }
-
-  genderName(gender: Gender): string {
-    return this.genderMap[gender] || 'Ostali';
   }
 
   onPageChange(pageNumber: number) {

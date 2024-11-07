@@ -26,8 +26,6 @@ import { City } from 'src/app/models/location';
 export class CompanyMyAdsComponent {
   paginationResponse: PagedResponse<CompanyJobPost>;
   paginationParameters: AdsPaginationParameters;
-  jobCategories: JobCategory[];
-  jobTypes: JobType[];
   activeTabJobStatus: JobPostStatus = JobPostStatus.Active;
   activeJobs: CompanyJobPost[];
   closedJobs: CompanyJobPost[];
@@ -35,7 +33,6 @@ export class CompanyMyAdsComponent {
   activeAdsPaginationResponse: PagedResponse<CompanyJobPost>;
   closedAdsPaginationResponse: PagedResponse<CompanyJobPost>;
   deletedAdsPaginationResponse: PagedResponse<CompanyJobPost>;
-  cities: City[];
 
   constructor(private jobService: JobService, private companyJobService: CompanyJobService, private locationService: LocationService, utility: UtilityService, private datePipe: DatePipe, private jobCategoryQuery: JobCategoryQuery,
     private jobTypeQuery: JobTypeQuery
@@ -44,28 +41,7 @@ export class CompanyMyAdsComponent {
   }
 
   ngOnInit(): void {
-    this.loadJobCategories();
-    this.loadCities();
     this.fetchPaginatedItems();
-  }
-
-  loadJobCategories(): void {
-    this.jobService.getJobCategories()
-      .subscribe(categories => {
-        this.jobCategories = categories.filter(r => r.parentId == null);
-        console.log("Job categories" + JSON.stringify(this.jobCategories));
-      });
-  }
-
-  loadCities(): void {
-    this.locationService.getCities()
-      .subscribe(cities => {
-        this.cities = cities;
-      });
-  }
-
-  getCityName(cityId: number) : string {
-    return this.cities.find(r => r.id == cityId).name;
   }
 
   fetchPaginatedItems(filterCriteria?: AdsPaginationParameters, isPaginationChangedByUserEvent: boolean = false): void {
@@ -130,21 +106,6 @@ export class CompanyMyAdsComponent {
     this.activeAdsPaginationResponse = null;
     this.closedAdsPaginationResponse = null;
     this.deletedAdsPaginationResponse = null;
-  }
-
-  getCategoryName(jobCategoryId: number): string | undefined {
-    return this.jobCategories?.find(r => r.id === jobCategoryId)?.name;
-  }
-  getJobType(jobTypeId: number): string {
-    return this.jobTypes?.find(r => r.id === jobTypeId)?.name;
-  }
-
-  getStatusEnumValue(value: number): string {
-    return value == JobPostStatus.Active ? "Aktivan Oglas" : value == JobPostStatus.Closed ? "Završen Oglas" : "Obrisan Oglas";
-  }
-
-  getFormattedDate(date: Date): string {
-    return this.datePipe.transform(date, 'dd.MM.yyyy');
   }
 
   onPageChange(pageNumber: number) {

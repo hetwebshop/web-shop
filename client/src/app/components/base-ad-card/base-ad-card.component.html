@@ -1,0 +1,167 @@
+<mat-card *ngIf="isUserJobPost(job)" class="job-card">
+    <a class="job-link" [routerLink]="isParentMyAdsComponent ? null : ['/ads', job.id]">
+        <mat-card-header fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
+            <div fxFlex="grow">
+                <div class="badge" [ngClass]="job.pricingPlanName">
+                    {{ getPricingPlanLabel(job.pricingPlanName) }}
+                </div>
+                <mat-card-title>{{ job.adTitle ?? "Nema naslov" }}</mat-card-title>
+                <p><span style="font-size: 15px; font-weight: 500;">Ime i prezime:</span> {{
+                    job.applicantFirstName }}
+                    {{ job.applicantLastName }}</p>
+                <p><span style="font-size: 15px; font-weight: 500;">Kategorija:</span> {{
+                    getCategoryName(job.jobCategoryId) }}</p>
+                <p *ngIf="isJobAd"><span style="font-size: 15px; font-weight: 500;">Tip posla:</span> {{
+                    getJobType(job?.jobTypeId) }}</p>
+                <p><span style="font-size: 15px; font-weight: 500;">Lokacija:</span> {{
+                    getCityName(job?.cityId) }}</p>
+                <p style="font-size: 19px;" *ngIf="!isJobAd"><span
+                        style="font-size: 19px; font-weight: 500;">Cijena:</span> {{
+                    job?.price ?? 0 }} KM</p>
+            </div>
+            <div fxFlex>
+                <p style="min-width: 100px;">
+                    <span style="font-weight: 500; font-size: 13px; color: #a8996e;">Tip Oglasa:</span> {{
+                    getEnumName(job?.advertisementTypeId) }}
+                </p>
+                <p style="min-width: 100px;">
+                    <span style="font-weight: 500; font-size: 13px; color: #a8996e;">Datum objave:</span> {{
+                    getFormattedDate(job?.adStartDate) }}
+                </p>
+            </div>
+        </mat-card-header>
+        <mat-card-content>
+            <div class="job-info" style="min-height: 20px;">
+                <p>
+                    <ng-container *ngIf="getFormattedDate(job?.applicantDateOfBirth) !== ''">
+                        <strong style="font-weight: 500;">Datum rođenja:</strong> {{
+                        getFormattedDate(job?.applicantDateOfBirth) }} &nbsp; &nbsp;
+                    </ng-container>
+                    <ng-container *ngIf="getFormattedDate(job?.applicantDateOfBirth) === ''">
+                        <strong style="font-weight: 500;">Datum rođenja:</strong> Nije unešeno &nbsp; &nbsp;
+                    </ng-container>
+
+                    <ng-container *ngIf="job?.applicantGender !== ''">
+                        <strong style="font-weight: 500;">Spol:</strong> {{ genderName(job?.applicantGender) }}
+                        &nbsp; &nbsp;
+                    </ng-container>
+                    <ng-container *ngIf="job?.applicantGender === ''">
+                        <strong style="font-weight: 500;">Spol:</strong> - &nbsp; &nbsp;
+                    </ng-container>
+
+                    <ng-container *ngIf="job?.applicantEmail !== ''">
+                        <strong style="font-weight: 500;">Email:</strong> {{ job?.applicantEmail }} &nbsp;
+                        &nbsp;
+                    </ng-container>
+                    <ng-container *ngIf="job?.applicantEmail === ''">
+                        <strong style="font-weight: 500;">Email:</strong> Nije unešeno &nbsp; &nbsp;
+                    </ng-container>
+
+                    <ng-container *ngIf="job?.applicantPhoneNumber !== ''">
+                        <strong style="font-weight: 500;">Broj telefona:</strong> {{ job?.applicantPhoneNumber
+                        }} &nbsp;
+                        &nbsp;
+                    </ng-container>
+                    <ng-container *ngIf="job?.applicantPhoneNumber === ''">
+                        <strong style="font-weight: 500;">Broj telefona:</strong> Nije unešeno &nbsp; &nbsp;
+                    </ng-container>
+                </p>
+            </div>
+            <div class="job-details">
+                <h2>Biografija</h2>
+                <p>{{ job.biography | truncate:150:false }}</p>
+            </div>
+        </mat-card-content>
+    </a>
+
+    <div fxLayout="row" fxLayoutGap="10px" class="card-actions">
+        <ng-content select="[custom-buttons]"></ng-content>
+        <ng-container *ngIf="!isParentMyAdsComponent">
+            <button *ngIf="job.applicantEmail" class="email-button" mat-raised-button
+            (click)="openEmailModal(job.applicantEmail)" color="accent">
+            <mat-icon class="email-icon">email</mat-icon>
+            <span class="button-text">Kontaktiraj mailom</span>
+        </button>
+
+        <button *ngIf="!job.applicantEmail" mat-raised-button disabled>Korisnik nema email</button>
+
+        <button *ngIf="job.cvFilePath" class="cv-button" mat-raised-button
+            (click)="previewUserCV(job.cvFilePath, $event)" color="accent">
+            <mat-icon class="cv-icon">assignment</mat-icon>
+            <span class="button-text">Pregledaj CV</span>
+        </button>
+        </ng-container>
+
+    </div>
+    <!-- PDF Preview Modal -->
+    <ng-template #filePreviewModal let-dialogRef="dialogRef">
+        <div fxLayout="column">
+            <div fxLayout="row" fxLayoutAlign="space-between center">
+                <h2 mat-dialog-title style="margin: 0;">Pregled učitanog CV-a</h2>
+                <button mat-icon-button style="margin-bottom: 20px;" (click)="dialogRef.close()">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+
+            <mat-dialog-content>
+                <ngx-doc-viewer [url]="selectedFilePath" viewer="pdf"
+                    style="width: 100%; height: 800px;"></ngx-doc-viewer>
+            </mat-dialog-content>
+
+            <mat-dialog-actions align="end">
+                <button mat-button mat-dialog-close>Zatvori</button>
+            </mat-dialog-actions>
+        </div>
+    </ng-template>
+
+</mat-card>
+
+
+<mat-card *ngIf="!isUserJobPost(job)" class="job-card" [ngStyle]="{'padding-bottom': !isGridView ? '15px' : '0px'}">
+    <a class="job-link" [routerLink]="isParentMyAdsComponent ? null : ['/company-job-ads', job.id]">
+        <mat-card-header fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
+            <div fxFlex="grow">
+                <div class="badge" [ngClass]="job.pricingPlanName">
+                    {{ getPricingPlanLabel(job.pricingPlanName) }}
+                </div>
+                <mat-card-title>{{ job.adName }}</mat-card-title>
+                <p><span style="font-size: 15px; font-weight: 500;">Pozicija:</span> {{ job.position }}</p>
+                <p><span style="font-size: 15px; font-weight: 500;">Kategorija:</span> {{
+                    getCategoryName(job.jobCategoryId) }}</p>
+                <p><span style="font-size: 15px; font-weight: 500;">Tip posla:</span> {{ getJobType(job.jobTypeId) }}
+                </p>
+                <p>
+                    <span style="font-weight: 500; font-size: 15px;">Lokacija:</span> {{ getCityName(job?.cityId) }}
+                </p>
+            </div>
+            <div fxFlex>
+                <p style="min-width: 100px; color: #a8996e">
+                    <span style="font-weight: 500; font-size: 13px; color: #a8996e">Tip Oglasa:</span> Oglas za posao
+                </p>
+                <p style="min-width: 100px; color: #a8996e">
+                    <span style="font-weight: 500; font-size: 13px; color: #a8996e">Datum objave:</span> {{
+                    getFormattedDate(job?.adStartDate) }}
+                </p>
+            </div>
+        </mat-card-header>
+        <mat-card-content style="margin-top: 15px; border:none; height: 130px;">
+            <div class="job-details">
+                <h2>Opis posla</h2>
+                <p>{{ job.jobDescription | truncate:150:false }}</p>
+            </div>
+        </mat-card-content>
+    </a>
+    <div class="card-actions">
+        <ng-content select="[company-custom-buttons]"></ng-content>
+        <ng-container *ngIf="!isParentMyAdsComponent">
+        <button *ngIf="job.emailForReceivingApplications" mat-raised-button
+            (click)="openSubmitApplicationModal(job.emailForReceivingApplications, job.position)"
+            style="color: #edd79c; background-color: #283316;">Prijavi
+            se na oglas</button>
+        <p *ngIf="!job.emailForReceivingApplications"
+            style="color: #D32F2F; font-weight: bold; background-color: #FFEBEE; padding: 10px; border: 1px solid #D32F2F; border-radius: 4px;">
+            Kompanija nije ostavila mail za prijavu na ovaj oglas.
+        </p>
+        </ng-container>
+    </div>
+</mat-card>
