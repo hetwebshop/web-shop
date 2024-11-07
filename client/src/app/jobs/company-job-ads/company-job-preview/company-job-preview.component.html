@@ -13,7 +13,7 @@
 
         <!-- Title Card -->
         <mat-card style="border: 1px solid #283316; display: flex; justify-content: center; 
-             text-align: center; padding: 20px; width: 100%; max-width: 600px; background-color: #eee9e0;">
+             text-align: center; padding: 20px; width: 100%; max-width: 600px; background-color: #edd79c;">
           <h1 class="section-title">Detalji oglasa za posao</h1>
 
         </mat-card>
@@ -22,7 +22,7 @@
         <mat-card-header class="header" style="border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; padding-left: 22px;">
           <h2>{{ job?.adName }}</h2>
         </mat-card-header>
-        <mat-card-header fxLayout="row" fxLayoutAlign="space-between" style="background-color: #FFEBEE; padding-top: 10px; padding-left: 22px;">
+        <mat-card-header fxLayout="row" fxLayoutAlign="space-between" style="background-color: #edd79c; padding-top: 10px; padding-left: 22px;">
           <div fxFlex="grow">
             <h2><strong>Pozicija -</strong> {{ job?.position }}</h2>
             <h4><strong>Kategorija posla -</strong> {{ getCategoryName(job?.jobCategoryId) }}</h4>
@@ -33,6 +33,7 @@
           <mat-card-actions style="margin-right: 16px;">
             <button *ngIf="job?.emailForReceivingApplications" mat-raised-button style="color: #edd79c; background-color: #283316;"
               (click)="openSubmitApplicationModal(job?.emailForReceivingApplications)">Apliciraj na oglas</button>
+            <button *ngIf="!job?.emailForReceivingApplications" mat-raised-button disabled>Kompanija nije ostavila mail</button>
           </mat-card-actions>
         </mat-card-header>
         <mat-card-content fxLayout="row" fxLayoutAlign="space-between" class="header-content">
@@ -43,6 +44,7 @@
         <mat-card-actions class="bottom-apply-button">
           <button *ngIf="job?.emailForReceivingApplications" mat-raised-button style="color: #edd79c; background-color: #283316;"
             (click)="openSubmitApplicationModal(job?.emailForReceivingApplications)">Apliciraj na oglas</button>
+            <button *ngIf="!job?.emailForReceivingApplications" mat-raised-button disabled>Kompanija nije ostavila mail</button>
         </mat-card-actions>
       </mat-card>
     </ng-container>
