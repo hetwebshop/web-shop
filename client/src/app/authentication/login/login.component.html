@@ -8,9 +8,12 @@
             <app-input type="email" fxFlex="45" fxFlex.lt-sm="90" label="Email"
                        [formControl]="loginForm.get('userNameOrEmail')">
             </app-input>
-            <app-input type="password" fxFlex="45" fxFlex.lt-sm="90" label="Lozinka"
+            <app-input type="password" fxFlex="45" fxFlex.lt-sm="90" label="Lozinka" style="margin-bottom: 0px;"
                        [formControl]="loginForm.get('password')">
             </app-input>
+            <div fxLayout="row" fxLayoutAlign="end" fxFlex="100">
+              <a [routerLink]="'/forgot-password'" class="forgot-password-link">Zaboravljena lozinka?</a>
+            </div>
             <button mat-raised-button color="warn" [disabled]="loginForm.invalid" type="submit">
               Prijava
             </button>

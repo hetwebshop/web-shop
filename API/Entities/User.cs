@@ -30,6 +30,8 @@ namespace API.Entities
         public int? CompanyId { get; set; }
         public Company? Company { get; set; }
 
+        public bool IsApproved { get; set; }
+
         public ICollection<UserRole> UserRoles { get; set; }
         public ICollection<UserJobPost> UserJobPosts { get; set; }
         public ICollection<UserEducation> UserEducations { get; set; }

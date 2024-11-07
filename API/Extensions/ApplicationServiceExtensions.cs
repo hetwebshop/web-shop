@@ -17,6 +17,7 @@ using API.Services.CompanyJobPostServices;
 using API.Data.ICompanyJobPostRepository;
 using API.Mappers;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 
 namespace API.Extensions
 {
@@ -43,6 +44,8 @@ namespace API.Extensions
             services.AddScoped<SeedData, SeedData>();
 
             services.AddSingleton(typeof(ISortHelper<>), typeof(SortHelper<>));
+
+            services.AddSingleton<IEmailService, EmailService>();
             
             //jobPosts
             services.AddScoped<IUserJobPostService, UserJobPostService>();
@@ -58,8 +61,19 @@ namespace API.Extensions
             services.AddScoped<IPricingPlanRepository, PricingPlanRepository>();
             services.AddScoped<IPricingPlanService, PricingPlanService>();
 
-            services.AddIdentity<User, Role>(opt => { opt.Password.RequireNonAlphanumeric = false; })
-                .AddEntityFrameworkStores<DataContext>();
+            services.AddIdentity<User, Role>(opt => { 
+                opt.Password.RequireNonAlphanumeric = false;
+                opt.Tokens.EmailConfirmationTokenProvider = "Default";
+                opt.SignIn.RequireConfirmedEmail = true;
+                opt.Tokens.EmailConfirmationTokenProvider = "Default";
+            })
+            .AddEntityFrameworkStores<DataContext>()
+            .AddDefaultTokenProviders();
+
+            services.Configure<DataProtectionTokenProviderOptions>(options =>
+            {
+                options.TokenLifespan = TimeSpan.FromMinutes(15);
+            });
 
             services.AddAuthentication(options =>
                 {

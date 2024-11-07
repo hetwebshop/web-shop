@@ -26,6 +26,7 @@ namespace API.Data.ICompanyJobPostRepository
                 Include(r => r.JobPostStatus).
                 Include(r => r.JobType).
                 Include(r => r.User).
+                Include(r => r.PricingPlan).
                 Include(r => r.City).
                 ThenInclude(r => r.Country);
         }
@@ -69,7 +70,8 @@ namespace API.Data.ICompanyJobPostRepository
         {
             var companyJobPosts = FindByCondition(u => u.SubmittingUserId == adsParameters.UserId
                                 && u.JobPostStatusId == (int)adsParameters.adStatus);
-            companyJobPosts = _sortHelper.ApplySort(companyJobPosts, adsParameters.OrderBy);
+            //companyJobPosts = _sortHelper.ApplySort(companyJobPosts, adsParameters.OrderBy);
+            companyJobPosts = companyJobPosts.Include(r => r.PricingPlan).OrderByDescending(r => r.AdStartDate);
             return await PagedList<CompanyJobPost>.ToPagedListAsync(companyJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }
 

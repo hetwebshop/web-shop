@@ -1,0 +1,32 @@
+.center-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  
+  .status-card {
+    min-width: 400px;
+    padding: 16px;
+    text-align: center;
+  }
+  
+  .error-card {
+    color: #d32f2f;
+  }
+  
+  .success-card {
+    background-color: #283316;
+    color: #c5b391;
+  }
+  
+  mat-icon {
+    font-size: 48px;
+    margin-bottom: 8px;
+  }
+  
+  mat-progress-spinner {
+    margin: 16px auto;
+    display: block;
+  }
+  

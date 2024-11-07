@@ -78,7 +78,7 @@ namespace API.Data.IUserOfferRepository
             var userJobPosts = FindByCondition(u => u.SubmittingUserId == adsParameters.UserId 
                                 && u.JobPostStatusId == (int)adsParameters.adStatus);
             //userJobPosts = _sortHelper.ApplySort(userJobPosts, adsParameters.OrderBy);
-            userJobPosts = userJobPosts.OrderByDescending(r => r.AdStartDate);
+            userJobPosts = userJobPosts.Include(r => r.PricingPlan).OrderByDescending(r => r.AdStartDate);
             return await PagedList<UserJobPost>.ToPagedListAsync(userJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }
 

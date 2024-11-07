@@ -140,7 +140,7 @@ export class RegisterComponent implements OnInit {
     this.accountService.register(formData).subscribe({
       next: (response) => {
         if (response) {
-          location.reload();
+          this.router.navigate(['/login']); 
         }
       },
       error: (error) => {
@@ -151,8 +151,16 @@ export class RegisterComponent implements OnInit {
   }
 
   onSubmitCompany() {
-    this.accountService.registerCompany(this.registerCompanyForm.value).subscribe(() => {
-      location.reload();
+    this.accountService.registerCompany(this.registerCompanyForm.value).subscribe({
+      next: (response) => {
+        if (response) {
+          this.router.navigate(['/login']); 
+        }
+      },
+      error: (error) => {
+        console.error('Registration failed', error);
+        this.loginRegistrationError = 'Greška prilikom registracije. Molimo pokušajte ponovo.';
+      },
     });
   }
 

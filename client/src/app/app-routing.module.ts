@@ -27,11 +27,17 @@ import { CompanyJobPreviewComponent } from './jobs/company-job-ads/company-job-p
 import { CompanyMyAdsWrapperComponent } from './jobs/company-my-ads/company-my-ads-wrapper.component';
 import { CompanyMyAdsComponent } from './jobs/company-my-ads/company-my-ads.component';
 import { CompanyMyAdManagerComponent } from './jobs/company-my-ads/company-my-ad-manager/company-my-ad-manager.component';
+import { EmailConfirmationComponent } from './components/email-confirmation/email-confirmation.component';
+import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
+import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent, data: { breadcrumb: {alias: 'Uredi oglas 1'}} },
   { path: 'login', component: LoginComponent, data: { breadcrumb: {alias: 'Uredi oglas 2'} } },
   { path: 'register', component: RegisterComponent, data: { breadcrumb: {alias: 'Uredi oglas 3'} } },
+  { path: 'confirm-email', component: EmailConfirmationComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent},
+  { path: 'reset-password', component: ResetPasswordComponent},
   { path: 'about', component: AboutComponent, data: { breadcrumb: {alias: 'Uredi oglas 4'}} },
   { path: 'contact-us', component: ContactUsComponent, data: { breadcrumb: {alias: 'Uredi oglas 4'}} },
   { path: 'edit-profile', component: EditProfileComponent, data: { breadcrumb: {alias: 'Uredi oglas 5'} } },

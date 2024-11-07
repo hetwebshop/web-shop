@@ -15,6 +15,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace API.Controllers
 {
@@ -26,15 +27,17 @@ namespace API.Controllers
         private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
         private readonly ITokenService _tokenService;
+        private readonly IEmailService _emailService;
 
         public AccountController(UserManager<User> userManager, SignInManager<User> signInManager,
-            IUnitOfWork uow, IMapper mapper, ITokenService tokenService)
+            IUnitOfWork uow, IMapper mapper, ITokenService tokenService, IEmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _uow = uow;
             _mapper = mapper;
             _tokenService = tokenService;
+            _emailService = emailService;
         }
 
         [HttpPost("register")]
@@ -42,13 +45,14 @@ namespace API.Controllers
         public async Task<ActionResult<UserDto>> Register(UserRegisterDto registerDto)
         {
             if (await UserNameExist(registerDto.UserName))
-                return BadRequest("Username is taken.");
+                return BadRequest("Korisničko ime je zauzeto.");
             if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
-                return BadRequest("Email is already registered.");
+                return BadRequest("Email je već registrovan.");
 
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
             user.Photo = new Photo();
+            user.IsApproved = false;
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
@@ -56,7 +60,13 @@ namespace API.Controllers
             result = await _userManager.AddToRoleAsync(user, RoleType.User.ToString());
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
 
-            var token = await _tokenService.CreateToken(user);
+            var emailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var verificationUrl = "http://localhost:4200/confirm-email?userId=" + user.Id + "&token=" + Uri.EscapeDataString(emailToken);
+
+            // Slanje verifikacionog emaila (ovdje koristite svoju email uslugu)
+            await _emailService.SendEmailAsync("hetcompany24@gmail.com",
+                "Verifikujte svoju email adresu",
+                $"Molimo potvrdite svoj email klikom na sljedeći link: <a href='{verificationUrl}'>Verifikuj Email</a>");
 
             return new UserDto
             {
@@ -64,24 +74,50 @@ namespace API.Controllers
                 LastName = user.LastName,
                 CityId = user.CityId,
                 UserName = user.UserName,
-                Token = token,
                 PhotoUrl = user.Photo?.Url,
                 Email = user.Email
             };
         }
+
+
+        [HttpGet("confirm-email")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        {
+            if (userId == null || token == null)
+                return BadRequest("Neispravan zahtjev");
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return BadRequest("Korisnik nije pronađen");
+
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            if (!result.Succeeded)
+                return BadRequest("Potvrda emaila nije uspjela");
+
+            // Nakon što je email potvrđen, možete aktivirati korisnički račun
+            user.IsApproved = true;
+            user.EmailConfirmed = true;
+            await _userManager.UpdateAsync(user);
+
+            // Preusmjeri na stranicu za potvrdu ili prijavu
+            return Ok();  // Ili na bilo koju drugu stranicu na koju želite preusmjeriti
+        }
+
 
         [HttpPost("register-company")]
         [AllowAnonymous]
         public async Task<ActionResult<UserDto>> RegisterCompany(CompanyRegisterDto registerDto)
         {
             if (await UserNameExist(registerDto.UserName))
-                return BadRequest("Username is taken.");
+                return BadRequest("Email nije dostupan.");
             if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
-                return BadRequest("Email is already registered.");
+                return BadRequest("Email nije dostupan.");
 
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
             user.Photo = new Photo();
+            user.IsApproved = false;
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
@@ -89,14 +125,25 @@ namespace API.Controllers
             result = await _userManager.AddToRoleAsync(user, RoleType.Company.ToString());
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
 
-            var token = await _tokenService.CreateToken(user);
+            //var token = await _tokenService.CreateToken(user);
 
+            try
+            {
+                await _emailService.SendEmailAsync("hetcompany24@gmail.com",
+                                   "Registracija uspješna - čekate verifikaciju od našeg admina",
+                                   $"Dragi {user.Company.CompanyName},\n\nVaš korisnički račun za kompaniju je uspješno registrovan, ali čeka odobrenje od strane administratora.\n\nHvala što ste se registrovali!");
+
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
             return new UserDto
             {
                 CompanyName = user.Company.CompanyName,
                 CityId = user.CityId,
                 UserName = user.UserName,
-                Token = token,
+                //Token = token,
                 PhotoUrl = user.Photo?.Url,
                 Email = user.Email,
                 IsCompany = true,
@@ -114,10 +161,15 @@ namespace API.Controllers
                 .Include(u => u.UserRoles)
                 .SingleOrDefaultAsync(u => u.UserName == loginDto.UserNameOrEmail.ToLower() || u.Email == loginDto.UserNameOrEmail);
 
-            if (user == null) return BadRequest("Invalid user");
+            if (user == null) return BadRequest("Pogrešan korisnik");
+
+            if (!user.IsApproved)
+            {
+                return BadRequest("Račun vaše kompanije čeka odobrenje od strane admina.");
+            }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-            if (!result.Succeeded && loginDto.UserNameOrEmail != Constants.TestUser) return BadRequest("Invalid username or password.");
+            if (!result.Succeeded && loginDto.UserNameOrEmail != Constants.TestUser) return BadRequest("Pogrešan email ili password.");
 
             var token = await _tokenService.CreateToken(user);
 
@@ -275,5 +327,48 @@ namespace API.Controllers
             var url = await _uow.UserRepository.UpdateUserPhoto(updateDto.File, id);
             return Ok(new { PhotoUrl = url });
         }
+
+        [HttpPost("forgot-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RequestPasswordReset([FromBody] ForgotPasswordDto request)
+        {
+            var user = await _userManager.FindByEmailAsync(request.Email);
+            if (user == null)
+            {
+                return NotFound("Korisnik sa proslijeđenim emailom ne postoji.");
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var encodedToken = Uri.EscapeDataString(token);
+            var encodedEmail = Uri.EscapeDataString(user.Email);
+            var resetLink = $"http://localhost:4200/reset-password?email={encodedEmail}&token={encodedToken}";
+            var emailBody = $"<p>Za promjenu lozinke molimo vas da otvorite sljedeći link:</p><a href='{resetLink}'>Promjena lozinke</a>";
+
+            await _emailService.SendEmailAsync("hetcompany24@gmail.com", "Zahtjev za promjenom lozinke", emailBody);
+
+            return Ok();
+        }
+
+        [HttpPost("reset-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                return BadRequest("Zahtjev za promjenom lozinke nije ispravan.");
+            }
+
+            var decodedToken = HttpUtility.UrlDecode(model.Token);
+
+            var resetResult = await _userManager.ResetPasswordAsync(user, decodedToken, model.Password);
+            if (!resetResult.Succeeded)
+            {
+                return BadRequest(resetResult.Errors.Select(e => e.Description));
+            }
+
+            return Ok();
+        }
+
     }
 }

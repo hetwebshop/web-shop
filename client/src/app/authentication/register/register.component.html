@@ -48,7 +48,7 @@
                         [formControl]="registerForm.get('confirmPassword')">
                     </app-input>
                 </div>
-                <button mat-flat-button [disabled]="!registerForm.valid" color="primary" type="submit">Registracija</button>
+                <button mat-flat-button [disabled]="!registerForm.valid" color="warn" type="submit">Registracija</button>
             </form>
         </mat-card-content>
         <mat-card-content class="mt-5" *ngIf="registrationType === 'company'">
@@ -79,7 +79,7 @@
                         [formControl]="registerCompanyForm.get('confirmPassword')">
                     </app-input>
                 </div>
-                <button mat-flat-button [disabled]="!registerCompanyForm.valid" color="primary" type="submit">Registracija Kompanije</button>
+                <button mat-flat-button [disabled]="!registerCompanyForm.valid" color="warn" type="submit">Registracija Kompanije</button>
             </form>
           </mat-card-content>
         <mat-divider inset></mat-divider>

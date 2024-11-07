@@ -7,6 +7,7 @@ import {
   debounceTime,
   first,
   map,
+  Observable,
   of,
   switchMap,
   take,
@@ -43,32 +44,22 @@ export class AccountService {
     );
   }
 
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}forgot-password`, { email });
+  }
+
+  resetPassword(email: string, token: string, password: string, confirmPassword: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}reset-password`, { email, token, password, confirmPassword });
+  }
+
   register(model: any) {
-    const payload = { ...model, userName: model.Email };
-  
-    return this.http.post<User>(`${this.baseUrl}register`, payload).pipe(
-      map((user: User) => {
-        if (user) {
-          this.setUser(user);
-        }
-        return user;
-      }),
-      catchError((error) => {
-        console.error('Greška prilikom registracije', error);
-        return throwError(() => new Error(error));
-      })
-    );
+    const payload = { ...model, userName: model.email };
+    return this.http.post<User>(`${this.baseUrl}register`, payload);
   }
   
   registerCompany(model) {
     model.userName = model.email;
-    return this.http.post<User>(this.baseUrl + 'register-company', model).pipe(
-      map((user: User) => {
-        if (user) {
-          this.setUser(user);
-        }
-      })
-    );
+    return this.http.post<User>(this.baseUrl + 'register-company', model);
   }
 
   updateCredits(newCredits: number) {
@@ -228,5 +219,9 @@ export class AccountService {
 
   getDecodedToken(token: string) {
     return JSON.parse(atob(token.split('.')[1]));
+  }
+
+  confirmEmail(userId: string, token: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}confirm-email?userId=${userId}&token=${token}`);
   }
 }

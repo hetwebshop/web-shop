@@ -1,0 +1,15 @@
+  <div *ngIf="errorMessage" class="center-content">
+    <mat-card class="status-card error-card">
+      <mat-icon color="warn" style="font-size: 24px;" aria-label="Error icon">error</mat-icon>
+      <p>{{ errorMessage }}</p>
+    </mat-card>
+  </div>
+  
+  <div *ngIf="successMessage" class="center-content">
+    <mat-card class="status-card success-card">
+      <mat-icon style="color: #c5b391; font-size: 24px;" aria-label="Success icon">check_circle</mat-icon>
+      <p>{{ successMessage }}</p>
+      <button mat-raised-button style="background-color: #c5b391; color: #283316;" (click)="redirectToLogin()">Prijava</button>
+    </mat-card>
+  </div>
+  

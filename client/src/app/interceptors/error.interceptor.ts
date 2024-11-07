@@ -36,7 +36,7 @@ export class ErrorInterceptor implements HttpInterceptor {
               }
               throw modelStateErrors.flat();
             } else if (typeof error.error === 'object') {
-              this.toastr.error('Bad request');
+              this.toastr.error('Desila se greška');
             } else {
               this.toastr.error(error.error);
             }
