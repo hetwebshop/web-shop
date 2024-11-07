@@ -1,111 +1,32 @@
 <div class="my-3" fxLayout="column" fxLayoutAlign="center" fxLayoutGap="20px">
     <div fxLayoutAlign="center center">
         <mat-card class="card" fxFlex="70" fxFlex.lt-md="80" fxFlex.lt-sm="95">
-            <mat-card-title fxLayoutAlign="center">App Features</mat-card-title>
+            <mat-card-title fxLayoutAlign="center">Prednosti online platforme za zapošljavanje</mat-card-title>
             <mat-card-content>
-                <h3 class="mt-4 text-center">ShoppingCart is an e-commerce web app where users can view, order any
-                    available product.</h3>
-                <mat-accordion>
-                    <mat-expansion-panel *ngFor="let content of contents; let i = index" [expanded]="step === i"
-                        (opened)="step = i" hideToggle>
-                        <mat-expansion-panel-header>
-                            <mat-panel-title>{{i + 1}}. {{content.title}}</mat-panel-title>
-                            <mat-panel-description fxHide.lt-md="true">
-                                {{content.description}}
-                            </mat-panel-description>
-                            <mat-icon color="accent">{{content.icon}}</mat-icon>
-                        </mat-expansion-panel-header>
-                        <h3 fxHide.gt-sm="true">{{content.description}}</h3>
-                        <ul>
-                            <li *ngFor="let item of content.items">{{item}}</li>
-                        </ul>
-                        <mat-action-row>
-                            <button mat-button *ngIf="i !== 0" color="warn" (click)="step = step - 1">Previous</button>
-                            <button mat-button *ngIf="i !== contents.length - 1" color="accent"
-                                (click)="step = step + 1">Next</button>
-                            <button mat-button *ngIf="i === contents.length - 1" color="accent"
-                                (click)="step = step + 1">End</button>
-                        </mat-action-row>
-                    </mat-expansion-panel>
-                </mat-accordion>
-            </mat-card-content>
-        </mat-card>
-    </div>
-    <div fxLayoutAlign="center center">
-        <mat-card class="card" fxFlex="70" fxFlex.lt-md="80" fxFlex.lt-sm="95">
-            <mat-card-title fxLayoutAlign="center">Technology</mat-card-title>
-            <mat-card-content>
-                <h2 class="mt-4">Built With</h2>
-                <div class="mb-3 text-center">
-                    <a matTooltip="ASP.NET Core - Backend" target="_blank"
-                        href="https://dotnet.microsoft.com/apps/aspnet/">
-                        <img src="./assets/images/dot-net-core.png" alt="ASP.NET" width="80" height="80">
-                    </a>
-                    <a matTooltip="Angular - Frontend" target="_blank" href="https://angular.io/">
-                        <img src="./assets/images/angular.png" alt="Angular" width="80" height="80">
-                    </a>
-                    <a matTooltip="Angular Material - UI Framework" target="_blank" href="https://material.angular.io/">
-                        <img src="./assets/images/angular-material.svg" alt="Angular Material" width="auto" height="80">
-                    </a>
-                </div>
-                <div fxLayout="column" fxLayoutGap="10px">
-                    <div fxLayout="row" style="font-size: large;">
-                        <div fxFlex="20">#</div>
-                        <div fxFlex="40">Framework</div>
-                        <div fxFlex="40">Version</div>
-                    </div>
-                    <div>
-                        <mat-divider></mat-divider>
-                        <mat-divider></mat-divider>
-                        <mat-divider></mat-divider>
-                        <mat-divider></mat-divider>
-                    </div>
-                    <div fxLayout="row">
-                        <div fxFlex="20">1.</div>
-                        <div fxFlex="40">ASP.NET Core</div>
-                        <div fxFlex="40">6.0</div>
-                    </div>
-                    <div>
-                        <mat-divider></mat-divider>
-                    </div>
-                    <div fxLayout="row">
-                        <div fxFlex="20">2.</div>
-                        <div fxFlex="40">Entity Framework</div>
-                        <div fxFlex="40">6.0</div>
-                    </div>
-                    <div>
-                        <mat-divider></mat-divider>
-                    </div>
-                    <div fxLayout="row">
-                        <div fxFlex="20">3.</div>
-                        <div fxFlex="40">Angular</div>
-                        <div fxFlex="40">13.1</div>
-                    </div>
-                    <div>
-                        <mat-divider></mat-divider>
-                    </div>
-                    <div fxLayout="row">
-                        <div fxFlex="20">4.</div>
-                        <div fxFlex="40">Angular Material</div>
-                        <div fxFlex="40">13.1</div>
-                    </div>
-                    <div>
-                        <mat-divider></mat-divider>
-                    </div>
-                </div>
-                <h2 class="mt-4">Acknowledgements</h2>
-                <div class="text-muted" fxLayout="column">
-                    <li><a class="text-muted" target="_blank" href="https://cloudinary.com">Cloudinary - Image
-                            Repository</a></li>
-                    <li><a class="text-muted" target="_blank" href="https://www.flipkart.com/">Flipkart - Data & Image
-                            Urls</a></li>
-                    <li><a class="text-muted" target="_blank" href="https://www.amazon.in/">Amazon - Data & Image
-                            Urls</a></li>
-                    <li><a class="text-muted" target="_blank" href="https://github.com/angular/flex-layout">Angular
-                            Flex-Layout</a></li>
-                    <li><a class="text-muted" target="_blank" href="https://github.com/AutoMapper/AutoMapper">AutoMapper
-                            - Dependency Injection</a></li>
-                </div>
+                <h2>Upoznajte nas</h2>
+                <p>Mi smo inovativna platforma koja omogućava povezivanje ljudi u potrazi za poslom i firmi koje traže talentovane pojedince. Naša misija je stvoriti jednostavno i efikasno mjesto gdje korisnici mogu podijeliti svoje karijere i CV-e sa svijetom, te se direktno povezati s poslodavcima.</p>
+                
+                <h3>Motivacija</h3>
+                <p>Naša platforma omogućava svim korisnicima da unaprijede svoje šanse za zaposlenje ili poslovnu saradnju. Ako ste u potrazi za novim poslovnim izazovima ili želite da povećate svoju vidljivost kao kandidat, mi vam pružamo alate koji će vam omogućiti da se istaknete. Ovdje možete postaviti svoj CV, pronaći interesantne poslove, ili jednostavno biti u kontaktu s kompanijama koje traže vaše veštine.</p>
+
+                <h3>Naša Misija</h3>
+                <p>Pomoći firmama da brzo i efikasno dođu do kvalifikovanih kandidata, a ljudima da se lako povežu sa poslodavcima koji nude prilike za napredak. Naša platforma je takođe snažan alat za promociju usluga – kompanijama omogućavamo da postave oglase za svoje usluge i proizvode, a sve to s ciljem da podrže profesionalni rast i razvoj na tržištu rada.</p>
+
+                <h3>Šta Nudimo:</h3>
+                <ul>
+                    <li><strong>Objavite svoj CV:</strong> Ako ste u potrazi za poslom, jednostavno postavite svoj CV na našu platformu. Firme vas mogu pronaći i kontaktirati direktno putem e-maila.</li>
+                    <li><strong>Objavite oglase:</strong> Ako ste firma koja nudi usluge ili traži talente, možete objaviti oglase za svoje proizvode ili usluge i lako doći do novih klijenata ili zaposlenika.</li>
+                    <li><strong>Objavite poslove:</strong> Ako ste firma koja traži zaposlene, možete postaviti oglase za posao, omogućavajući kandidatima da se prijave direktno putem naše platforme.</li>
+                </ul>
+
+                <h3>Zašto Nas Odabrati?</h3>
+                <ul>
+                    <li><strong>Jednostavno za korištenje:</strong> Naša platforma je jednostavna za navigaciju, omogućavajući korisnicima da brzo postave svoj CV ili oglase.</li>
+                    <li><strong>Povezivanje sa poslodavcima i kandidatima:</strong> Mi smo most između poslodavaca i onih koji traže posao, čineći proces zapošljavanja bržim i jednostavnijim.</li>
+                    <li><strong>Sve na jednom mjestu:</strong> Naša platforma nudi sve alate koji su vam potrebni, od postavljanja oglasa, do prijave za poslove i unosa vašeg profesionalnog profila.</li>
+                </ul>
+
+                <p>Pozivamo vas da se pridružite našoj zajednici i iskoristite prilike koje vam nudimo!</p>
             </mat-card-content>
         </mat-card>
     </div>

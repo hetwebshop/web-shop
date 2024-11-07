@@ -32,7 +32,7 @@ import { ResetPasswordComponent } from './components/reset-password/reset-passwo
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
 
 const routes: Routes = [
-  { path: '', component: HomeComponent, data: { breadcrumb: {alias: 'Uredi oglas 1'}} },
+  { path: '', redirectTo: '/ads?type=JobAd', pathMatch: 'full' },
   { path: 'login', component: LoginComponent, data: { breadcrumb: {alias: 'Uredi oglas 2'} } },
   { path: 'register', component: RegisterComponent, data: { breadcrumb: {alias: 'Uredi oglas 3'} } },
   { path: 'confirm-email', component: EmailConfirmationComponent },
