@@ -59,7 +59,7 @@
         </button>
       </div>
       <div [ngClass]="{'container': isGridView}" [ngStyle]="{'margin-bottom': isGridView ? '200px' : '0px'}">
-        <div *ngFor="let job of allJobs$ | async" class="item" [ngStyle]="{'margin-bottom': '10px', 'max-height': isGridView ? '450px' : 'none'}">
+        <div *ngFor="let job of allJobs$ | async" class="item" [ngStyle]="{'margin-bottom': '10px', 'max-height': isGridView ? '470px' : 'none'}">
           <app-base-ad-card [job]="job" />
         </div>
       </div>

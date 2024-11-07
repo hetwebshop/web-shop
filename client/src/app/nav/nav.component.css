@@ -49,12 +49,12 @@
 
 .credits-button {
   color: #283316; /* Change text color for better visibility */
-  background-color: #c5b391; /* Add background color */
+  background-color: #edd79c; /* Add background color */
   cursor: pointer;
   height: 40px;
   padding: 0 12px;
   border: none;
-  border-radius: 8px; /* Slightly rounder corners */
+  border-radius: 20px; /* Slightly rounder corners */
   font-weight: normal; /* Make the font bold */
   font-size: 14px;
   transition: background-color 0.3s, color 0.3s;
@@ -68,7 +68,7 @@
 }
 
 .credits-button:hover {
-  background-color: #a18a6a; /* Lighter background on hover */
+  background-color: #d8b98c; /* Lighter background on hover */
   color: #283316; /* Darker text on hover */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }

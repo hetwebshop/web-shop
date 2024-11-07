@@ -177,6 +177,8 @@
   padding: 0;
   border-radius: 0px;
   margin-bottom: 15px;
+  border-top-right-radius: 8px;
+  border-top-left-radius: 8px;
 }
 
 mat-divider {
@@ -187,6 +189,8 @@ mat-divider {
 
 .education-header {
   padding-top: 10px;
+  border-top-right-radius: 8px;
+  border-top-left-radius: 8px;
 }
 
 .education-content {

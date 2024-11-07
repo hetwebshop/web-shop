@@ -17,6 +17,8 @@ import { JobTypeQuery } from 'src/app/store/jobsHelpers/job-type.query';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { LocationService } from 'src/app/services/location.service';
 import { City } from 'src/app/models/location';
+import { ConfirmationModalComponent } from 'src/app/modal/confirmation-modal/confirmation-modal.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-company-my-ads',
@@ -35,7 +37,7 @@ export class CompanyMyAdsComponent {
   deletedAdsPaginationResponse: PagedResponse<CompanyJobPost>;
 
   constructor(private jobService: JobService, private companyJobService: CompanyJobService, private locationService: LocationService, utility: UtilityService, private datePipe: DatePipe, private jobCategoryQuery: JobCategoryQuery,
-    private jobTypeQuery: JobTypeQuery
+    private jobTypeQuery: JobTypeQuery, private dialog: MatDialog
   ) {
     utility.setTitle('Objave kompanije');
   }
@@ -120,26 +122,59 @@ export class CompanyMyAdsComponent {
 
   deleteAd(event, jobId: number): void {
     event.preventDefault();
-    this.companyJobService.deleteAd(jobId).subscribe((response) => {
-      if (response == true)
-        this.fetchPaginatedItems(this.paginationParameters);
+    const confirmationDialogRef = this.dialog.open(ConfirmationModalComponent,
+      {
+        data: {
+          title: "Obriši oglas",
+          message: "Da li ste sigurni da želite obrisati objavu? Obrisane objave možete naći poslije u sekciji 'Obrisani oglasi' te se obrisani oglas više ne može aktivirati!"
+        }
+      });
+      confirmationDialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.companyJobService.deleteAd(jobId).subscribe((response) => {
+          if (response == true)
+            this.fetchPaginatedItems(this.paginationParameters);
+        });
+      }
     });
   }
 
   closeAd(event, jobId: number): void {
     event.preventDefault();
-    this.companyJobService.closeAd(jobId).subscribe((response) => {
-      if (response == true) {
-        this.fetchPaginatedItems();
+    const confirmationDialogRef = this.dialog.open(ConfirmationModalComponent,
+      {
+        data: {
+          title: "Obriši oglas",
+          message: "Da li ste sigurni da želite obrisati objavu? Obrisane objave možete naći poslije u sekciji 'Obrisani oglasi' te se obrisani oglas više ne može aktivirati!"
+        }
+      });
+      confirmationDialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.companyJobService.closeAd(jobId).subscribe((response) => {
+          if (response == true) {
+            this.fetchPaginatedItems();
+          }
+        });
       }
     });
   }
 
   reactivateAd(event, jobId): void {
     event.preventDefault();
-    this.companyJobService.reactivateAd(jobId).subscribe((response) => {
-      if (response == true) {
-        this.fetchPaginatedItems();
+    const confirmationDialogRef = this.dialog.open(ConfirmationModalComponent,
+      {
+        data: {
+          title: "Obriši oglas",
+          message: "Da li ste sigurni da želite obrisati objavu? Obrisane objave možete naći poslije u sekciji 'Obrisani oglasi' te se obrisani oglas više ne može aktivirati!"
+        }
+      });
+      confirmationDialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.companyJobService.reactivateAd(jobId).subscribe((response) => {
+          if (response == true) {
+            this.fetchPaginatedItems();
+          }
+        });
       }
     });
   }

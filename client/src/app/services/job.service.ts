@@ -86,37 +86,39 @@ export class JobService {
   }
 
   getJobById(id: number): Observable<UserJobPost> {
-    var entity = this.adsQuery.getEntity(id);
-    if (entity) {
-      return of(entity);
-    } else {
-      return this.http.get<UserJobPost>(`${this.baseUrl}user-job/${id}`).pipe(
-        tap((response) => {
-          this.adsStore.add(response);
-          this.adsStore.setActive(response.id);
-          setLoading(this.adsStore);
+    // var entity = this.adsQuery.getEntity(id);
+    // if (entity) {
+    //   return of(entity);
+    // } else {
+      
+    // }
+    return this.http.get<UserJobPost>(`${this.baseUrl}user-job/${id}`).pipe(
+      tap((response) => {
+        this.adsStore.add(response);
+        this.adsStore.setActive(response.id);
+        setLoading(this.adsStore);
 
-          return response;
-        })
-      );
-    }
+        return response;
+      })
+    );
   }
 
   getMyJobById(id: number): Observable<UserJobPost> {
-    var entity = this.adsQuery.getEntity(id);
-    if (entity) {
-      return of(entity);
-    } else {
-      return this.http.get<UserJobPost>(`${this.baseUrl}my-ad/${id}`).pipe(
-        tap((response) => {
-          this.adsStore.add(response);
-          this.adsStore.setActive(response.id);
-          setLoading(this.adsStore);
+    // var entity = this.adsQuery.getEntity(id);
+    // if (entity) {
+    //   return of(entity);
+    // } else {
+      
+    // }
+    return this.http.get<UserJobPost>(`${this.baseUrl}my-ad/${id}`).pipe(
+      tap((response) => {
+        this.adsStore.add(response);
+        this.adsStore.setActive(response.id);
+        setLoading(this.adsStore);
 
-          return response;
-        })
-      );
-    }
+        return response;
+      })
+    );
   }
 
   upsertJob(isEditMode: boolean, jobData: FormData): Observable<UserJobPost> {

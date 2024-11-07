@@ -1,10 +1,10 @@
-<mat-card *ngIf="isUserJobPost(job)" class="job-card">
+<mat-card *ngIf="isUserJobPost(job)" class="job-card" [ngStyle]="isParentMyAdsComponent ? { 'border': '1px solid #283316'} : { 'border': 'none' }">
     <a class="job-link" [routerLink]="isParentMyAdsComponent ? null : ['/ads', job.id]">
+        <mat-card-header class="badge" [ngClass]="job.pricingPlanName">
+            {{ getPricingPlanLabel(job.pricingPlanName) }}
+        </mat-card-header>
         <mat-card-header fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
             <div fxFlex="grow">
-                <div class="badge" [ngClass]="job.pricingPlanName">
-                    {{ getPricingPlanLabel(job.pricingPlanName) }}
-                </div>
                 <mat-card-title>{{ job.adTitle ?? "Nema naslov" }}</mat-card-title>
                 <p><span style="font-size: 15px; font-weight: 500;">Ime i prezime:</span> {{
                     job.applicantFirstName }}
@@ -67,8 +67,8 @@
                     </ng-container>
                 </p>
             </div>
-            <div class="job-details">
-                <h2>Biografija</h2>
+            <div class="job-details" style="margin-top: 10px;">
+                <h2 style="margin-bottom: 0px;">Biografija</h2>
                 <p>{{ job.biography | truncate:150:false }}</p>
             </div>
         </mat-card-content>
@@ -119,11 +119,11 @@
 
 <mat-card *ngIf="!isUserJobPost(job)" class="job-card" [ngStyle]="{'padding-bottom': !isGridView ? '15px' : '0px'}">
     <a class="job-link" [routerLink]="isParentMyAdsComponent ? null : ['/company-job-ads', job.id]">
+        <mat-card-header class="badge" [ngClass]="job.pricingPlanName">
+            {{ getPricingPlanLabel(job.pricingPlanName) }}
+        </mat-card-header>
         <mat-card-header fxLayout="row" fxLayoutAlign="space-between" fxLayoutGap="10px" fxLayoutWrap>
             <div fxFlex="grow">
-                <div class="badge" [ngClass]="job.pricingPlanName">
-                    {{ getPricingPlanLabel(job.pricingPlanName) }}
-                </div>
                 <mat-card-title>{{ job.adName }}</mat-card-title>
                 <p><span style="font-size: 15px; font-weight: 500;">Pozicija:</span> {{ job.position }}</p>
                 <p><span style="font-size: 15px; font-weight: 500;">Kategorija:</span> {{

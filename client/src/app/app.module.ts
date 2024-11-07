@@ -83,6 +83,7 @@ import { MatInputModule } from '@angular/material/input';
 import { registerLocaleData } from '@angular/common';
 import localeBS from '@angular/common/locales/bs';
 import { BaseAdCardComponent } from './components/base-ad-card/base-ad-card.component';
+import { ConfirmationModalComponent } from './modal/confirmation-modal/confirmation-modal.component';
 
 registerLocaleData(localeBS);
 
@@ -151,7 +152,8 @@ export class HammerConfig extends HammerGestureConfig {
     CompanyMyAdsWrapperComponent,
     CompanyMyAdManagerComponent,
     FilterPipe,
-    BaseAdCardComponent
+    BaseAdCardComponent,
+    ConfirmationModalComponent
   ],
   imports: [
     BrowserModule,

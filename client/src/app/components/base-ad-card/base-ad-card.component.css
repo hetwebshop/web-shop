@@ -1,14 +1,12 @@
 /* Job Card Styles */
 .job-card {
-    margin-bottom: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
-    border: 1px solid #283316; /* Vibrant teal border */
     background-color: #FFFFFF; /* White background */
     transition: box-shadow 0.3s, border-color 0.3s;
-    position: relative;
     height: 100%; 
     padding: 0px;
+    padding-bottom: 20px;
     &:hover {
       box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4); /* Darker and larger shadow */
       border-color: #a8996e; /* Slightly darker border color on hover */
@@ -29,6 +27,14 @@
     &:hover {
         text-decoration: none;
     }
+}
+
+.job-info {
+    max-height: 15px;
+}
+
+.job-details {
+    padding-top: 0;
 }
 
 .card-actions {
@@ -70,10 +76,10 @@
 }
 
 .mat-card-header {
-    border-radius: 4px 4px 0 0; /* Rounded corners on top */
     padding: 16px; /* Adjust as needed */
     background-color: #283316; /* Light teal background for the header */
     color: #edd79c; 
+    border: 0;
 }
 
 .mat-card-header-content {
@@ -111,27 +117,32 @@
       }
   }
   
-  .badge {
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    padding: 10px 15px;
+ 
+.badge {
+    height: 16px;
     color: white;
-    font-weight: bold;
-    font-size: 12px;
-    border-radius: 5px;
-    text-transform: uppercase;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    border-radius: 6px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
   }
   
   /* Badge Colors for Different Packages */
   .badge.Base {
-    background-color: #336699;
+    background-color: #336699 !important;
+    color: white !important;
   }
   
   .badge.Plus {
-    background-color: #FF9800;
+    border: 1px solid #FF9800 !important;
+    background-color: #FF9800  !important;
+    color: white !important;
   }
   
   .badge.Premium {
-    background-color: #8E44AD;
+    background-color: #8E44AD !important;
+    color: white !important;
   }

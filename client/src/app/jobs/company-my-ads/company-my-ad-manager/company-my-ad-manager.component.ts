@@ -1,8 +1,10 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, UntypedFormGroup, Validators } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { Subscription } from 'rxjs';
+import { ConfirmationModalComponent } from 'src/app/modal/confirmation-modal/confirmation-modal.component';
 import { UserProfile } from 'src/app/modal/user';
 import { CompanyJobPost } from 'src/app/models/companyJobAd';
 import { JobPostStatus } from 'src/app/models/enums';
@@ -37,7 +39,7 @@ export class CompanyMyAdManagerComponent {
   canJobBeReactivated: boolean = false;
 
   constructor(private jobService: JobService, private companyJobService: CompanyJobService, private locationService: LocationService, utility: UtilityService, 
-    private route: ActivatedRoute, private cdr: ChangeDetectorRef, 
+    private route: ActivatedRoute, private cdr: ChangeDetectorRef,  private dialog: MatDialog,
     private fb: FormBuilder, private accountService: AccountService, private toastr: ToastrService, private router: Router) {
     utility.setTitle('Detalji oglasa');
   }
@@ -180,62 +182,95 @@ export class CompanyMyAdManagerComponent {
 
   deleteAd(event): void {
     event.preventDefault();
-    this.companyJobService.deleteAd(this.job.id).subscribe({
-      next: (response) => {
-      if(response == true) {
-        this.job = { ...this.job, isDeleted: true, jobPostStatusId: JobPostStatus.Deleted };
-        this.isJobInStatusClosedOrDeleted = true;
-        this.disableForm();
-        this.toastr.success("Uspješno obrisana objava!");
+    const confirmationDialogRef = this.dialog.open(ConfirmationModalComponent,
+      {
+        data: {
+          title: "Obriši oglas",
+          message: "Da li ste sigurni da želite obrisati objavu? Obrisane objave možete naći poslije u sekciji 'Obrisani oglasi' te se obrisani oglas više ne može aktivirati!"
+        }
+      });
+      confirmationDialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.companyJobService.deleteAd(this.job.id).subscribe({
+          next: (response) => {
+          if(response == true) {
+            this.job = { ...this.job, isDeleted: true, jobPostStatusId: JobPostStatus.Deleted };
+            this.isJobInStatusClosedOrDeleted = true;
+            this.disableForm();
+            this.toastr.success("Uspješno obrisana objava!");
+          }
+          else
+          this.toastr.error("Desila se greška prilikom brisanja objave!");
+        },
+        error: () => {
+          this.toastr.error("Desila se greška prilikom brisanja objave!");
+        }
+        });
       }
-      else
-      this.toastr.error("Desila se greška prilikom brisanja objave!");
-    },
-    error: () => {
-      this.toastr.error("Desila se greška prilikom brisanja objave!");
-    }
     });
   }
 
   closeAd(event): void {
     event.preventDefault();
-    this.companyJobService.closeAd(this.job.id).subscribe({
-      next: (response) => {
-      if(response == true) {
-        this.job = { ...this.job, jobPostStatusId: JobPostStatus.Closed };
-        this.isJobInStatusClosedOrDeleted = true;
-        this.disableForm();
-        if(this.job && moment(this.job.adEndDate) > moment()){
-          this.canJobBeReactivated = true;
+    const confirmationDialogRef = this.dialog.open(ConfirmationModalComponent,
+      {
+        data: {
+          title: "Obriši oglas",
+          message: "Da li ste sigurni da želite obrisati objavu? Obrisane objave možete naći poslije u sekciji 'Obrisani oglasi' te se obrisani oglas više ne može aktivirati!"
         }
-        this.toastr.success("Uspješno ste zatvorili oglas!");
+      });
+      confirmationDialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.companyJobService.closeAd(this.job.id).subscribe({
+          next: (response) => {
+          if(response == true) {
+            this.job = { ...this.job, jobPostStatusId: JobPostStatus.Closed };
+            this.isJobInStatusClosedOrDeleted = true;
+            this.disableForm();
+            if(this.job && moment(this.job.adEndDate) > moment()){
+              this.canJobBeReactivated = true;
+            }
+            this.toastr.success("Uspješno ste zatvorili oglas!");
+          }
+          else
+            this.toastr.error("Desila se greška prilikom zatvaranja oglasa!");
+        },
+        error: () => {
+          this.toastr.error("Desila se greška prilikom zatvaranja oglasa!");
+        }
+        });
       }
-      else
-        this.toastr.error("Desila se greška prilikom zatvaranja oglasa!");
-    },
-    error: () => {
-      this.toastr.error("Desila se greška prilikom zatvaranja oglasa!");
-    }
     });
   }
 
   reactivateAd(event): void {
     event.preventDefault();
-    this.companyJobService.closeAd(this.job.id).subscribe({
-      next: (response) => {
-      if(response == true) {
-        this.job = { ...this.job, jobPostStatusId: JobPostStatus.Active };
-        this.isJobInStatusClosedOrDeleted = false;
-        this.canJobBeReactivated = false;
-        this.enableForm();
-        this.toastr.success("Uspješno ste aktivirali oglas!");
+    const confirmationDialogRef = this.dialog.open(ConfirmationModalComponent,
+      {
+        data: {
+          title: "Obriši oglas",
+          message: "Da li ste sigurni da želite obrisati objavu? Obrisane objave možete naći poslije u sekciji 'Obrisani oglasi' te se obrisani oglas više ne može aktivirati!"
+        }
+      });
+      confirmationDialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.companyJobService.closeAd(this.job.id).subscribe({
+          next: (response) => {
+          if(response == true) {
+            this.job = { ...this.job, jobPostStatusId: JobPostStatus.Active };
+            this.isJobInStatusClosedOrDeleted = false;
+            this.canJobBeReactivated = false;
+            this.enableForm();
+            this.toastr.success("Uspješno ste aktivirali oglas!");
+          }
+          else
+            this.toastr.error("Desila se greška prilikom ponovnog aktiviranja oglasa!");
+        },
+        error: () => {
+          this.toastr.error("Desila se greška prilikom ponovnog aktiviranja oglasa!");
+        }
+        });
       }
-      else
-        this.toastr.error("Desila se greška prilikom ponovnog aktiviranja oglasa!");
-    },
-    error: () => {
-      this.toastr.error("Desila se greška prilikom ponovnog aktiviranja oglasa!");
-    }
     });
   }
 

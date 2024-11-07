@@ -62,6 +62,7 @@ export class JobDetailsPreviewComponent implements OnInit, OnDestroy {
         console.log("response " + JSON.stringify(response));
          this.job = response;
          this.isJobAd = this.job.advertisementTypeId == AdvertisementTypeEnum.JobAd ? true : false;
+         console.log("JOB IS", response);
          this.cdr.detectChanges();
        }, error: (errorResponse) => {
          console.log('Error fetching job', errorResponse);
@@ -77,7 +78,7 @@ export class JobDetailsPreviewComponent implements OnInit, OnDestroy {
     }
 
     getPricingPlanLabel(pricingPlanName: string) : string {
-      return pricingPlanName == "Base" ? "Bazni" : pricingPlanName;
+      return pricingPlanName == "Base" ? "Osnovni paket" : pricingPlanName + ' paket';    
     }
 
     getCityName(cityId: number) : string {

@@ -77,7 +77,7 @@ export class BaseAdCardComponent {
   }
 
   getPricingPlanLabel(pricingPlanName: string): string {
-    return pricingPlanName == "Base" ? "Bazni" : pricingPlanName;
+    return pricingPlanName == "Base" ? "Osnovni paket" : pricingPlanName + ' paket';
   }
 
   getCityName(cityId: number): string {
