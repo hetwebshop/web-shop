@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { Observable, first, map } from 'rxjs';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Observable, Subject, first, map, takeUntil } from 'rxjs';
 import { AdsPaginationParameters } from 'src/app/models/filterCriteria';
 import { PagedResponse } from 'src/app/models/pagedResponse';
 import { JobCategory, UserJobPost } from 'src/app/models/userJobPost';
@@ -22,7 +22,9 @@ import { ConfirmationModalComponent } from 'src/app/modal/confirmation-modal/con
   templateUrl: './my-ads.component.html',
   styleUrls: ['./my-ads.component.css']
 })
-export class MyAdsComponent {
+export class MyAdsComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
   activeJobs: UserJobPost[];
   closedJobs: UserJobPost[];
   deletedJobs: UserJobPost[];
@@ -66,7 +68,7 @@ export class MyAdsComponent {
   }
 
   fetchMyAds(params: AdsPaginationParameters) {
-    this.jobService.getMyAds(params).subscribe(
+    this.jobService.getMyAds(params).pipe(takeUntil(this.destroy$)).subscribe(
       (response) => {
         if(params.adStatus == JobPostStatus.Active){
           this.activeAdsPaginationResponse = response;
@@ -126,13 +128,18 @@ export class MyAdsComponent {
           message: "Da li ste sigurni da želite obrisati objavu? Obrisane objave možete naći poslije u sekciji 'Obrisani oglasi' te se obrisani oglas više ne može aktivirati!"
         }
       });
-      confirmationDialogRef.afterClosed().subscribe(result => {
+      confirmationDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result === true) {
-        this.jobService.deleteAd(jobId).subscribe((response) => {
+        this.jobService.deleteAd(jobId).pipe(takeUntil(this.destroy$)).subscribe((response) => {
           if(response == true)
             this.fetchPaginatedItems(this.paginationParameters);
         });
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

@@ -2,6 +2,7 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnDestroy,
   OnInit,
   Output,
   ViewChild,
@@ -11,7 +12,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { User } from '../modal/user';
 import { AccountService } from '../services/account.service';
 import { AdvertisementTypeEnum } from '../models/enums';
-import { Observable, map, shareReplay } from 'rxjs';
+import { Observable, Subject, map, shareReplay, takeUntil } from 'rxjs';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { ToastrService } from '../services/toastr.service';
 
@@ -20,7 +21,9 @@ import { ToastrService } from '../services/toastr.service';
   templateUrl: './nav.component.html',
   styleUrls: ['./nav.component.css'],
 })
-export class NavComponent implements OnInit {
+export class NavComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   value: string;
   @Input() isDark = false;
   @Output() changeTheme = new EventEmitter<boolean>();
@@ -35,7 +38,7 @@ export class NavComponent implements OnInit {
     private toastr: ToastrService,
     private breakpointObserver: BreakpointObserver
   ) {
-    this.accountService.user$.subscribe((u) => (this.user = u));
+    this.accountService.user$.pipe(takeUntil(this.destroy$)).subscribe((u) => (this.user = u));
   }
 
   @ViewChild('sidenav') sidenav: MatSidenav;
@@ -43,7 +46,7 @@ export class NavComponent implements OnInit {
   ngOnInit(): void {
     this.breakpointObserver.observe([
       "(min-width: 1400px)"
-    ]).subscribe(result => {
+    ]).pipe(takeUntil(this.destroy$)).subscribe(result => {
       if(result.matches)
       {
           this.isLargeScreen = true;
@@ -53,11 +56,11 @@ export class NavComponent implements OnInit {
       else 
         this.isLargeScreen = false;
     });
-    this.route.queryParamMap.subscribe((params) => {
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       this.value = params.get('q');
     });
 
-    this.router.events.subscribe((event) => {
+    this.router.events.pipe(takeUntil(this.destroy$)).subscribe((event) => {
       this.sidenav?.close();
     });
   }
@@ -89,5 +92,11 @@ export class NavComponent implements OnInit {
 
   getEnumName(value: number): string {
     return AdvertisementTypeEnum[value];
+  }
+
+  
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

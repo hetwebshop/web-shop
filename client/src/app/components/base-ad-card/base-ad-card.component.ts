@@ -1,9 +1,9 @@
 import { DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { AfterContentInit, ChangeDetectorRef, Component, ContentChild, ElementRef, Input, TemplateRef, ViewChild } from '@angular/core';
+import { AfterContentInit, ChangeDetectorRef, Component, ContentChild, ElementRef, Input, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { EmailModalComponent } from 'src/app/modal/email-modal/email-modal.component';
 import { SubmitApplicationModalComponent } from 'src/app/modal/submit-application-modal/submit-application-modal.component';
 import { User } from 'src/app/modal/user';
@@ -20,10 +20,11 @@ import { LocationService } from 'src/app/services/location.service';
   templateUrl: './base-ad-card.component.html',
   styleUrls: ['./base-ad-card.component.css']
 })
-export class BaseAdCardComponent {
+export class BaseAdCardComponent implements OnDestroy {
   @Input() job: UserJobPost | CompanyJobPost;
   @Input() isParentMyAdsComponent?: boolean = false;
 
+  private destroy$ = new Subject<void>();
   userJobPost?: UserJobPost;
   companyJobPost?: CompanyJobPost;
   user: User;
@@ -38,7 +39,9 @@ export class BaseAdCardComponent {
     private router: Router, private datePipe: DatePipe, public dialog: MatDialog,
     private accountService: AccountService,
     private http: HttpClient, private locationService: LocationService) {
-    this.accountService.user$.subscribe((u) => (this.user = u));
+    this.accountService.user$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((u) => (this.user = u));
   }
 
   ngOnInit(): void {
@@ -54,7 +57,9 @@ export class BaseAdCardComponent {
   }
 
   loadJobCategories(): void {
-    this.jobService.getJobCategories()
+    this.jobService.getJobCategories().pipe(
+      takeUntil(this.destroy$)
+    )
       .subscribe(categories => {
         this.jobCategories = categories.filter(r => r.parentId == null);
       });
@@ -63,14 +68,18 @@ export class BaseAdCardComponent {
 
 
   loadCities(): void {
-    this.locationService.getCities()
+    this.locationService.getCities().pipe(
+      takeUntil(this.destroy$)
+    )
       .subscribe(cities => {
         this.cities = cities;
       });
   }
 
   loadJobTypes(): void {
-    this.jobService.getJobTypes()
+    this.jobService.getJobTypes().pipe(
+      takeUntil(this.destroy$)
+    )
       .subscribe(types => {
         this.jobTypes = types
       });
@@ -119,7 +128,9 @@ export class BaseAdCardComponent {
       data: { fromEmail, toEmail }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(result => {
       if (result === true) {
         // Perform cancellation action here
         console.log('Changes canceled');
@@ -135,7 +146,9 @@ export class BaseAdCardComponent {
       data: { fromEmail, toEmail, jobPosition }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(result => {
       if (result === true) {
         // Perform cancellation action here
         console.log('Changes canceled');
@@ -146,7 +159,9 @@ export class BaseAdCardComponent {
   previewUserCV(fileName: string, event: Event) {
     event.preventDefault();
     event.stopPropagation();
-    this.jobService.getCVFileByName(fileName).subscribe((fileBlob) => {
+    this.jobService.getCVFileByName(fileName).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((fileBlob) => {
       const blobUrl = URL.createObjectURL(fileBlob);
       this.selectedFilePath = blobUrl;
       this.dialog.open(this.filePreviewModal, {
@@ -159,5 +174,11 @@ export class BaseAdCardComponent {
   isUserJobPost(job: UserJobPost | CompanyJobPost): job is UserJobPost {
     //ad type id is specific property for userJobPost
     return (job as UserJobPost).advertisementTypeId !== undefined;
+  }
+
+  ngOnDestroy() {
+    // Trigger cleanup of all subscriptions
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

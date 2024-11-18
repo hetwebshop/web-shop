@@ -1,13 +1,16 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnDestroy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { CancelConfirmationModalComponent } from '../cancel-confirmation-modal/cancel-confirmation-modal.component';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-submit-application-modal',
   templateUrl: './submit-application-modal.component.html',
   styleUrls: ['./submit-application-modal.component.css']
 })
-export class SubmitApplicationModalComponent {
+export class SubmitApplicationModalComponent implements OnDestroy {
+  private destroy$ = new Subject<void>();
+  
   fromEmail: string;
   toEmail: string; 
   jobPosition: string;
@@ -65,7 +68,7 @@ export class SubmitApplicationModalComponent {
         }
       });
 
-      cancelDialogRef.afterClosed().subscribe(result => {
+      cancelDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
         if (result === true) {
           this.dialogRef.close();
           // Perform cancellation action here
@@ -76,5 +79,10 @@ export class SubmitApplicationModalComponent {
     else {
       this.dialogRef.close();
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

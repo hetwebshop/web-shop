@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import { AccountService } from 'src/app/services/account.service';
 
 @Component({
@@ -7,7 +8,8 @@ import { AccountService } from 'src/app/services/account.service';
   templateUrl: './email-confirmation.component.html',
   styleUrls: ['./email-confirmation.component.css']
 })
-export class EmailConfirmationComponent implements OnInit {
+export class EmailConfirmationComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   loading: boolean = true;
   successMessage: string = '';
   errorMessage: string = '';
@@ -20,7 +22,7 @@ export class EmailConfirmationComponent implements OnInit {
 
   ngOnInit(): void {
     // Extract userId and token from URL query parameters
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const userId = params['userId'];
      const token = encodeURIComponent(params['token']);
 
@@ -35,7 +37,7 @@ export class EmailConfirmationComponent implements OnInit {
 
   confirmEmail(userId: string, token: string): void {
     // Call backend API to confirm the email
-    this.accountService.confirmEmail(userId, token).subscribe(
+    this.accountService.confirmEmail(userId, token).pipe(takeUntil(this.destroy$)).subscribe(
       response => {
         // Handle success
         this.successMessage = 'Email uspješno potvrđen!';
@@ -52,5 +54,10 @@ export class EmailConfirmationComponent implements OnInit {
   // Redirect the user to the login page after confirmation
   redirectToLogin(): void {
     this.router.navigate(['/login']);
+  }
+  ngOnDestroy() {
+    // Trigger cleanup of all subscriptions
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

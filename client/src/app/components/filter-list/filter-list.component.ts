@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Subject, Subscription, takeUntil } from 'rxjs';
 import { BaseContext } from 'src/app/base/modal';
 import { MediaService } from 'src/app/services/media.service';
 
@@ -8,7 +8,8 @@ import { MediaService } from 'src/app/services/media.service';
   templateUrl: './filter-list.component.html',
   styleUrls: ['./filter-list.component.css'],
 })
-export class FilterListComponent implements OnInit {
+export class FilterListComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   @Input() context: BaseContext;
   @Output() pageChange = new EventEmitter<number>();
   lt_md = false;
@@ -17,7 +18,7 @@ export class FilterListComponent implements OnInit {
   constructor(private mediaObserver: MediaService) {}
 
   ngOnInit(): void {
-    this.mediaSubscription = this.mediaObserver.mediaChange$.subscribe(
+    this.mediaSubscription = this.mediaObserver.mediaChange$.pipe(takeUntil(this.destroy$)).subscribe(
       (changes) => {
         this.lt_md = changes.includes('lt-md');
       }
@@ -31,5 +32,11 @@ export class FilterListComponent implements OnInit {
       behavior: 'smooth',
     });
     this.pageChange.emit(page);
+  }
+
+  ngOnDestroy() {
+    // Trigger cleanup of all subscriptions
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

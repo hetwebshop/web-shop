@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { AccountService } from '../services/account.service';
 import { ToastrService } from '../services/toastr.service';
@@ -8,13 +8,15 @@ import { LocationService } from '../services/location.service';
 import { JobService } from '../services/job.service';
 import { MatDialog } from '@angular/material/dialog';
 import { UserProfile } from '../modal/user';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-edit-company-profile',
   templateUrl: './edit-company-profile.component.html',
   styleUrls: ['./edit-company-profile.component.css'],
 })
-export class EditCompanyProfileComponent implements OnInit {
+export class EditCompanyProfileComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   company: UserProfile;
   companyProfileUpdate: UntypedFormGroup;
   loading: string;
@@ -38,7 +40,7 @@ export class EditCompanyProfileComponent implements OnInit {
   ngOnInit(): void {
     this.loadCities();
     
-    this.accountService.getProfile().subscribe((response: UserProfile) => {
+    this.accountService.getProfile().pipe(takeUntil(this.destroy$)).subscribe((response: UserProfile) => {
       console.log(response);
       this.company = response;
       this.initilizeProfileForm();
@@ -66,7 +68,7 @@ export class EditCompanyProfileComponent implements OnInit {
   }
 
   loadCities(): void {
-    this.locationService.getCities()
+    this.locationService.getCities().pipe(takeUntil(this.destroy$))
       .subscribe(cities => {
         this.cities = cities;
         this.filteredCities = cities;
@@ -75,7 +77,7 @@ export class EditCompanyProfileComponent implements OnInit {
 
   onSubmit() {
     this.accountService
-      .updateCompanyProfile(this.companyProfileUpdate.value)
+      .updateCompanyProfile(this.companyProfileUpdate.value).pipe(takeUntil(this.destroy$))
       .subscribe({
         next:(response) => {
           this.company = response;
@@ -90,7 +92,7 @@ export class EditCompanyProfileComponent implements OnInit {
 
   changePhoto(files: FileList) {
     if (files.length > 0) {
-      this.accountService.changePhoto(files.item(0)).subscribe((response) => {
+      this.accountService.changePhoto(files.item(0)).pipe(takeUntil(this.destroy$)).subscribe((response) => {
         this.company.photoUrl = response.photoUrl;
         this.toastr.success('Photo updated.');
       });
@@ -98,7 +100,7 @@ export class EditCompanyProfileComponent implements OnInit {
   }
 
   removePhoto() {
-    this.accountService.removePhoto().subscribe(() => {
+    this.accountService.removePhoto().pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.company.photoUrl = null;
       this.toastr.success('Photo removed.');
     });
@@ -120,5 +122,8 @@ export class EditCompanyProfileComponent implements OnInit {
       this.filteredCities = [...this.cities];
     }
   }
-
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 }

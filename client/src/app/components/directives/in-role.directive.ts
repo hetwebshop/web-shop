@@ -1,17 +1,20 @@
 import {
   Directive,
   Input,
+  OnDestroy,
   OnInit,
   TemplateRef,
   ViewContainerRef,
 } from '@angular/core';
+import { Subject, takeUntil } from 'rxjs';
 import { User } from 'src/app/modal/user';
 import { AccountService } from 'src/app/services/account.service';
 
 @Directive({
   selector: '[appInRole]',
 })
-export class InRoleDirective implements OnInit {
+export class InRoleDirective implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   @Input() appInRole: string[];
   user: User;
   constructor(
@@ -21,7 +24,7 @@ export class InRoleDirective implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.accountService.user$.subscribe((user) => {
+    this.accountService.user$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
       this.user = user;
       this.createView();
     });
@@ -35,5 +38,11 @@ export class InRoleDirective implements OnInit {
     } else {
       this.vcRef.clear();
     }
+  }
+
+  ngOnDestroy() {
+    // Trigger cleanup of all subscriptions
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

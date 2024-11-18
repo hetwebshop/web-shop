@@ -1,6 +1,6 @@
-import { Component, OnChanges, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnChanges, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, NgForm, Validators, FormGroup, FormArray, FormControl } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { finalize, Subject, takeUntil } from 'rxjs';
 import { Address, LocationInfo } from '../modal/address';
 import { AccountService } from '../services/account.service';
 import { ToastrService } from '../services/toastr.service';
@@ -22,7 +22,7 @@ import { MessageService } from '../services/message.service';
   templateUrl: './edit-profile.component.html',
   styleUrls: ['./edit-profile.component.css'],
 })
-export class EditProfileComponent implements OnInit {
+export class EditProfileComponent implements OnInit, OnDestroy {
   user: UserProfile;
   profileUpdate: UntypedFormGroup;
   genders = Object.keys(Gender) as Array<keyof typeof Gender>;
@@ -45,6 +45,8 @@ export class EditProfileComponent implements OnInit {
   citieSearchKeyword = "";
   jobTypesSearchKeyword = "";
   jobCategoriesSearchKeyword = "";
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -74,7 +76,7 @@ export class EditProfileComponent implements OnInit {
     this.loadJobTypes();
     this.loadJobCategories();
 
-    this.accountService.getProfile().subscribe((response: UserProfile) => {
+    this.accountService.getProfile().pipe(takeUntil(this.destroy$)).subscribe((response: UserProfile) => {
       this.user = response;
       this.initilizeProfileForm();
       console.log("user");
@@ -111,7 +113,7 @@ export class EditProfileComponent implements OnInit {
   }
 
   loadJobTypes(): void {
-    this.jobService.getJobTypes()
+    this.jobService.getJobTypes().pipe(takeUntil(this.destroy$))
       .subscribe(types => {
         this.jobTypes = types;
         this.filteredJobTypes = types;
@@ -120,7 +122,7 @@ export class EditProfileComponent implements OnInit {
 
 
   loadJobCategories(): void {
-    this.jobService.getJobCategories()
+    this.jobService.getJobCategories().pipe(takeUntil(this.destroy$))
       .subscribe(categories => {
         this.jobCategories = categories.filter(r => r.parentId == null);
         this.filteredCategories = this.jobCategories;
@@ -162,7 +164,7 @@ export class EditProfileComponent implements OnInit {
   }
 
   loadCities(): void {
-    this.locationService.getCities()
+    this.locationService.getCities().pipe(takeUntil(this.destroy$))
       .subscribe(cities => {
         this.cities = cities;
         this.filteredCities = cities;
@@ -197,7 +199,7 @@ export class EditProfileComponent implements OnInit {
     if (this.selectedFile) {
       formData.append('cvFile', this.selectedFile, this.selectedFile.name);
     }
-    this.accountService.updateProfile(formData).subscribe({
+    this.accountService.updateProfile(formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         this.user = response;
         this.initilizeProfileForm();
@@ -223,7 +225,7 @@ export class EditProfileComponent implements OnInit {
   }
 
   previewUserCV(fileName: string) {
-    this.jobService.getCVFileByName(fileName).subscribe((fileBlob) => {
+    this.jobService.getCVFileByName(fileName).pipe(takeUntil(this.destroy$)).subscribe((fileBlob) => {
       const blobUrl = URL.createObjectURL(fileBlob);
       this.selectedFilePath = blobUrl;
       this.dialog.open(this.filePreviewModal, {
@@ -267,7 +269,7 @@ export class EditProfileComponent implements OnInit {
 
   changePhoto(files: FileList) {
     if (files.length > 0) {
-      this.accountService.changePhoto(files.item(0)).subscribe((response) => {
+      this.accountService.changePhoto(files.item(0)).pipe(takeUntil(this.destroy$)).subscribe((response) => {
         this.user.photoUrl = response.photoUrl;
         this.toastr.success('Photo updated.');
       });
@@ -275,7 +277,7 @@ export class EditProfileComponent implements OnInit {
   }
 
   removePhoto() {
-    this.accountService.removePhoto().subscribe(() => {
+    this.accountService.removePhoto().pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.user.photoUrl = null;
       this.toastr.success('Photo removed.');
     });
@@ -314,7 +316,7 @@ export class EditProfileComponent implements OnInit {
         }
       });
 
-    cancelDialogRef.afterClosed().subscribe(result => {
+    cancelDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result === true) {
         this.profileUpdate.markAsDirty();
         this.removeEducation(index);
@@ -357,6 +359,11 @@ export class EditProfileComponent implements OnInit {
     else if(formControlName == "jobTypeId"){
       this.filteredJobTypes = [...this.jobTypes];
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
 }

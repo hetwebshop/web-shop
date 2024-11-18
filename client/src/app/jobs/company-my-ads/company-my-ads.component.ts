@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Observable, Subject, map, takeUntil } from 'rxjs';
 import { AdsPaginationParameters } from 'src/app/models/filterCriteria';
 import { PagedResponse } from 'src/app/models/pagedResponse';
 import { JobCategory, JobType, UserJobPost } from 'src/app/models/userJobPost';
@@ -25,7 +25,9 @@ import { MatDialog } from '@angular/material/dialog';
   templateUrl: './company-my-ads.component.html',
   styleUrls: ['./company-my-ads.component.css']
 })
-export class CompanyMyAdsComponent {
+export class CompanyMyAdsComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
   paginationResponse: PagedResponse<CompanyJobPost>;
   paginationParameters: AdsPaginationParameters;
   activeTabJobStatus: JobPostStatus = JobPostStatus.Active;
@@ -68,7 +70,7 @@ export class CompanyMyAdsComponent {
   }
 
   fetchCompanyAds(params: AdsPaginationParameters) {
-    this.companyJobService.getCompanyAds(params).subscribe(
+    this.companyJobService.getCompanyAds(params).pipe(takeUntil(this.destroy$)).subscribe(
       (response) => {
         if (params.adStatus == JobPostStatus.Active) {
           this.activeAdsPaginationResponse = response;
@@ -129,9 +131,9 @@ export class CompanyMyAdsComponent {
           message: "Da li ste sigurni da želite obrisati objavu? Obrisane objave možete naći poslije u sekciji 'Obrisani oglasi' te se obrisani oglas više ne može aktivirati!"
         }
       });
-      confirmationDialogRef.afterClosed().subscribe(result => {
+      confirmationDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result === true) {
-        this.companyJobService.deleteAd(jobId).subscribe((response) => {
+        this.companyJobService.deleteAd(jobId).pipe(takeUntil(this.destroy$)).subscribe((response) => {
           if (response == true)
             this.fetchPaginatedItems(this.paginationParameters);
         });
@@ -148,9 +150,9 @@ export class CompanyMyAdsComponent {
           message: "Da li ste sigurni da želite obrisati objavu? Obrisane objave možete naći poslije u sekciji 'Obrisani oglasi' te se obrisani oglas više ne može aktivirati!"
         }
       });
-      confirmationDialogRef.afterClosed().subscribe(result => {
+      confirmationDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result === true) {
-        this.companyJobService.closeAd(jobId).subscribe((response) => {
+        this.companyJobService.closeAd(jobId).pipe(takeUntil(this.destroy$)).subscribe((response) => {
           if (response == true) {
             this.fetchPaginatedItems();
           }
@@ -168,14 +170,19 @@ export class CompanyMyAdsComponent {
           message: "Da li ste sigurni da želite obrisati objavu? Obrisane objave možete naći poslije u sekciji 'Obrisani oglasi' te se obrisani oglas više ne može aktivirati!"
         }
       });
-      confirmationDialogRef.afterClosed().subscribe(result => {
+      confirmationDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result === true) {
-        this.companyJobService.reactivateAd(jobId).subscribe((response) => {
+        this.companyJobService.reactivateAd(jobId).pipe(takeUntil(this.destroy$)).subscribe((response) => {
           if (response == true) {
             this.fetchPaginatedItems();
           }
         });
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

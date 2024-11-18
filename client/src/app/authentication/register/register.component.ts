@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   UntypedFormBuilder,
@@ -8,6 +8,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import { Gender } from 'src/app/models/enums';
 import { City } from 'src/app/models/location';
 import { AccountService } from 'src/app/services/account.service';
@@ -19,7 +20,8 @@ import { UtilityService } from 'src/app/services/utility.service';
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css'],
 })
-export class RegisterComponent implements OnInit {
+export class RegisterComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   registerForm: UntypedFormGroup;
   registerCompanyForm: UntypedFormGroup;
   redirectUrl: string;
@@ -53,7 +55,9 @@ export class RegisterComponent implements OnInit {
   }
 
   loadCities(): void {
-    this.locationService.getCities()
+    this.locationService.getCities().pipe(
+      takeUntil(this.destroy$)
+    )
       .subscribe(cities => {
         this.cities = cities;
       });
@@ -88,7 +92,9 @@ export class RegisterComponent implements OnInit {
       ],
     });
 
-    this.registerForm.controls.password.valueChanges.subscribe(() => {
+    this.registerForm.controls.password.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.registerForm.controls.confirmPassword.updateValueAndValidity();
     });
 
@@ -115,7 +121,9 @@ export class RegisterComponent implements OnInit {
       ],
     });
 
-    this.registerCompanyForm.controls.password.valueChanges.subscribe(() => {
+    this.registerCompanyForm.controls.password.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.registerCompanyForm.controls.confirmPassword.updateValueAndValidity();
     });
   }
@@ -137,7 +145,9 @@ export class RegisterComponent implements OnInit {
   onSubmit() {
     const formData = this.registerForm.value;
     formData.gender = Gender[formData.gender];
-    this.accountService.register(formData).subscribe({
+    this.accountService.register(formData).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
       next: (response) => {
         if (response) {
           this.router.navigate(['/login']); 
@@ -151,7 +161,9 @@ export class RegisterComponent implements OnInit {
   }
 
   onSubmitCompany() {
-    this.accountService.registerCompany(this.registerCompanyForm.value).subscribe({
+    this.accountService.registerCompany(this.registerCompanyForm.value).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
       next: (response) => {
         if (response) {
           this.router.navigate(['/login']); 
@@ -173,5 +185,11 @@ export class RegisterComponent implements OnInit {
     }
     else 
       return "Ostali";
+  }
+
+  ngOnDestroy() {
+    // Trigger cleanup when the component is destroyed
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

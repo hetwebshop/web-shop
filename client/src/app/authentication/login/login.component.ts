@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { Subject, Subscription, takeUntil } from 'rxjs';
 import { AccountService } from 'src/app/services/account.service';
 import { UtilityService } from 'src/app/services/utility.service';
 
@@ -9,9 +10,10 @@ import { UtilityService } from 'src/app/services/utility.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   loginForm: FormGroup;
   redirectUrl: string;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
@@ -41,7 +43,9 @@ export class LoginComponent implements OnInit {
 
   onSubmit() {
     if (this.loginForm.valid) {
-      this.accountService.login(this.loginForm.value).subscribe(() => {
+      this.accountService.login(this.loginForm.value).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(() => {
         location.reload();
       });
     }
@@ -59,5 +63,10 @@ export class LoginComponent implements OnInit {
     this.router.navigateByUrl(this.redirectUrl ? this.redirectUrl : '/', {
       replaceUrl: true,
     });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

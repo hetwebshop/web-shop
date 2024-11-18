@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AdvertisementTypeEnum } from 'src/app/models/enums';
 import { JobCategory, JobType } from 'src/app/models/userJobPost';
@@ -9,7 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { EmailModalComponent } from 'src/app/modal/email-modal/email-modal.component';
 import { User } from 'src/app/modal/user';
 import { AccountService } from 'src/app/services/account.service';
-import { Observable, map, switchMap, take, tap } from 'rxjs';
+import { Observable, Subject, map, switchMap, take, takeUntil, tap } from 'rxjs';
 import { AdsPaginationParameters } from 'src/app/models/filterCriteria';
 import { PagedResponse } from 'src/app/models/pagedResponse';
 import { FiltersStore } from 'src/app/store/filters/filters.store';
@@ -30,7 +30,8 @@ import { PricingPlan } from 'src/app/models/pricingPlan';
   templateUrl: './company-job-ads.component.html',
   styleUrls: ['./company-job-ads.component.css']
 })
-export class CompanyJobAdsComponent {
+export class CompanyJobAdsComponent implements OnDestroy {
+  private destroy$ = new Subject<void>();
   allJobs$: Observable<CompanyJobPost[]>;
   adType: AdvertisementTypeEnum;
   user: User;
@@ -47,7 +48,7 @@ export class CompanyJobAdsComponent {
     private accountService: AccountService, private filtersStore: FiltersStore, private breakpointObserver: BreakpointObserver,
     private filtersQuery: FiltersQuery, private jobCategoryQuery: JobCategoryQuery, private pricingPlanService: PricingPlanService, private locationService: LocationService, private jobTypeQuery: JobTypeQuery) {
     utility.setTitle('Oglasi kompanije');
-    this.accountService.user$.subscribe((u) => (this.user = u));
+    this.accountService.user$.pipe(takeUntil(this.destroy$)).subscribe((u) => (this.user = u));
   }
 
   toggleView() {
@@ -58,7 +59,7 @@ export class CompanyJobAdsComponent {
   ngOnInit(): void {
     this.breakpointObserver.observe([
       "(min-width: 768px)"
-    ]).subscribe(result => {
+    ]).pipe(takeUntil(this.destroy$)).subscribe(result => {
       if(result.matches){
         this.isLargeScreen = true;
         this.isGridView = this.isGridViewUserSelection;
@@ -106,7 +107,7 @@ export class CompanyJobAdsComponent {
       data: { fromEmail, toEmail, jobPosition }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result === true) {
         // Perform cancellation action here
         console.log('Changes canceled');
@@ -126,5 +127,11 @@ export class CompanyJobAdsComponent {
 
   toggleFilters() {
     this.showFilters = !this.showFilters;
+  }
+
+  
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

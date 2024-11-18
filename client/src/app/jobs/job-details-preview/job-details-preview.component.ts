@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, Subscription, map, switchMap } from 'rxjs';
+import { Observable, Subject, Subscription, map, switchMap, takeUntil } from 'rxjs';
 import { EmailModalComponent } from 'src/app/modal/email-modal/email-modal.component';
 import { AdvertisementTypeEnum, Gender } from 'src/app/models/enums';
 import { AdsPaginationParameters } from 'src/app/models/filterCriteria';
@@ -23,6 +23,8 @@ import { AdsStore } from 'src/app/store/jobs/ads.store';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class JobDetailsPreviewComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
   job: UserJobPost;
   private subscription: Subscription;
   currentItemIndex: number = 5;
@@ -56,7 +58,8 @@ export class JobDetailsPreviewComponent implements OnInit, OnDestroy {
     this.subscription = this.route.params
       .pipe(
         map(params => params['id']),
-        switchMap(userId => this.jobService.getJobById(userId))
+        switchMap(userId => this.jobService.getJobById(userId)),
+        takeUntil(this.destroy$)
       )
       .subscribe({ next: (response) => {
         console.log("response " + JSON.stringify(response));
@@ -95,7 +98,7 @@ export class JobDetailsPreviewComponent implements OnInit, OnDestroy {
     }
 
     loadCities(): void {
-      this.locationService.getCities()
+      this.locationService.getCities().pipe(takeUntil(this.destroy$))
         .subscribe(cities => {
           this.cities = cities;
           this.cdr.detectChanges();
@@ -103,7 +106,7 @@ export class JobDetailsPreviewComponent implements OnInit, OnDestroy {
     }
   
     loadJobCategories(): void {
-      this.jobService.getJobCategories()
+      this.jobService.getJobCategories().pipe(takeUntil(this.destroy$))
         .subscribe(categories => {
           this.jobCategories = categories.filter(r => r.parentId == null);
           this.cdr.detectChanges();
@@ -111,7 +114,7 @@ export class JobDetailsPreviewComponent implements OnInit, OnDestroy {
     }
 
     loadJobTypes(): void {
-      this.jobService.getJobTypes()
+      this.jobService.getJobTypes().pipe(takeUntil(this.destroy$))
         .subscribe(types => {
           this.jobTypes = types;
           this.cdr.detectChanges();
@@ -147,7 +150,7 @@ export class JobDetailsPreviewComponent implements OnInit, OnDestroy {
         if (Object.keys(filterCriteria).length > 0) {
           if (filterCriteria.pageNumber > 1) {
             filterCriteria.pageNumber = filterCriteria.pageNumber - 1;
-            this.jobService.getAds(filterCriteria).subscribe(response => {
+            this.jobService.getAds(filterCriteria).pipe(takeUntil(this.destroy$)).subscribe(response => {
               this.allJobs = response.items;
               this.filtersStore.set([filterCriteria]);
               if (response.items.length > 0) {
@@ -172,7 +175,7 @@ export class JobDetailsPreviewComponent implements OnInit, OnDestroy {
         data: { fromEmail, toEmail },
       });
   
-      dialogRef.afterClosed().subscribe(result => {
+      dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
         if (result === true) {
           // Perform cancellation action here
           console.log('Changes canceled');
@@ -191,7 +194,7 @@ export class JobDetailsPreviewComponent implements OnInit, OnDestroy {
         let filterCriteria = { ...this.filtersQuery.getAll()[0] };
         if (Object.keys(filterCriteria).length > 0) {
           filterCriteria.pageNumber = filterCriteria.pageNumber + 1;
-          this.jobService.getAds(filterCriteria).subscribe(response => {
+          this.jobService.getAds(filterCriteria).pipe(takeUntil(this.destroy$)).subscribe(response => {
             this.allJobs = response.items;
             this.filtersStore.set([filterCriteria]);
             if (response.items.length > 0) {
@@ -210,5 +213,8 @@ export class JobDetailsPreviewComponent implements OnInit, OnDestroy {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
+
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

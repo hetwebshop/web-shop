@@ -1,16 +1,18 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import {
   HttpRequest,
   HttpHandler,
   HttpEvent,
   HttpInterceptor,
 } from '@angular/common/http';
-import { Observable, take } from 'rxjs';
+import { Observable, Subject, take, takeUntil } from 'rxjs';
 import { AccountService } from '../services/account.service';
 import { User } from '../modal/user';
 
 @Injectable()
-export class JwtInterceptor implements HttpInterceptor {
+export class JwtInterceptor implements HttpInterceptor, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
   constructor(private accountService: AccountService) {}
 
   intercept(
@@ -18,7 +20,7 @@ export class JwtInterceptor implements HttpInterceptor {
     next: HttpHandler
   ): Observable<HttpEvent<unknown>> {
     let currentUser: User;
-    this.accountService.user$.pipe(take(1)).subscribe((user) => {
+    this.accountService.user$.pipe(take(1)).pipe(takeUntil(this.destroy$)).subscribe((user) => {
       currentUser = user;
     });
     if (currentUser) {
@@ -27,5 +29,10 @@ export class JwtInterceptor implements HttpInterceptor {
       });
     }
     return next.handle(request);
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

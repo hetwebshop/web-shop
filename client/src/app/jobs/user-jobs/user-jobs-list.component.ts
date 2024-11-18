@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, Inject, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Inject, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AdvertisementTypeEnum, Gender } from 'src/app/models/enums';
 import { JobCategory, JobType, UserJobPost } from 'src/app/models/userJobPost';
@@ -9,7 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { EmailModalComponent } from 'src/app/modal/email-modal/email-modal.component';
 import { User } from 'src/app/modal/user';
 import { AccountService } from 'src/app/services/account.service';
-import { Observable, map, switchMap, take, tap } from 'rxjs';
+import { Observable, Subject, map, switchMap, take, takeUntil, tap } from 'rxjs';
 import { AdsPaginationParameters } from 'src/app/models/filterCriteria';
 import { PagedResponse } from 'src/app/models/pagedResponse';
 import { FiltersStore } from 'src/app/store/filters/filters.store';
@@ -25,7 +25,9 @@ import { LocationService } from 'src/app/services/location.service';
   templateUrl: './user-jobs-list.component.html',
   styleUrls: ['./user-jobs-list.component.css']
 })
-export class UserJobsListComponent {
+export class UserJobsListComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
   allJobs$: Observable<UserJobPost[]>;
   adType: AdvertisementTypeEnum;
   user: User;
@@ -46,7 +48,7 @@ export class UserJobsListComponent {
     private accountService: AccountService, private filtersStore: FiltersStore,
     private filtersQuery: FiltersQuery, private http: HttpClient, private locationService: LocationService, private jobCategoryQuery: JobCategoryQuery, private breakpointObserver: BreakpointObserver) {
     utility.setTitle('Oglasi');
-    this.accountService.user$.subscribe((u) => (this.user = u));
+    this.accountService.user$.pipe(takeUntil(this.destroy$)).subscribe((u) => (this.user = u));
   }
 
   genderName(gender: Gender) {
@@ -68,7 +70,7 @@ export class UserJobsListComponent {
   ngOnInit(): void {
     this.breakpointObserver.observe([
       "(min-width: 768px)"
-    ]).subscribe(result => {
+    ]).pipe(takeUntil(this.destroy$)).subscribe(result => {
       if(result.matches){
         this.isLargeScreen = true;
         this.isGridView = this.isGridViewUserSelection;
@@ -78,7 +80,7 @@ export class UserJobsListComponent {
         {this.isLargeScreen = false;
         this.isGridView = false;}
     });
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       if (params['type']) {
         this.adType = this.getEnumValue(params['type']);
         if(this.adType != AdvertisementTypeEnum.JobAd && this.adType != AdvertisementTypeEnum.Service){
@@ -140,5 +142,10 @@ export class UserJobsListComponent {
   onPageSizeChange(pageSize: number) {
     this.paginationParameters = { ...this.paginationParameters, pageSize: pageSize, pageNumber: 1 };
     this.fetchPaginatedItems(this.paginationParameters);
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

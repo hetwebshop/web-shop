@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import { AccountService } from 'src/app/services/account.service';
 import { MessageService } from 'src/app/services/message.service';
 import { UtilityService } from 'src/app/services/utility.service';
@@ -10,11 +11,12 @@ import { UtilityService } from 'src/app/services/utility.service';
   templateUrl: './change-password.component.html',
   styleUrls: ['./change-password.component.css']
 })
-export class ChangePasswordComponent {
+export class ChangePasswordComponent implements OnDestroy{
   resetPasswordForm: FormGroup;
   message: string | null = null
   isCompany: boolean = false;
-
+  private destroy$ = new Subject<void>();
+  
   constructor(
     private fb: FormBuilder,
     private accountService: AccountService,
@@ -27,7 +29,7 @@ export class ChangePasswordComponent {
   }
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.isCompany = params['company'] === 'true';  // Check if company=true
     });
     this.initializeForm();
@@ -55,7 +57,7 @@ export class ChangePasswordComponent {
   onSubmit() {
     if (this.resetPasswordForm.valid) {
       const { currentPassword, newPassword, confirmPassword } = this.resetPasswordForm.value;
-      this.accountService.changePassword(currentPassword, newPassword, confirmPassword).subscribe({
+      this.accountService.changePassword(currentPassword, newPassword, confirmPassword).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.messageService.setMessage('Lozinka uspješno promijenjena.', true);
           this.isCompany ? this.router.navigate(['/edit-company-profile']) : this.router.navigate(['/edit-profile']);
@@ -65,5 +67,11 @@ export class ChangePasswordComponent {
         }
       });
     }
+  }
+
+  ngOnDestroy() {
+    // Trigger cleanup of all subscriptions
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

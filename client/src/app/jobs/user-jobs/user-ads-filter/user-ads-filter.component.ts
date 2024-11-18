@@ -1,10 +1,10 @@
-import { Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatOption } from '@angular/material/core';
 import { MatInput } from '@angular/material/input';
 import { MatSelect } from '@angular/material/select';
 import { ActivatedRoute } from '@angular/router';
-import { Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Subject, Subscription, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { AdvertisementTypeEnum } from 'src/app/models/enums';
 import { AdsPaginationParameters } from 'src/app/models/filterCriteria';
 import { City } from 'src/app/models/location';
@@ -20,7 +20,9 @@ import { FiltersStore } from 'src/app/store/filters/filters.store';
   templateUrl: './user-ads-filter.component.html',
   styleUrls: ['./user-ads-filter.component.css']
 })
-export class UserAdsFilterComponent {
+export class UserAdsFilterComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
   private subscription: Subscription;
   form: FormGroup;
   formChanged: boolean;
@@ -71,12 +73,12 @@ export class UserAdsFilterComponent {
     console.log("JOB CATEGORIES ", this.jobCategories);
     this.form = this.createForm();
     
-    this.filters$.subscribe((filters) => {
+    this.filters$.pipe(takeUntil(this.destroy$)).subscribe((filters) => {
       if (filters && filters.length > 0) {
         this.updateForm(filters[0]);
       }
     });
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       if (params['type']) {
         this.selectedAdType = this.getEnumValue(params['type']);
       }
@@ -85,7 +87,7 @@ export class UserAdsFilterComponent {
     this.form.valueChanges.pipe(
       debounceTime(300), // Debounce to avoid frequent API calls
       distinctUntilChanged() // Only emit if the value has changed
-    ).subscribe(() => {
+    ).pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.formChanged = true;
     });
   }
@@ -273,7 +275,7 @@ export class UserAdsFilterComponent {
   }
 
   loadCities(): void {
-    this.locationService.getCities()
+    this.locationService.getCities().pipe(takeUntil(this.destroy$))
       .subscribe(cities => {
         this.cities = cities;
         this.filteredCities = cities;
@@ -281,7 +283,7 @@ export class UserAdsFilterComponent {
   }
 
   loadJobTypes(): void {
-    this.jobService.getJobTypes()
+    this.jobService.getJobTypes().pipe(takeUntil(this.destroy$))
       .subscribe(types => {
         this.jobTypes = types;
         this.filteredJobTypes = types;
@@ -289,7 +291,7 @@ export class UserAdsFilterComponent {
   }
 
   loadJobCategories(): void {
-    this.jobService.getJobCategories()
+    this.jobService.getJobCategories().pipe(takeUntil(this.destroy$))
       .subscribe(categories => {
         this.jobCategories = categories.filter(r => r.parentId == null);
         this.filteredCategories = this.jobCategories;
@@ -384,5 +386,10 @@ export class UserAdsFilterComponent {
         this.selectedJobTypeIds = [];
       }
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

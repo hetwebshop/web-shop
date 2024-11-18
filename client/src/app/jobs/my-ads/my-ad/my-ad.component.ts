@@ -1,11 +1,11 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectorRef, Component, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatOption } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
-import { Observable, Subscription, map, switchMap } from 'rxjs';
+import { Observable, Subject, Subscription, map, switchMap, takeUntil } from 'rxjs';
 import { ConfirmationModalComponent } from 'src/app/modal/confirmation-modal/confirmation-modal.component';
 import { UserProfile } from 'src/app/modal/user';
 import { AdvertisementTypeEnum, Gender, JobPostStatus } from 'src/app/models/enums';
@@ -26,7 +26,9 @@ import { AdsStore } from 'src/app/store/jobs/ads.store';
   templateUrl: './my-ad.component.html',
   styleUrls: ['./my-ad.component.css']
 })
-export class MyAdComponent {
+export class MyAdComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   isEditMode: boolean = true;
   jobId: number;
   job: UserJobPost;
@@ -77,13 +79,13 @@ export class MyAdComponent {
   }
 
   ngOnInit(): void {
-    this.accountService.getProfile().subscribe((user: UserProfile) => {
+    this.accountService.getProfile().pipe(takeUntil(this.destroy$)).subscribe((user: UserProfile) => {
       this.user = user;
     });
 
-    this.route.params.subscribe(params => {
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.jobId = +params['id'];
-        this.subscription = this.jobService.getMyJobById(this.jobId)
+        this.subscription = this.jobService.getMyJobById(this.jobId).pipe(takeUntil(this.destroy$))
           .subscribe({
             next: (response) => {
               this.job = response;
@@ -257,7 +259,7 @@ private updateApplicantEducations(educations: any[]): void {
     if (this.adUpdateForm.valid) {
       const formData = this.adUpdateForm.getRawValue();
       const model = this.prepareModel(formData);
-      this.subscription = this.jobService.upsertJob(this.isEditMode, model).subscribe({
+      this.subscription = this.jobService.upsertJob(this.isEditMode, model).pipe(takeUntil(this.destroy$)).subscribe({
         next: (updatedJob) => {
           this.job = updatedJob;
           this.toastr.success('Uspješno ste uredili objavu!');
@@ -279,7 +281,7 @@ private updateApplicantEducations(educations: any[]): void {
   }
 
   loadCountries(): void {
-    this.locationService.getCountries()
+    this.locationService.getCountries().pipe(takeUntil(this.destroy$))
       .subscribe(countries => {
         this.countries = countries;
         const defaultCountry = countries[0];
@@ -288,7 +290,7 @@ private updateApplicantEducations(educations: any[]): void {
   }
 
   loadCities(): void {
-    this.locationService.getCities()
+    this.locationService.getCities().pipe(takeUntil(this.destroy$))
       .subscribe(cities => {
         this.cities = cities;
         this.filteredCities = cities;
@@ -296,7 +298,7 @@ private updateApplicantEducations(educations: any[]): void {
   }
 
   loadJobTypes(): void {
-    this.jobService.getJobTypes()
+    this.jobService.getJobTypes().pipe(takeUntil(this.destroy$))
       .subscribe(types => {
         this.jobTypes = types;
         this.filteredJobTypes = types;
@@ -304,7 +306,7 @@ private updateApplicantEducations(educations: any[]): void {
   }
 
   loadJobCategories(): void {
-    this.jobService.getJobCategories()
+    this.jobService.getJobCategories().pipe(takeUntil(this.destroy$))
       .subscribe(categories => {
         this.jobCategories = categories.filter(r => r.parentId == null);
         this.filteredCategories = this.jobCategories;
@@ -312,7 +314,7 @@ private updateApplicantEducations(educations: any[]): void {
   }
 
   loadAdTypes(): void {
-    this.jobService.getAdTypes()
+    this.jobService.getAdTypes().pipe(takeUntil(this.destroy$))
       .subscribe(adTypes => {
         this.advertisementTypes = adTypes;
         const defaultType = this.job.jobTypeId;
@@ -343,6 +345,9 @@ private updateApplicantEducations(educations: any[]): void {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
+
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   deleteAd(event): void {
@@ -354,9 +359,9 @@ private updateApplicantEducations(educations: any[]): void {
           message: "Da li ste sigurni da želite obrisati objavu? Obrisane objave možete naći poslije u sekciji 'Obrisani oglasi' te se obrisani oglas više ne može aktivirati!"
         }
       });
-      confirmationDialogRef.afterClosed().subscribe(result => {
+      confirmationDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result === true) {
-        this.jobService.deleteAd(this.job.id).subscribe({
+        this.jobService.deleteAd(this.job.id).pipe(takeUntil(this.destroy$)).subscribe({
           next: (response) => {
           if(response == true) {
             this.job = { ...this.job, isDeleted: true, jobPostStatusId: JobPostStatus.Deleted };
@@ -384,9 +389,9 @@ private updateApplicantEducations(educations: any[]): void {
           message: "Da li ste sigurni da želite obrisati objavu? Obrisane objave možete naći poslije u sekciji 'Obrisani oglasi' te se obrisani oglas više ne može aktivirati!"
         }
       });
-      confirmationDialogRef.afterClosed().subscribe(result => {
+      confirmationDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result === true) {
-        this.jobService.closeAd(this.job.id).subscribe({
+        this.jobService.closeAd(this.job.id).pipe(takeUntil(this.destroy$)).subscribe({
           next: (response) => {
           if(response == true) {
             this.job = { ...this.job, jobPostStatusId: JobPostStatus.Closed };
@@ -419,9 +424,9 @@ private updateApplicantEducations(educations: any[]): void {
           message: "Da li ste sigurni da želite obrisati objavu? Obrisane objave možete naći poslije u sekciji 'Obrisani oglasi' te se obrisani oglas više ne može aktivirati!"
         }
       });
-      confirmationDialogRef.afterClosed().subscribe(result => {
+      confirmationDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result === true) {
-        this.jobService.closeAd(this.job.id).subscribe({
+        this.jobService.closeAd(this.job.id).pipe(takeUntil(this.destroy$)).subscribe({
           next: (response) => {
           if(response == true) {
             this.job = { ...this.job, jobPostStatusId: JobPostStatus.Active };
@@ -451,7 +456,7 @@ private updateApplicantEducations(educations: any[]): void {
   }
 
   previewUserCV(fileName: string) {
-    this.jobService.getCVFileByName(fileName).subscribe((fileBlob) => {
+    this.jobService.getCVFileByName(fileName).pipe(takeUntil(this.destroy$)).subscribe((fileBlob) => {
       const blobUrl = URL.createObjectURL(fileBlob);
       this.selectedFilePath = blobUrl;
       this.dialog.open(this.filePreviewModal, {

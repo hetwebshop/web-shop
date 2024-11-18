@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription, takeUntil } from 'rxjs';
 import { JobCategory, JobType } from 'src/app/models/userJobPost';
 import { JobService } from 'src/app/services/job.service';
 import { UtilityService } from 'src/app/services/utility.service';
@@ -45,6 +45,8 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
   jobTypesSearchKeyword = "";
   jobCategoriesSearchKeyword = "";
 
+  private destroy$ = new Subject<void>();
+
   constructor(private jobService: JobService, private companyJobService: CompanyJobService, private locationService: LocationService, utility: UtilityService, 
     private route: ActivatedRoute, private cdr: ChangeDetectorRef, 
     private fb: FormBuilder, private accountService: AccountService, private pricingPlanService: PricingPlanService, private toastrService: ToastrService, private router: Router) {
@@ -53,10 +55,10 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.form = this.createForm();
-    this.form.get('adDuration')?.valueChanges.subscribe(() => {
+    this.form.get('adDuration')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.filterPricingPlans();
     });
-    this.pricingPlanService.getAllPricingPlans()
+    this.pricingPlanService.getAllPricingPlans().pipe(takeUntil(this.destroy$))
       .subscribe(pplans => {
         this.pricingPlans = pplans;
         this.selectedPlan = pplans.find(r => r.name === 'Plus').name;
@@ -71,11 +73,11 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
     this.loadJobTypes();
     this.loadJobCategories();
 
-    this.route.params.subscribe(params => {
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       if (params['id']) {
         this.isEditMode = true;
         this.jobId = +params['id'];
-        this.subscription = this.companyJobService.getJobById(this.jobId)
+        this.subscription = this.companyJobService.getJobById(this.jobId).pipe(takeUntil(this.destroy$))
           .subscribe({
             next: (response) => {
               this.job = response;
@@ -154,7 +156,7 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
     if (this.form.valid) {
       const formData = this.form.getRawValue();
       const model = this.prepareModel(formData);
-      this.subscription = this.companyJobService.upsertJob(this.isEditMode, model).subscribe({
+      this.subscription = this.companyJobService.upsertJob(this.isEditMode, model).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.toastrService.success("Uspješno ste kreirali oglas za posao!");
           setTimeout(() => {
@@ -177,7 +179,7 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
   }
 
   loadCountries(): void {
-    this.locationService.getCountries()
+    this.locationService.getCountries().pipe(takeUntil(this.destroy$))
       .subscribe(countries => {
         this.countries = countries;
         const defaultCountry = countries[0];
@@ -186,7 +188,7 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
   }
 
   loadCities(): void {
-    this.locationService.getCities()
+    this.locationService.getCities().pipe(takeUntil(this.destroy$))
       .subscribe(cities => {
         this.cities = cities;
         this.filteredCities = cities;
@@ -194,7 +196,7 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
   }
 
   loadJobTypes(): void {
-    this.jobService.getJobTypes()
+    this.jobService.getJobTypes().pipe(takeUntil(this.destroy$))
       .subscribe(types => {
         this.jobTypes = types;
         this.filteredJobTypes = types;
@@ -202,7 +204,7 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
   }
 
   loadJobCategories(): void {
-    this.jobService.getJobCategories()
+    this.jobService.getJobCategories().pipe(takeUntil(this.destroy$))
       .subscribe(categories => {
         this.jobCategories = categories.filter(r => r.parentId == null);
         this.filteredCategories = this.jobCategories;
@@ -213,6 +215,8 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.subscription) {
       this.subscription.unsubscribe();
+      this.destroy$.next();
+      this.destroy$.complete();
     }
   }
 

@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import { AccountService } from 'src/app/services/account.service';
 import { UtilityService } from 'src/app/services/utility.service';
 
@@ -9,7 +10,8 @@ import { UtilityService } from 'src/app/services/utility.service';
   templateUrl: './reset-password.component.html',
   styleUrls: ['./reset-password.component.css']
 })
-export class ResetPasswordComponent implements OnInit {
+export class ResetPasswordComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   resetPasswordForm: FormGroup;
   redirectUrl: string;
   token: string = '';
@@ -28,7 +30,7 @@ export class ResetPasswordComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeForm();
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.token = encodeURIComponent(params['token']);
       this.email = decodeURIComponent(params['email']);
     });
@@ -55,7 +57,7 @@ export class ResetPasswordComponent implements OnInit {
   onSubmit() {
     if (this.resetPasswordForm.valid) {
       const { password, confirmPassword } = this.resetPasswordForm.value;
-      this.accountService.resetPassword(this.email, this.token, password, confirmPassword).subscribe({
+      this.accountService.resetPassword(this.email, this.token, password, confirmPassword).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.message = 'Lozinka uspješno promijenjena.';
           this.router.navigate(['/login']);
@@ -71,5 +73,10 @@ export class ResetPasswordComponent implements OnInit {
     this.router.navigateByUrl(this.redirectUrl ? this.redirectUrl : '/', {
       replaceUrl: true,
     });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

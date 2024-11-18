@@ -1,19 +1,22 @@
-import { Component, NgZone, OnInit, Renderer2 } from '@angular/core';
+import { Component, NgZone, OnDestroy, OnInit, Renderer2 } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { User } from './modal/user';
 import { AccountService } from './services/account.service';
 import { BusyService } from './services/busy.service';
 import { UtilityService } from './services/utility.service';
 import { akitaDevtools } from '@datorama/akita';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   title = 'ShoppingCart';
   isDark = false;
+  private queryParamsSubscription: Subscription;
+  
   constructor(
     private accountSerice: AccountService,
     private route: ActivatedRoute,
@@ -29,7 +32,7 @@ export class AppComponent implements OnInit {
   ngOnInit() {
     this.getTheme();
     this.setCurrentUser();
-    this.route.queryParams.subscribe((params) => {
+    this.queryParamsSubscription = this.route.queryParams.subscribe((params) => {
       this.handelLogout(params);
     });
   }
@@ -92,6 +95,12 @@ export class AppComponent implements OnInit {
 
     for (let item of iconList) {
       this.utility.addCustomIcon(item.name, item.path);
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.queryParamsSubscription) {
+      this.queryParamsSubscription.unsubscribe();
     }
   }
 }

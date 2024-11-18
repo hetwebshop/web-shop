@@ -1,9 +1,9 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription, takeUntil } from 'rxjs';
 import { ConfirmationModalComponent } from 'src/app/modal/confirmation-modal/confirmation-modal.component';
 import { UserProfile } from 'src/app/modal/user';
 import { CompanyJobPost } from 'src/app/models/companyJobAd';
@@ -22,7 +22,9 @@ import { UtilityService } from 'src/app/services/utility.service';
   templateUrl: './company-my-ad-manager.component.html',
   styleUrls: ['./company-my-ad-manager.component.css']
 })
-export class CompanyMyAdManagerComponent {
+export class CompanyMyAdManagerComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
   isEditMode: boolean = true;
   jobId: number;
   job: CompanyJobPost;
@@ -52,13 +54,13 @@ export class CompanyMyAdManagerComponent {
   }
 
   ngOnInit(): void {
-    this.accountService.getProfile().subscribe((user: UserProfile) => {
+    this.accountService.getProfile().pipe(takeUntil(this.destroy$)).subscribe((user: UserProfile) => {
       this.user = user;
     });
 
-    this.route.params.subscribe(params => {
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.jobId = +params['id'];
-        this.subscription = this.companyJobService.getCompanyJobById(this.jobId)
+        this.subscription = this.companyJobService.getCompanyJobById(this.jobId).pipe(takeUntil(this.destroy$))
           .subscribe({
             next: (response) => {
               this.job = response;
@@ -132,7 +134,7 @@ export class CompanyMyAdManagerComponent {
     if (this.adUpdateForm.valid) {
       const formData = this.adUpdateForm.getRawValue();
       const model = this.prepareModel(formData);
-      this.subscription = this.companyJobService.upsertJob(this.isEditMode, model).subscribe({
+      this.subscription = this.companyJobService.upsertJob(this.isEditMode, model).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.toastr.success('Uspješno ste uredili oglas!');
         },
@@ -152,7 +154,7 @@ export class CompanyMyAdManagerComponent {
   }
 
   loadCountries(): void {
-    this.locationService.getCountries()
+    this.locationService.getCountries().pipe(takeUntil(this.destroy$))
       .subscribe(countries => {
         this.countries = countries;
         const defaultCountry = countries[0];
@@ -161,7 +163,7 @@ export class CompanyMyAdManagerComponent {
   }
 
   loadCities(): void {
-    this.locationService.getCities()
+    this.locationService.getCities().pipe(takeUntil(this.destroy$))
       .subscribe(cities => {
         this.cities = cities;
         this.filteredCities = cities;
@@ -169,7 +171,7 @@ export class CompanyMyAdManagerComponent {
   }
 
   loadJobTypes(): void {
-    this.jobService.getJobTypes()
+    this.jobService.getJobTypes().pipe(takeUntil(this.destroy$))
       .subscribe(types => {
         this.jobTypes = types;
         this.filteredJobTypes = types;
@@ -177,7 +179,7 @@ export class CompanyMyAdManagerComponent {
   }
 
   loadJobCategories(): void {
-    this.jobService.getJobCategories()
+    this.jobService.getJobCategories().pipe(takeUntil(this.destroy$))
       .subscribe(categories => {
         this.jobCategories = categories.filter(r => r.parentId == null);
         this.filteredCategories = this.jobCategories;
@@ -188,6 +190,9 @@ export class CompanyMyAdManagerComponent {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
+
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   deleteAd(event): void {
@@ -199,9 +204,9 @@ export class CompanyMyAdManagerComponent {
           message: "Da li ste sigurni da želite obrisati objavu? Obrisane objave možete naći poslije u sekciji 'Obrisani oglasi' te se obrisani oglas više ne može aktivirati!"
         }
       });
-      confirmationDialogRef.afterClosed().subscribe(result => {
+      confirmationDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result === true) {
-        this.companyJobService.deleteAd(this.job.id).subscribe({
+        this.companyJobService.deleteAd(this.job.id).pipe(takeUntil(this.destroy$)).subscribe({
           next: (response) => {
           if(response == true) {
             this.job = { ...this.job, isDeleted: true, jobPostStatusId: JobPostStatus.Deleted };
@@ -229,9 +234,9 @@ export class CompanyMyAdManagerComponent {
           message: "Da li ste sigurni da želite obrisati objavu? Obrisane objave možete naći poslije u sekciji 'Obrisani oglasi' te se obrisani oglas više ne može aktivirati!"
         }
       });
-      confirmationDialogRef.afterClosed().subscribe(result => {
+      confirmationDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result === true) {
-        this.companyJobService.closeAd(this.job.id).subscribe({
+        this.companyJobService.closeAd(this.job.id).pipe(takeUntil(this.destroy$)).subscribe({
           next: (response) => {
           if(response == true) {
             this.job = { ...this.job, jobPostStatusId: JobPostStatus.Closed };
@@ -262,9 +267,9 @@ export class CompanyMyAdManagerComponent {
           message: "Da li ste sigurni da želite obrisati objavu? Obrisane objave možete naći poslije u sekciji 'Obrisani oglasi' te se obrisani oglas više ne može aktivirati!"
         }
       });
-      confirmationDialogRef.afterClosed().subscribe(result => {
+      confirmationDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result === true) {
-        this.companyJobService.closeAd(this.job.id).subscribe({
+        this.companyJobService.closeAd(this.job.id).pipe(takeUntil(this.destroy$)).subscribe({
           next: (response) => {
           if(response == true) {
             this.job = { ...this.job, jobPostStatusId: JobPostStatus.Active };

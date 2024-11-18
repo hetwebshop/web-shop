@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription, map, switchMap } from 'rxjs';
+import { Subject, Subscription, map, switchMap, takeUntil } from 'rxjs';
 import { AdvertisementType, ApplicantEducation, JobCategory, JobType, UserJobPost, UserJobSubcategory } from 'src/app/models/userJobPost';
 import { JobService } from 'src/app/services/job.service';
 import { UtilityService } from 'src/app/services/utility.service';
@@ -24,6 +24,8 @@ import { PricingPlanService } from 'src/app/services/pricingPlan.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class JobDetailsManagerComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
   isEditMode: boolean = false;
   jobId: number;
   job: UserJobPost;
@@ -65,7 +67,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
   constructor(private jobService: JobService, private locationService: LocationService, utility: UtilityService,
     private route: ActivatedRoute, private cdr: ChangeDetectorRef,
     private fb: FormBuilder, private accountService: AccountService, private pricingPlanService: PricingPlanService, private toastrService: ToastrService, private router: Router, private dialog: MatDialog) {
-    this.route.url.subscribe(urlSegment => {
+    this.route.url.pipe(takeUntil(this.destroy$)).subscribe(urlSegment => {
       this.isJobAd = !urlSegment.some(segment => segment.path.includes('service'));
     });
     utility.setTitle('Detalji oglasa');
@@ -73,10 +75,10 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.form = this.createForm();
-    this.form.get('adDuration')?.valueChanges.subscribe(() => {
+    this.form.get('adDuration')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.filterPricingPlans();
     });
-    this.pricingPlanService.getAllPricingPlans()
+    this.pricingPlanService.getAllPricingPlans().pipe(takeUntil(this.destroy$))
       .subscribe(pplans => {
         this.pricingPlans = pplans;
         this.selectedPlan = pplans.find(r => r.name === 'Plus').name;
@@ -87,7 +89,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
     });
 
-    this.accountService.getProfile().subscribe((user: UserProfile) => {
+    this.accountService.getProfile().pipe(takeUntil(this.destroy$)).subscribe((user: UserProfile) => {
       this.user = user;
       if (this.user.cvFilePath) {
         this.existingFilePath = this.user.cvFilePath;
@@ -248,7 +250,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
     const formData = this.form.getRawValue();
     if (this.form.valid) {
       const model = this.prepareModel(formData);
-      this.subscription = this.jobService.upsertJob(this.isEditMode, model).subscribe({
+      this.subscription = this.jobService.upsertJob(this.isEditMode, model).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.toastrService.success("Uspješno ste kreirali objavu!");
           setTimeout(() => {
@@ -272,7 +274,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
   }
 
   loadCountries(): void {
-    this.locationService.getCountries()
+    this.locationService.getCountries().pipe(takeUntil(this.destroy$))
       .subscribe(countries => {
         this.countries = countries;
         const defaultCountry = countries[0];
@@ -291,7 +293,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
   }
 
   loadCities(): void {
-    this.locationService.getCities()
+    this.locationService.getCities().pipe(takeUntil(this.destroy$))
       .subscribe(cities => {
         this.cities = cities;
         this.filteredCities = cities;
@@ -299,7 +301,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
   }
 
   loadJobTypes(): void {
-    this.jobService.getJobTypes()
+    this.jobService.getJobTypes().pipe(takeUntil(this.destroy$))
       .subscribe(types => {
         this.jobTypes = types;
         this.filteredJobTypes = types;
@@ -307,7 +309,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
   }
 
   loadJobCategories(): void {
-    this.jobService.getJobCategories()
+    this.jobService.getJobCategories().pipe(takeUntil(this.destroy$))
       .subscribe(categories => {
         this.jobCategories = categories.filter(r => r.parentId == null);
         this.filteredCategories = this.jobCategories;
@@ -316,7 +318,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
   }
 
   loadAdTypes(): void {
-    this.jobService.getAdTypes()
+    this.jobService.getAdTypes().pipe(takeUntil(this.destroy$))
       .subscribe(adTypes => {
         this.advertisementTypes = adTypes;
         const defaultType = this.isJobAd ? this.AdvertisementTypeEnum.JobAd : this.AdvertisementTypeEnum.Service;
@@ -348,6 +350,9 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
+
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onToggleUseUserDataChange(event): void {
@@ -404,7 +409,7 @@ export class JobDetailsManagerComponent implements OnInit, OnDestroy {
   }
 
   previewUserCV(fileName: string) {
-    this.jobService.getCVFileByName(fileName).subscribe((fileBlob) => {
+    this.jobService.getCVFileByName(fileName).pipe(takeUntil(this.destroy$)).subscribe((fileBlob) => {
       const blobUrl = URL.createObjectURL(fileBlob);
       this.selectedFilePath = blobUrl;
       this.dialog.open(this.filePreviewModal, {
