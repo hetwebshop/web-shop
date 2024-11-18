@@ -37,6 +37,13 @@ export class EditProfileComponent implements OnInit {
   //jobInfoForm: FormGroup;
   userEducations: FormArray;
 
+  filteredCities = []; 
+  filteredCategories = []; 
+  filteredJobTypes = []; 
+  citieSearchKeyword = "";
+  jobTypesSearchKeyword = "";
+  jobCategoriesSearchKeyword = "";
+
   constructor(
     private fb: UntypedFormBuilder,
     public accountService: AccountService,
@@ -93,7 +100,8 @@ export class EditProfileComponent implements OnInit {
   loadJobTypes(): void {
     this.jobService.getJobTypes()
       .subscribe(types => {
-        this.jobTypes = types
+        this.jobTypes = types;
+        this.filteredJobTypes = types;
       });
   }
 
@@ -102,6 +110,7 @@ export class EditProfileComponent implements OnInit {
     this.jobService.getJobCategories()
       .subscribe(categories => {
         this.jobCategories = categories.filter(r => r.parentId == null);
+        this.filteredCategories = this.jobCategories;
         console.log("Job categories" + JSON.stringify(this.jobCategories));
       });
   }
@@ -143,6 +152,7 @@ export class EditProfileComponent implements OnInit {
     this.locationService.getCities()
       .subscribe(cities => {
         this.cities = cities;
+        this.filteredCities = cities;
       });
   }
 
@@ -298,4 +308,42 @@ export class EditProfileComponent implements OnInit {
       }
     });
   }
+
+  
+  onKey(searchValue: string, formControlName: string) {
+    if(formControlName == "cityId"){
+      this.citieSearchKeyword = searchValue;
+      this.filteredCities = this.cities.filter(city =>
+        city.name.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    } 
+    else if(formControlName == "jobCategoryId"){
+      this.jobCategoriesSearchKeyword = searchValue;
+      this.filteredCategories = this.jobCategories.filter(cg =>
+        cg.name.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    } 
+    else if(formControlName == "jobTypeId"){
+      this.jobTypesSearchKeyword = searchValue;
+      this.filteredJobTypes = this.jobTypes.filter(jt =>
+        jt.name.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    } 
+  }
+
+  resetSearch(formControlName: string): void {
+    this.citieSearchKeyword = "";
+    this.jobTypesSearchKeyword = "";
+    this.jobCategoriesSearchKeyword = "";
+    if(formControlName == "cityId"){
+      this.filteredCities = [...this.cities];
+    }
+    else if(formControlName == "jobCategoryId"){
+      this.filteredCategories = [...this.jobCategories];
+    }
+    else if(formControlName == "jobTypeId"){
+      this.filteredJobTypes = [...this.jobTypes];
+    }
+  }
+
 }

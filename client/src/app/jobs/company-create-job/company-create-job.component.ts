@@ -37,6 +37,14 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
   pricingPlans: PricingPlan[];
   filteredPricingPlans: PricingPlan[];
 
+    
+  filteredCities = []; 
+  filteredCategories = []; 
+  filteredJobTypes = []; 
+  citieSearchKeyword = "";
+  jobTypesSearchKeyword = "";
+  jobCategoriesSearchKeyword = "";
+
   constructor(private jobService: JobService, private companyJobService: CompanyJobService, private locationService: LocationService, utility: UtilityService, 
     private route: ActivatedRoute, private cdr: ChangeDetectorRef, 
     private fb: FormBuilder, private accountService: AccountService, private pricingPlanService: PricingPlanService, private toastrService: ToastrService, private router: Router) {
@@ -181,13 +189,15 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
     this.locationService.getCities()
       .subscribe(cities => {
         this.cities = cities;
+        this.filteredCities = cities;
       });
   }
 
   loadJobTypes(): void {
     this.jobService.getJobTypes()
       .subscribe(types => {
-        this.jobTypes = types
+        this.jobTypes = types;
+        this.filteredJobTypes = types;
       });
   }
 
@@ -195,6 +205,7 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
     this.jobService.getJobCategories()
       .subscribe(categories => {
         this.jobCategories = categories.filter(r => r.parentId == null);
+        this.filteredCategories = this.jobCategories;
         console.log("Job categories" + JSON.stringify(this.jobCategories));
       });
   }
@@ -209,5 +220,41 @@ export class CompanyCreateJobComponent implements OnInit, OnDestroy {
     console.log('Selected plan:', value);
     this.selectedPlan = value;
     this.form.get('pricingPlanName').setValue(this.selectedPlan); // Update form control value
+  }
+
+  onKey(searchValue: string, formControlName: string) {
+    if(formControlName == "cityId"){
+      this.citieSearchKeyword = searchValue;
+      this.filteredCities = this.cities.filter(city =>
+        city.name.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    } 
+    else if(formControlName == "jobCategoryId"){
+      this.jobCategoriesSearchKeyword = searchValue;
+      this.filteredCategories = this.jobCategories.filter(cg =>
+        cg.name.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    } 
+    else if(formControlName == "jobTypeId"){
+      this.jobTypesSearchKeyword = searchValue;
+      this.filteredJobTypes = this.jobTypes.filter(jt =>
+        jt.name.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    } 
+  }
+
+  resetSearch(formControlName: string): void {
+    this.citieSearchKeyword = "";
+    this.jobTypesSearchKeyword = "";
+    this.jobCategoriesSearchKeyword = "";
+    if(formControlName == "cityId"){
+      this.filteredCities = [...this.cities];
+    }
+    else if(formControlName == "jobCategoryId"){
+      this.filteredCategories = [...this.jobCategories];
+    }
+    else if(formControlName == "jobTypeId"){
+      this.filteredJobTypes = [...this.jobTypes];
+    }
   }
 }

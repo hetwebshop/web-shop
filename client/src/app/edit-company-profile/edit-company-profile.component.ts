@@ -20,6 +20,9 @@ export class EditCompanyProfileComponent implements OnInit {
   loading: string;
   cities: City[] = [];
 
+  filteredCities: City[] = [];
+  citieSearchKeyword = "";
+
   constructor(
     private fb: UntypedFormBuilder,
     public accountService: AccountService,
@@ -66,6 +69,7 @@ export class EditCompanyProfileComponent implements OnInit {
     this.locationService.getCities()
       .subscribe(cities => {
         this.cities = cities;
+        this.filteredCities = cities;
       });
   }
 
@@ -98,6 +102,23 @@ export class EditCompanyProfileComponent implements OnInit {
       this.company.photoUrl = null;
       this.toastr.success('Photo removed.');
     });
+  }
+
+  onKey(searchValue: string, formControlName: string) {
+    if(formControlName == "cityId"){
+      this.citieSearchKeyword = searchValue;
+      this.filteredCities = this.cities.filter(city =>
+        city.name.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    } 
+  }
+
+  resetSearch(formControlName: string): void {
+    this.citieSearchKeyword = "";
+   
+    if(formControlName == "cityId"){
+      this.filteredCities = [...this.cities];
+    }
   }
 
 }

@@ -45,9 +45,22 @@
                         </app-input>
                         <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
                             <mat-label>Grad</mat-label>
-                            <mat-select formControlName="cityId" placeholder="Grad">
-                                <mat-option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</mat-option>
-                            </mat-select>
+                            <mat-select formControlName="cityId" placeholder="Odaberite grad" (openedChange)="resetSearch('cityId')">
+                                <div style="display: flex; justify-content: space-between;">
+                                  <input 
+                                    matInput 
+                                    placeholder="Pretraži" 
+                                    (keyup)="onKey($event.target.value, 'cityId')" 
+                                    class="search-input" 
+                                    [value]="citieSearchKeyword"
+                                    style="width: 100%; box-sizing: border-box;" 
+                                  />
+                                  <button mat-icon-button (click)="onKey('', 'cityId')" *ngIf="citieSearchKeyword">
+                                    <mat-icon>clear</mat-icon>
+                                  </button>
+                                </div>
+                                <mat-option *ngFor="let city of filteredCities" [value]="city.id">{{ city.name }}</mat-option>
+                              </mat-select>
                             <mat-error *ngIf="companyProfileUpdate.get('cityId').invalid">Potrebno je da unesete
                                 grad</mat-error>
                         </mat-form-field>

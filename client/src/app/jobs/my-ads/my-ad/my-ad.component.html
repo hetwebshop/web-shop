@@ -134,8 +134,21 @@
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Grad</mat-label>
-            <mat-select formControlName="cityId" placeholder="Odaberite grad">
-              <mat-option *ngFor="let city of cities" [value]="city?.id">{{ city?.name }}</mat-option>
+            <mat-select formControlName="cityId" placeholder="Odaberite grad" (openedChange)="resetSearch('cityId')">
+              <div style="display: flex; justify-content: space-between;">
+                <input 
+                  matInput 
+                  placeholder="Pretraži" 
+                  (keyup)="onKey($event.target.value, 'cityId')" 
+                  class="search-input" 
+                  [value]="citieSearchKeyword"
+                  style="width: 100%; box-sizing: border-box;" 
+                />
+                <button mat-icon-button (click)="onKey('', 'cityId')" *ngIf="citieSearchKeyword">
+                  <mat-icon>clear</mat-icon>
+                </button>
+              </div>
+              <mat-option *ngFor="let city of filteredCities" [value]="city.id">{{ city.name }}</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
@@ -213,14 +226,41 @@
         <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start stretch">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Kategorija posla</mat-label>
-            <mat-select formControlName="jobCategoryId" (selectionChange)="onCategoryChange($event.value)">
-              <mat-option *ngFor="let category of jobCategories" [value]="category?.id">{{ category?.name }}</mat-option>
+            <mat-select formControlName="jobCategoryId" (selectionChange)="onCategoryChange($event.value)" (openedChange)="resetSearch('jobCategoryId')">
+              <div style="display: flex; justify-content: space-between;">
+                <input 
+                  matInput 
+                  placeholder="Pretraži" 
+                  (keyup)="onKey($event.target.value, 'jobCategoryId')" 
+                  class="search-input" 
+                  [value]="jobCategoriesSearchKeyword"
+                  style="width: 100%; box-sizing: border-box;" 
+                />
+                <button mat-icon-button (click)="onKey('', 'jobCategoryId')" *ngIf="jobCategoriesSearchKeyword">
+                  <mat-icon>clear</mat-icon>
+                </button>
+              </div>
+              <mat-option *ngFor="let category of filteredCategories" [value]="category.id">{{ category.name }}</mat-option>
             </mat-select>
           </mat-form-field>
           <mat-form-field *ngIf="isJobAd" appearance="outline" class="full-width">
             <mat-label>Tip posla</mat-label>
-            <mat-select formControlName="jobTypeId" placeholder="Odaberite tip posla">
-              <mat-option *ngFor="let jobType of jobTypes" [value]="jobType?.id">{{ jobType?.name }}</mat-option>
+            <mat-select formControlName="jobTypeId" placeholder="Odaberite tip posla" (openedChange)="resetSearch('jobTypeId')">
+              <div style="display: flex; justify-content: space-between;">
+                <input 
+                  matInput 
+                  placeholder="Pretraži" 
+                  (keyup)="onKey($event.target.value, 'jobTypeId')" 
+                  class="search-input" 
+                  [value]="jobTypesSearchKeyword"
+                  style="width: 100%; box-sizing: border-box;" 
+                />
+                <button mat-icon-button (click)="onKey('', 'jobTypeId')" *ngIf="jobTypesSearchKeyword">
+                  <mat-icon>clear</mat-icon>
+                </button>
+              </div>
+              
+              <mat-option *ngFor="let jobType of filteredJobTypes" [value]="jobType.id">{{ jobType.name }}</mat-option>
             </mat-select>
           </mat-form-field>
           <mat-form-field *ngIf="!isJobAd" appearance="outline" class="full-width">

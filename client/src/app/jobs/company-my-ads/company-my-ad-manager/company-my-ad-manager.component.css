@@ -67,3 +67,38 @@
   } */
 
   
+.search-input {
+  width: 100%;                /* Full width */
+  padding: 10px 12px;        /* Padding for better touch targets */
+}
+.search-input-container {
+  margin-top: 8px; /* Adjust the spacing between select and input */
+  width: 100%; /* Ensure full width */
+}
+
+::ng-deep .mat-option.mat-selected {
+  color: #283316 !important; /* Text color of the selected option */
+}
+::ng-deep .mat-option.mat-selected .mat-checkbox-background {
+  background-color: #283316 !important; /* Checkbox background color when checked */
+}
+::ng-deep .mat-option.mat-selected .mat-checkbox-checked .mat-checkbox-checkmark {
+  background-color: #283316 !important; /* Checkmark color when checked */
+}
+::ng-deep .mat-pseudo-checkbox.mat-pseudo-checkbox-checked{
+  background-color: #283316 !important; 
+}
+
+.search-button {
+  height: 50px; 
+  background-color: #283316;
+  &:hover {
+    background-color: #3a4623; /* Lighter version of #242d13 */
+  }
+  display: flex; /* Ensure flex layout */
+  align-items: center; /* Center items vertically */
+  
+  .search-icon {
+    margin-right: 4px; /* Space between icon and text */
+  }
+}
