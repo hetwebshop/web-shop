@@ -28,9 +28,13 @@
                 <form [formGroup]="companyProfileUpdate" (ngSubmit)="onSubmit()" autocomplete="off">
                     <div style="border-bottom: 1px solid #ddd; margin-bottom: 20px;" fxLayout="row wrap"
                         fxLayoutAlign="space-around center">
-                        <mat-card-subtitle fxFlex="95" fxLayoutAlign="start"
-                            style="font-weight: 500; color: black; border-bottom: 1px solid #ddd;">Podaci Kompanije
-                        </mat-card-subtitle>
+                        <mat-card-subtitle fxFlex="95" fxLayout="row" fxLayoutAlign="space-between center"
+                        style="font-weight: 500; color: #283316; border-bottom: 1px solid #283316;">
+                        <span>Podaci Kompanije</span>
+                        <a mat-button style="color: #ad7308;" [routerLink]="'/change-password'" [queryParams]="{ company: true }">
+                            Promijeni Lozinku
+                        </a>
+                    </mat-card-subtitle>
                         <app-input fxFlex="45" fxFlex.lt-sm="90" label="Naziv kompanije"
                             [formControl]="companyProfileUpdate.get('companyName')">
                         </app-input>

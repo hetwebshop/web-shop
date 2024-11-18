@@ -1,7 +1,7 @@
 <div *ngIf="user" fxLayout="column" fxLayoutGap="20px" fxLayoutAlign="center center" style="margin-top: 50px;">
     <div fxLayoutAlign="center center">
         <!-- <mat-card *ngIf="(accountService.user$ | async) as userInfo" class="text-center" fxFlex="200px"> -->
-            <!-- <div class="edit-photo">
+        <!-- <div class="edit-photo">
                 <img src="{{userInfo.photoUrl || './assets/images/profile.png'}}" alt="" class="rounded-circle"
                     width="128">
                 <button color="primary" [matMenuTriggerFor]="menu" mat-mini-fab>
@@ -18,7 +18,7 @@
                     Ukloni
                 </button>
             </mat-menu> -->
-            <!-- <div fxLayout="row" fxLayoutAlign="space-between center">
+        <!-- <div fxLayout="row" fxLayoutAlign="space-between center">
                 <h3 color="primary">User Id</h3>
                 <mat-card-subtitle>{{user.id}}</mat-card-subtitle>
             </div> -->
@@ -32,9 +32,14 @@
                 <form [formGroup]="profileUpdate" (ngSubmit)="onSubmit()" autocomplete="off">
                     <div style="border-bottom: 1px solid #283316; margin-bottom: 20px; padding-bottom: 20px;"
                         fxLayout="row wrap" fxLayoutAlign="space-around center">
-                        <mat-card-subtitle fxFlex="95" fxLayoutAlign="start"
-                            style="font-weight: 500; color: #283316; border-bottom: 1px solid #283316;">Lični
-                            podaci</mat-card-subtitle>
+                        <mat-card-subtitle fxFlex="95" fxLayout="row" fxLayoutAlign="space-between center"
+                            style="font-weight: 500; color: #283316; border-bottom: 1px solid #283316;">
+                            <span>Lični podaci</span>
+                            <a mat-button style="color: #ad7308;" [routerLink]="'/change-password'">
+                                Promijeni Lozinku
+                            </a>
+                        </mat-card-subtitle>
+
                         <app-input fxFlex="45" fxFlex.lt-sm="90" label="Ime"
                             [formControl]="profileUpdate.get('firstName')">
                         </app-input>
@@ -56,22 +61,19 @@
                             </mat-form-field> -->
                         <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
                             <mat-label>Grad</mat-label>
-                            <mat-select formControlName="cityId" placeholder="Odaberite grad" (openedChange)="resetSearch('cityId')">
+                            <mat-select formControlName="cityId" placeholder="Odaberite grad"
+                                (openedChange)="resetSearch('cityId')">
                                 <div style="display: flex; justify-content: space-between;">
-                                  <input 
-                                    matInput 
-                                    placeholder="Pretraži" 
-                                    (keyup)="onKey($event.target.value, 'cityId')" 
-                                    class="search-input" 
-                                    [value]="citieSearchKeyword"
-                                    style="width: 100%; box-sizing: border-box;" 
-                                  />
-                                  <button mat-icon-button (click)="onKey('', 'cityId')" *ngIf="citieSearchKeyword">
-                                    <mat-icon>clear</mat-icon>
-                                  </button>
+                                    <input matInput placeholder="Pretraži"
+                                        (keyup)="onKey($event.target.value, 'cityId')" class="search-input"
+                                        [value]="citieSearchKeyword" style="width: 100%; box-sizing: border-box;" />
+                                    <button mat-icon-button (click)="onKey('', 'cityId')" *ngIf="citieSearchKeyword">
+                                        <mat-icon>clear</mat-icon>
+                                    </button>
                                 </div>
-                                <mat-option *ngFor="let city of filteredCities" [value]="city.id">{{ city.name }}</mat-option>
-                              </mat-select>
+                                <mat-option *ngFor="let city of filteredCities" [value]="city.id">{{ city.name
+                                    }}</mat-option>
+                            </mat-select>
                             <mat-error *ngIf="profileUpdate.get('cityId').invalid">Potrebno je da unesete
                                 grad</mat-error>
                         </mat-form-field>
@@ -99,42 +101,40 @@
                             podaci(neobavezno)</mat-card-subtitle>
                         <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
                             <mat-label>Kategorija posla</mat-label>
-                            <mat-select formControlName="jobCategoryId" (selectionChange)="onCategoryChange($event.value)" (openedChange)="resetSearch('jobCategoryId')">
+                            <mat-select formControlName="jobCategoryId"
+                                (selectionChange)="onCategoryChange($event.value)"
+                                (openedChange)="resetSearch('jobCategoryId')">
                                 <div style="display: flex; justify-content: space-between;">
-                                  <input 
-                                    matInput 
-                                    placeholder="Pretraži" 
-                                    (keyup)="onKey($event.target.value, 'jobCategoryId')" 
-                                    class="search-input" 
-                                    [value]="jobCategoriesSearchKeyword"
-                                    style="width: 100%; box-sizing: border-box;" 
-                                  />
-                                  <button mat-icon-button (click)="onKey('', 'jobCategoryId')" *ngIf="jobCategoriesSearchKeyword">
-                                    <mat-icon>clear</mat-icon>
-                                  </button>
+                                    <input matInput placeholder="Pretraži"
+                                        (keyup)="onKey($event.target.value, 'jobCategoryId')" class="search-input"
+                                        [value]="jobCategoriesSearchKeyword"
+                                        style="width: 100%; box-sizing: border-box;" />
+                                    <button mat-icon-button (click)="onKey('', 'jobCategoryId')"
+                                        *ngIf="jobCategoriesSearchKeyword">
+                                        <mat-icon>clear</mat-icon>
+                                    </button>
                                 </div>
-                                <mat-option *ngFor="let category of filteredCategories" [value]="category.id">{{ category.name }}</mat-option>
-                              </mat-select>
+                                <mat-option *ngFor="let category of filteredCategories" [value]="category.id">{{
+                                    category.name }}</mat-option>
+                            </mat-select>
                         </mat-form-field>
                         <mat-form-field fxFlex="45" fxFlex.lt-sm="90" appearance="outline">
                             <mat-label>Tip posla</mat-label>
-                            <mat-select formControlName="jobTypeId" placeholder="Odaberite tip posla" (openedChange)="resetSearch('jobTypeId')">
+                            <mat-select formControlName="jobTypeId" placeholder="Odaberite tip posla"
+                                (openedChange)="resetSearch('jobTypeId')">
                                 <div style="display: flex; justify-content: space-between;">
-                                  <input 
-                                    matInput 
-                                    placeholder="Pretraži" 
-                                    (keyup)="onKey($event.target.value, 'jobTypeId')" 
-                                    class="search-input" 
-                                    [value]="jobTypesSearchKeyword"
-                                    style="width: 100%; box-sizing: border-box;" 
-                                  />
-                                  <button mat-icon-button (click)="onKey('', 'jobTypeId')" *ngIf="jobTypesSearchKeyword">
-                                    <mat-icon>clear</mat-icon>
-                                  </button>
+                                    <input matInput placeholder="Pretraži"
+                                        (keyup)="onKey($event.target.value, 'jobTypeId')" class="search-input"
+                                        [value]="jobTypesSearchKeyword" style="width: 100%; box-sizing: border-box;" />
+                                    <button mat-icon-button (click)="onKey('', 'jobTypeId')"
+                                        *ngIf="jobTypesSearchKeyword">
+                                        <mat-icon>clear</mat-icon>
+                                    </button>
                                 </div>
-                                
-                                <mat-option *ngFor="let jobType of filteredJobTypes" [value]="jobType.id">{{ jobType.name }}</mat-option>
-                              </mat-select>
+
+                                <mat-option *ngFor="let jobType of filteredJobTypes" [value]="jobType.id">{{
+                                    jobType.name }}</mat-option>
+                            </mat-select>
                         </mat-form-field>
 
                         <mat-form-field fxFlex="95" appearance="outline" class="full-width">
@@ -154,7 +154,8 @@
                             <!-- Upload Button and Selected File in One Row -->
                             <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
                                 <!-- Styled File Input -->
-                                <button mat-raised-button style="background-color: #c5b391;" (click)="fileInput.click()" type="button">
+                                <button mat-raised-button style="background-color: #c5b391;" (click)="fileInput.click()"
+                                    type="button">
                                     <mat-icon>attach_file</mat-icon> Učitaj CV
                                 </button>
                                 <input #fileInput type="file" (change)="onFileSelected($event)"
@@ -169,12 +170,14 @@
                                         <mat-icon>close</mat-icon>
                                     </button>
                                 </div>
-                                <button type="button" *ngIf="user.cvFilePath" mat-raised-button style="margin-left: 10px; color: #B2DFDB; background-color: #283316;" (click)="previewUserCV(user.cvFilePath)"
-                                color="accent">Pregledaj CV
-                              </button>
-                              <button type="button" *ngIf="user.cvFilePath" mat-raised-button color="warn" style="margin-left: 10px;" (click)="deleteExistingFile($event)">
-                                <mat-icon>delete</mat-icon> Obriši CV
-                              </button>
+                                <button type="button" *ngIf="user.cvFilePath" mat-raised-button
+                                    style="margin-left: 10px; color: #B2DFDB; background-color: #283316;"
+                                    (click)="previewUserCV(user.cvFilePath)" color="accent">Pregledaj CV
+                                </button>
+                                <button type="button" *ngIf="user.cvFilePath" mat-raised-button color="warn"
+                                    style="margin-left: 10px;" (click)="deleteExistingFile($event)">
+                                    <mat-icon>delete</mat-icon> Obriši CV
+                                </button>
                             </div>
                         </div>
 
@@ -203,9 +206,11 @@
                             <ng-container *ngFor="let education of userEducations.controls; let i = index"
                                 [formGroupName]="i">
                                 <ng-container style="margin-top: 20px">
-                                    <div fxLayout="column" style="margin-bottom: 15px; background-color: #faf0e6; padding: 20px; border-radius: 4px; border: 1px solid #283316; width: 100%;">
+                                    <div fxLayout="column"
+                                        style="margin-bottom: 15px; background-color: #faf0e6; padding: 20px; border-radius: 4px; border: 1px solid #283316; width: 100%;">
                                         <h4 fxFlex="100">Obrazovanje {{ i + 1 }}</h4>
-                                        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+                                        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px"
+                                            fxLayoutAlign="start center">
                                             <mat-form-field appearance="outline" class="full-width">
                                                 <mat-label>Univerzitet</mat-label>
                                                 <input matInput type="text" formControlName="university"
@@ -217,7 +222,8 @@
                                                     placeholder="Unesite fakultet" required>
                                             </mat-form-field>
                                         </div>
-                                        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+                                        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px"
+                                            fxLayoutAlign="start center">
                                             <mat-form-field appearance="outline" class="full-width">
                                                 <mat-label>Odsjek</mat-label>
                                                 <input matInput type="text" formControlName="fieldOfStudy"
@@ -229,7 +235,8 @@
                                                     placeholder="Unesite zvanje" required>
                                             </mat-form-field>
                                         </div>
-                                        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px" fxLayoutAlign="start center">
+                                        <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="16px"
+                                            fxLayoutAlign="start center">
                                             <mat-form-field appearance="outline" class="full-width">
                                                 <mat-label>Godina početka studija</mat-label>
                                                 <input matInput type="number" formControlName="educationStartYear"
@@ -241,30 +248,33 @@
                                                     placeholder="Unesite godinu završetka studija">
                                             </mat-form-field>
                                         </div>
-  
+
                                         <div fxFlex style="justify-content: center;">
-                                            <button style="background-color: #FF5722; color: white; width: 150px;" mat-button
-                                            type="button" (click)="openCancelConfirmationModal(i)" color="warn">Ukloni
-                                            obrazovanje</button>
+                                            <button style="background-color: #FF5722; color: white; width: 150px;"
+                                                mat-button type="button" (click)="openCancelConfirmationModal(i)"
+                                                color="warn">Ukloni
+                                                obrazovanje</button>
                                         </div>
 
                                     </div>
-                                      </ng-container>
+                                </ng-container>
                             </ng-container>
                         </ng-container>
 
 
                         <div fxFlex style="justify-content: center;">
-                            <button mat-stroked-button type="button" style="background-color:#283316;margin-bottom: 25px; margin-top: 15px; color: #c5b391; max-width: 150px;"
-                            (click)="addEducation()">Dodaj
-                            obrazovanje</button>
-                          </div>
+                            <button mat-stroked-button type="button"
+                                style="background-color:#283316;margin-bottom: 25px; margin-top: 15px; color: #c5b391; max-width: 150px;"
+                                (click)="addEducation()">Dodaj
+                                obrazovanje</button>
+                        </div>
                         <!-- <button mat-flat-button fxFlex="45" fxLayoutAlign="start" fxFlex.lt-sm="90" color="accent"
                                 type="submit">
                                 Dodaj obrazovanje
                             </button> -->
                     </div>
-                    <button mat-flat-button style="width: 150px" [disabled]="!profileUpdate.valid || profileUpdate.pristine"
+                    <button mat-flat-button style="width: 150px"
+                        [disabled]="!profileUpdate.valid || profileUpdate.pristine"
                         [ngStyle]="{'background-color': !profileUpdate.valid || profileUpdate.pristine ? '' : '#283316', 'color': !profileUpdate.valid || profileUpdate.pristine ? '' : '#c5b391'}"
                         type="submit">
                         Ažuriraj

@@ -30,6 +30,7 @@ import { CompanyMyAdManagerComponent } from './jobs/company-my-ads/company-my-ad
 import { EmailConfirmationComponent } from './components/email-confirmation/email-confirmation.component';
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
+import { ChangePasswordComponent } from './components/change-password/change-password.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/ads?type=JobAd', pathMatch: 'full' },
@@ -38,6 +39,7 @@ const routes: Routes = [
   { path: 'confirm-email', component: EmailConfirmationComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent},
   { path: 'reset-password', component: ResetPasswordComponent},
+  { path: 'change-password', component: ChangePasswordComponent},
   { path: 'about', component: AboutComponent, data: { breadcrumb: {alias: 'Uredi oglas 4'}} },
   { path: 'contact-us', component: ContactUsComponent, data: { breadcrumb: {alias: 'Uredi oglas 4'}} },
   { path: 'edit-profile', component: EditProfileComponent, data: { breadcrumb: {alias: 'Uredi oglas 5'} } },

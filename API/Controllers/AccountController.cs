@@ -370,5 +370,21 @@ namespace API.Controllers
             return Ok();
         }
 
+
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto request)
+        {
+            var currentUserId = HttpContext.User.GetUserId();
+            var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
+            if (user == null)
+            {
+                return NotFound("Korisnik ne postoji.");
+            }
+
+            await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+
+            return Ok();
+        }
+
     }
 }

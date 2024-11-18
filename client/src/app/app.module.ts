@@ -87,6 +87,7 @@ import { ConfirmationModalComponent } from './modal/confirmation-modal/confirmat
 import { EmailConfirmationComponent } from './components/email-confirmation/email-confirmation.component';
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
+import { ChangePasswordComponent } from './components/change-password/change-password.component';
 
 registerLocaleData(localeBS);
 
@@ -159,7 +160,8 @@ export class HammerConfig extends HammerGestureConfig {
     ConfirmationModalComponent,
     EmailConfirmationComponent,
     ResetPasswordComponent,
-    ForgotPasswordComponent
+    ForgotPasswordComponent,
+    ChangePasswordComponent
   ],
   imports: [
     BrowserModule,

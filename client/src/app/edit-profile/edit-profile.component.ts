@@ -14,6 +14,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { CancelConfirmationModalComponent } from '../modal/cancel-confirmation-modal/cancel-confirmation-modal.component';
 import { UserProfile } from '../modal/user';
 import * as moment from 'moment';
+import { Router } from '@angular/router';
+import { MessageService } from '../services/message.service';
 
 @Component({
   selector: 'app-edit-profile',
@@ -51,12 +53,23 @@ export class EditProfileComponent implements OnInit {
     utility: UtilityService,
     private locationService: LocationService,
     private jobService: JobService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private router: Router,
+    private messageService: MessageService
   ) {
     utility.setTitle('Uredi profil');
   }
 
   ngOnInit(): void {
+    const messageData = this.messageService.getMessage();
+    if (messageData?.message) {
+      if (messageData.isSuccessResponse) {
+        this.toastr.success(messageData.message);  // Show success message
+      } else {
+        this.toastr.error(messageData.message);  // Show error message
+      }
+      this.messageService.clearMessage();  // Clear the message after showing
+    }
     this.loadCities();
     this.loadJobTypes();
     this.loadJobCategories();

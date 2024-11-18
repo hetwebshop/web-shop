@@ -52,6 +52,10 @@ export class AccountService {
     return this.http.post(`${this.baseUrl}reset-password`, { email, token, password, confirmPassword });
   }
 
+  changePassword(currentPassword: string, newPassword: string, confirmPassword: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}change-password`, { currentPassword, newPassword, confirmPassword });
+  }
+
   register(model: any) {
     const payload = { ...model, userName: model.email };
     return this.http.post<User>(`${this.baseUrl}register`, payload);
