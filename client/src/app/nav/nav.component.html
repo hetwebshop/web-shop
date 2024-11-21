@@ -103,7 +103,7 @@
           <div>
             <span class="brand" routerLink="/">ZaposliMe</span>
           </div>
-          <div fxLayout="row" fxLayoutGap="2%" class="pe-4" style="min-width: 70%;" *ngIf="isLargeScreen">
+          <div fxLayout="row" fxLayoutGap="2%" class="pe-4" style="min-width: 70%; justify-content: center;" *ngIf="isLargeScreen">
             <div>
               <span class="brand" routerLinkActive="active-link" [routerLink]="['/ads']" [queryParams]="{ type: getEnumName(AdvertisementTypeEnum.JobAd) }">Oglasi</span>
             </div>
@@ -113,15 +113,15 @@
             <div>
               <span class="brand" routerLinkActive="active-link" [routerLink]="['/company-job-ads']">Oglasi od kompanija</span>
             </div>
-            <div *ngIf="!user?.roles.includes('Company')">
+            <ng-container *ngIf="!user?.roles.includes('Company')">
               <span  *ngIf="user" class="brand" [routerLink]="['/create-job-ad']" routerLinkActive="active-link">Kreiraj Oglas</span>
-            </div>
-            <div *ngIf="user?.roles.includes('Company')">
+            </ng-container>
+            <ng-container *ngIf="user?.roles.includes('Company')">
               <span *ngIf="user" class="brand" [routerLink]="['/company-create-job-ad']" routerLinkActive="active-link">Kreiraj Oglas za Posao</span>
-            </div>
-            <div *ngIf="!user?.roles.includes('Company')"> 
+            </ng-container>
+            <ng-container *ngIf="!user?.roles.includes('Company')"> 
               <span  *ngIf="user" class="brand" [routerLink]="['/create-service-ad']" routerLinkActive="active-link">Kreiraj Uslugu</span>
-            </div>
+            </ng-container>
             <div>
               <span class="brand" [routerLink]="['/about']" routerLinkActive="active-link">O nama</span>
             </div>

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
 using System.Linq;
@@ -28,9 +29,12 @@ namespace API.Controllers
         private readonly IMapper _mapper;
         private readonly ITokenService _tokenService;
         private readonly IEmailService _emailService;
+        private readonly IConfiguration configuration;
+        private readonly string verificationEmailBaseAddress;
+        private readonly IBlobStorageService _blobStorageService;
 
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager,
-            IUnitOfWork uow, IMapper mapper, ITokenService tokenService, IEmailService emailService)
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration,
+            IUnitOfWork uow, IMapper mapper, ITokenService tokenService, IEmailService emailService, IBlobStorageService blobStorageService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -38,6 +42,9 @@ namespace API.Controllers
             _mapper = mapper;
             _tokenService = tokenService;
             _emailService = emailService;
+            this.configuration = configuration;
+            verificationEmailBaseAddress = configuration.GetSection("VerificationEmailBaseAddress").Value;
+            _blobStorageService = blobStorageService;
         }
 
         [HttpPost("register")]
@@ -61,10 +68,10 @@ namespace API.Controllers
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
 
             var emailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var verificationUrl = "http://localhost:4200/confirm-email?userId=" + user.Id + "&token=" + Uri.EscapeDataString(emailToken);
+            var verificationUrl = $"{verificationEmailBaseAddress}confirm-email?userId=" + user.Id + "&token=" + Uri.EscapeDataString(emailToken);
 
             // Slanje verifikacionog emaila (ovdje koristite svoju email uslugu)
-            await _emailService.SendEmailAsync("hetcompany24@gmail.com",
+            await _emailService.SendEmailAsync(registerDto.Email,
                 "Verifikujte svoju email adresu",
                 $"Molimo potvrdite svoj email klikom na sljedeći link: <a href='{verificationUrl}'>Verifikuj Email</a>");
 
@@ -129,7 +136,7 @@ namespace API.Controllers
 
             try
             {
-                await _emailService.SendEmailAsync("hetcompany24@gmail.com",
+                await _emailService.SendEmailAsync(registerDto.Email,
                                    "Registracija uspješna - čekate verifikaciju od našeg admina",
                                    $"Dragi {user.Company.CompanyName},\n\nVaš korisnički račun za kompaniju je uspješno registrovan, ali čeka odobrenje od strane administratora.\n\nHvala što ste se registrovali!");
 
@@ -250,19 +257,8 @@ namespace API.Controllers
             var user = await _userManager.Users.SingleAsync(u => u.Id == profileDto.Id);
             if (profileDto.CvFile != null)
             {
-                var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-                if (!Directory.Exists(uploadsDir))
-                {
-                    Directory.CreateDirectory(uploadsDir);
-                }
-                var uniqueFileName = Helpers.GetUniqueFileName(uploadsDir, profileDto.CvFile.FileName);
-                var filePath = Path.Combine(uploadsDir, uniqueFileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await profileDto.CvFile.CopyToAsync(stream);
-                }
-                profileDto.CvFilePath = filePath;
+                var fileUrl = await _blobStorageService.UploadFileAsync(profileDto.CvFile);
+                profileDto.CvFilePath = fileUrl;
             }
 
             _mapper.Map(profileDto, user);
@@ -344,7 +340,7 @@ namespace API.Controllers
             var resetLink = $"http://localhost:4200/reset-password?email={encodedEmail}&token={encodedToken}";
             var emailBody = $"<p>Za promjenu lozinke molimo vas da otvorite sljedeći link:</p><a href='{resetLink}'>Promjena lozinke</a>";
 
-            await _emailService.SendEmailAsync("hetcompany24@gmail.com", "Zahtjev za promjenom lozinke", emailBody);
+            await _emailService.SendEmailAsync(request.Email, "Zahtjev za promjenom lozinke", emailBody);
 
             return Ok();
         }

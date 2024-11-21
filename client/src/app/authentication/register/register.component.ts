@@ -13,6 +13,7 @@ import { Gender } from 'src/app/models/enums';
 import { City } from 'src/app/models/location';
 import { AccountService } from 'src/app/services/account.service';
 import { LocationService } from 'src/app/services/location.service';
+import { MessageService } from 'src/app/services/message.service';
 import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
@@ -30,13 +31,17 @@ export class RegisterComponent implements OnInit, OnDestroy {
   registrationType: string = 'user';
   loginRegistrationError: string | null = null;
 
+  filteredCities: City[] = [];
+  citieSearchKeyword = "";
+
   constructor(
     private fb: UntypedFormBuilder,
     private accountService: AccountService,
     private router: Router,
     private route: ActivatedRoute,
     utility: UtilityService,
-    private locationService: LocationService
+    private locationService: LocationService,
+    private messageService: MessageService
   ) {
     utility.setTitle('Kreiranje novog računa');
     this.initilizeForms();
@@ -60,6 +65,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
     )
       .subscribe(cities => {
         this.cities = cities;
+        this.filteredCities = cities;
       });
   }
 
@@ -150,6 +156,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (response) => {
         if (response) {
+          this.messageService.setMessage("Račun je uspješno kreiran. Molimo vas da verificirate svoj email.", true);
           this.router.navigate(['/login']); 
         }
       },
@@ -166,6 +173,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (response) => {
         if (response) {
+          this.messageService.setMessage("Račun je uspješno kreiran. Čeka se verifikacija od strane admin-a.", true);
           this.router.navigate(['/login']); 
         }
       },
@@ -191,5 +199,22 @@ export class RegisterComponent implements OnInit, OnDestroy {
     // Trigger cleanup when the component is destroyed
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  onKey(searchValue: string, formControlName: string) {
+    if(formControlName == "cityId"){
+      this.citieSearchKeyword = searchValue;
+      this.filteredCities = this.cities.filter(city =>
+        city.name.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    } 
+  }
+
+  resetSearch(formControlName: string): void {
+    this.citieSearchKeyword = "";
+   
+    if(formControlName == "cityId"){
+      this.filteredCities = [...this.cities];
+    }
   }
 }

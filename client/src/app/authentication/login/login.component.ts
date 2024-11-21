@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, Subscription, takeUntil } from 'rxjs';
 import { AccountService } from 'src/app/services/account.service';
+import { MessageService } from 'src/app/services/message.service';
 import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
@@ -13,6 +14,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 export class LoginComponent implements OnInit, OnDestroy {
   loginForm: FormGroup;
   redirectUrl: string;
+  infoBoxMessage: string | null = null;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -20,12 +22,19 @@ export class LoginComponent implements OnInit, OnDestroy {
     private accountService: AccountService,
     private router: Router,
     private route: ActivatedRoute,
-    private utility: UtilityService
+    private utility: UtilityService,
+    private messageService: MessageService
   ) {
     utility.setTitle('Login');
   }
 
   ngOnInit(): void {
+    const messageData = this.messageService.getMessage();
+    if (messageData?.message) {
+      this.infoBoxMessage = messageData.message;
+      this.messageService.clearMessage();  // Clear the message after showing
+    }
+
     this.initializeForm();
     this.redirectUrl = this.route.snapshot.queryParams.redirectTo;
 

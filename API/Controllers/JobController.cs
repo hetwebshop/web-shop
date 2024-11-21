@@ -4,6 +4,7 @@ using API.Extensions;
 using API.Helpers;
 using API.Mappers;
 using API.PaginationEntities;
+using API.Services;
 using API.Services.UserOfferServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,11 +22,13 @@ namespace API.Controllers
     {
         private readonly IUserJobPostService _jobPostService;
         private readonly IUnitOfWork _uow;
+        private readonly IBlobStorageService _blobStorageService;
 
-        public JobController(IUserJobPostService jobPostService, IUnitOfWork uow)
+        public JobController(IUserJobPostService jobPostService, IUnitOfWork uow, IBlobStorageService blobStorageService)
         {
             _jobPostService = jobPostService;
             _uow = uow;
+            _blobStorageService = blobStorageService;
         }
 
         [HttpGet("ads")]
@@ -89,19 +92,8 @@ namespace API.Controllers
                 userJobPostDto.SubmittingUserId = currentUserId;
                 if (userJobPostDto.CvFile != null)
                 {
-                    var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-                    if (!Directory.Exists(uploadsDir))
-                    {
-                        Directory.CreateDirectory(uploadsDir);
-                    }
-                    var uniqueFileName = Helpers.GetUniqueFileName(uploadsDir, userJobPostDto.CvFile.FileName);
-                    var filePath = Path.Combine(uploadsDir, uniqueFileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await userJobPostDto.CvFile.CopyToAsync(stream);
-                    }
-                    userJobPostDto.CvFilePath = filePath;
+                    var fileUrl = await _blobStorageService.UploadFileAsync(userJobPostDto.CvFile);
+                    userJobPostDto.CvFilePath = fileUrl;
                 }
 
                 var newItem = await _jobPostService.CreateUserJobPostAsync(userJobPostDto);
@@ -119,36 +111,24 @@ namespace API.Controllers
             userJobPostDto.SubmittingUserId = HttpContext.User.GetUserId();
             if (userJobPostDto.CvFile != null)
             {
-                var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-                if (!Directory.Exists(uploadsDir))
-                {
-                    Directory.CreateDirectory(uploadsDir);
-                }
-                var uniqueFileName = Helpers.GetUniqueFileName(uploadsDir, userJobPostDto.CvFile.FileName);
-                var filePath = Path.Combine(uploadsDir, uniqueFileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await userJobPostDto.CvFile.CopyToAsync(stream);
-                }
-                userJobPostDto.CvFilePath = filePath;
+                var fileUrl = await _blobStorageService.UploadFileAsync(userJobPostDto.CvFile);
+                userJobPostDto.CvFilePath = fileUrl;
             }
             var updatedItem = await _jobPostService.UpdateUserJobPostAsync(userJobPostDto);
             return Ok(updatedItem);
         }
 
         [HttpGet("cvfile/{fileName}")]
-        public IActionResult GetCVFile(string fileName)
+        public async Task<IActionResult> GetCVFile(string fileName)
         {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "uploads", fileName);
+            var fileDto = await _blobStorageService.GetFileAsync(fileName);
 
-            if (!System.IO.File.Exists(filePath))
+            if (fileDto.FileContent == null)
             {
                 return NotFound("File not found.");
             }
 
-            var mimeType = "application/pdf";
-            return PhysicalFile(filePath, mimeType);
+            return File(fileDto.FileContent, fileDto.MimeType, fileName);
         }
 
 

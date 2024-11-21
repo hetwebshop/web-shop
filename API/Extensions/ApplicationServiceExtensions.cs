@@ -45,7 +45,9 @@ namespace API.Extensions
 
             services.AddSingleton(typeof(ISortHelper<>), typeof(SortHelper<>));
 
-            services.AddSingleton<IEmailService, EmailService>();
+            services.AddSingleton<IEmailService, AzureEmailService>();
+
+            services.AddSingleton<IBlobStorageService, BlobStorageService>();
             
             //jobPosts
             services.AddScoped<IUserJobPostService, UserJobPostService>();

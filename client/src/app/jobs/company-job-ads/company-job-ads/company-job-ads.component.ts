@@ -42,6 +42,8 @@ export class CompanyJobAdsComponent implements OnDestroy {
   isGridView: boolean = true;
   isGridViewUserSelection: boolean = this.isGridView;
   isLargeScreen = true;
+
+  hasAnyDataToShow = true;
   
   constructor(private jobService: JobService, private companyJobService: CompanyJobService, utility: UtilityService, private route: ActivatedRoute,
     private router: Router, private datePipe: DatePipe, public dialog: MatDialog,
@@ -94,6 +96,8 @@ export class CompanyJobAdsComponent implements OnDestroy {
     this.allJobs$ = this.companyJobService.getAds(this.paginationParameters).pipe(
       map(response => {
         this.paginationResponse = response;
+        if(this.paginationParameters.pageNumber == 1 && (response == null || response.items == null || response.items.length == 0))
+          this.hasAnyDataToShow = false;
         return response.items;
       })
     );

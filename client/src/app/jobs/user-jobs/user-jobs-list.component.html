@@ -45,7 +45,7 @@
         <h1 style="color: #283316; font-weight: 500;">Rezultati pretrage</h1>
       
         <!-- Toggle Button with Icons -->
-        <button 
+        <button *ngIf="hasAnyDataToShow"
           (click)="toggleView()" 
           style="margin-left: 20px; border-radius: 4px; background-color: #283316; 
                  color: white; padding: 2px 8px; border: none; cursor: pointer; 
@@ -58,19 +58,25 @@
           <span *ngIf="!isGridView">Lista</span>
         </button>
       </div>
-      <div [ngClass]="{'container': isGridView}" [ngStyle]="{'margin-bottom': isGridView ? '200px' : '0px'}">
+      <div *ngIf="hasAnyDataToShow" [ngClass]="{'container': isGridView}" [ngStyle]="{'margin-bottom': isGridView ? '200px' : '0px'}">
         <div *ngFor="let job of allJobs$ | async" class="item" [ngStyle]="{'margin-bottom': '10px', 'max-height': isGridView ? '470px' : 'none'}">
           <app-base-ad-card [job]="job" />
         </div>
       </div>
       
-      <div>
+      <div *ngIf="hasAnyDataToShow">
         <app-pagination *ngIf="paginationResponse" [listSize]="paginationResponse.pageSize"
         [totalPages]="paginationResponse.totalPages" [page]="paginationResponse.currentPage"
         (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)">
       </app-pagination>
       </div>
 
+      <div *ngIf="!hasAnyDataToShow" class="my-1" fxLayout="row" fxLayoutAlign="center center">
+        <mat-card fxFlex="60" fxFlex.lt-md="75" fxFlex.lt-sm="90" fxLayout="column" fxLayoutAlign="center center">
+            <img src='./assets/images/NotFound.png' style="width:40vw;max-width: 200px;">
+            <h1 class="mt-4">Trenutno nema nikakvih rezultata pretrage.</h1>
+        </mat-card>
+    </div>
 
     </div>
   </div>

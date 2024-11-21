@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://varunbr-shopping-cart.herokuapp.com/api/',
+  apiUrl: 'https://hire-me.azurewebsites.net/api/',
 };

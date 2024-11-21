@@ -43,6 +43,8 @@ export class UserJobsListComponent implements OnInit, OnDestroy {
   isGridView: boolean = true;
   isGridViewUserSelection: boolean = this.isGridView;
 
+  hasAnyDataToShow = true;
+
   constructor(private cdr: ChangeDetectorRef, private jobService: JobService, utility: UtilityService, private route: ActivatedRoute,
     private router: Router, private datePipe: DatePipe, public dialog: MatDialog,
     private accountService: AccountService, private filtersStore: FiltersStore,
@@ -125,6 +127,8 @@ export class UserJobsListComponent implements OnInit, OnDestroy {
     this.allJobs$ = this.jobService.getAds(this.paginationParameters).pipe(
       map(response => {
         this.paginationResponse = response;
+        if(this.paginationParameters.pageNumber == 1 && (response.items == null || response.items.length == 0))
+          this.hasAnyDataToShow = false;
         return response.items;
       })
     );

@@ -199,7 +199,8 @@ export class EditProfileComponent implements OnInit, OnDestroy {
     if (this.selectedFile) {
       formData.append('cvFile', this.selectedFile, this.selectedFile.name);
     }
-    this.accountService.updateProfile(formData).pipe(takeUntil(this.destroy$)).subscribe({
+
+    this.accountService.updateProfile(formData).subscribe({
       next: (response) => {
         this.user = response;
         this.initilizeProfileForm();

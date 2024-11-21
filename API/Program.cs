@@ -39,14 +39,14 @@ app.UseSwaggerUI(c =>
 
 app.UseRouting();
 app.UseCors(options =>
-options.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://varunbr.github.io", "http://localhost:4200"));
+options.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://job-point.azurewebsites.net", "http://localhost:4200"));
 app.UseStaticFiles();
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(
-          Path.Combine(Directory.GetCurrentDirectory(), "uploads")),
-    RequestPath = "/uploads"
-});
+//app.UseStaticFiles(new StaticFileOptions
+//{
+//    FileProvider = new PhysicalFileProvider(
+//          Path.Combine(Directory.GetCurrentDirectory(), "uploads")),
+//    RequestPath = "/uploads"
+//});
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseDefaultFiles();
