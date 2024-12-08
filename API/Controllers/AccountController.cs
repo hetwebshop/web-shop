@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -51,6 +52,7 @@ namespace API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<UserDto>> Register(UserRegisterDto registerDto)
         {
+            registerDto.UserName = registerDto.Email;
             if (await UserNameExist(registerDto.UserName))
                 return BadRequest("Korisničko ime je zauzeto.");
             if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
@@ -89,7 +91,7 @@ namespace API.Controllers
 
         [HttpGet("confirm-email")]
         [AllowAnonymous]
-        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token)
         {
             if (userId == null || token == null)
                 return BadRequest("Neispravan zahtjev");
@@ -116,6 +118,7 @@ namespace API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<UserDto>> RegisterCompany(CompanyRegisterDto registerDto)
         {
+            registerDto.UserName = registerDto.Email;
             if (await UserNameExist(registerDto.UserName))
                 return BadRequest("Email nije dostupan.");
             if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
@@ -162,11 +165,7 @@ namespace API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
-            var user = await _userManager.Users
-                .Include(u => u.Photo)
-                .Include(u => u.UserEducations)
-                .Include(u => u.UserRoles)
-                .SingleOrDefaultAsync(u => u.UserName == loginDto.UserNameOrEmail.ToLower() || u.Email == loginDto.UserNameOrEmail);
+            var user = await FetchUserWithIncludesAsync(null, loginDto.UserNameOrEmail);
 
             if (user == null) return BadRequest("Pogrešan korisnik");
 
@@ -180,42 +179,22 @@ namespace API.Controllers
 
             var token = await _tokenService.CreateToken(user);
 
-            return new UserDto
-            {
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                CityId = user.CityId,
-                UserName = user.UserName,
-                Token = token,
-                PhotoUrl = user.Photo?.Url,
-                Email = user.Email,
-                IsCompany = user.IsCompany,
-                Credits = user.Credits
-            };
+            var dto = ConvertUserToUserDto(user, token);
+
+            return dto;
         }
 
         [HttpGet("token-update")]
         public async Task<ActionResult<UserDto>> GetUpdatedToken()
         {
             var id = HttpContext.User.GetUserId();
-            var user = await _userManager.Users
-                .Include(u => u.Photo)
-                .SingleAsync(u => u.Id == id);
+            var user = await FetchUserWithIncludesAsync(id);
 
             var accessToken = await HttpContext.GetTokenAsync("access_token");
             var token = await _tokenService.CreateToken(user, accessToken);
 
-            return new UserDto
-            {
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                CityId = user.CityId,
-                UserName = user.UserName,
-                Token = token,
-                PhotoUrl = user.Photo?.Url,
-                Email = user.Email,
-                IsCompany = user.IsCompany
-            };
+            var dto = ConvertUserToUserDto(user, token);
+            return dto;
         }
 
         [HttpGet("{userName}")]
@@ -238,6 +217,253 @@ namespace API.Controllers
             var id = HttpContext.User.GetUserId();
             var up = await _uow.UserRepository.GetProfile(id);
             return Ok(up);
+        }
+
+        [HttpPost("updatebaseinfo")]
+        public async Task<ActionResult<UserDto>> UpdateUserBaseInfo([FromBody] UserBaseInfoRequest req)
+        {
+            if(HttpContext.User.GetUserId() == null)
+            {
+                return Unauthorized("Korisnik ne postoji!");
+            }
+            req.UserId = HttpContext.User.GetUserId();
+
+            if (await _userManager.Users.AnyAsync(u => u.Id != req.UserId &&
+                                                       u.NormalizedUserName == req.Email.ToUpper()))
+                return BadRequest("Username nije dostupan.");
+            if (await _userManager.Users.AnyAsync(u => u.Id != req.UserId &&
+                                                       u.NormalizedEmail == req.Email.ToUpper()))
+                return BadRequest("Email nije dostupan.");
+
+            var user = await FetchUserWithIncludesAsync((int)req.UserId);
+
+            //user.Email = req.Email;
+            user.FirstName = req.FirstName;
+            user.LastName = req.LastName;
+            user.PhoneNumber = req.PhoneNumber;
+            user.CityId = req.CityId;
+            user.DateOfBirth = req.DateOfBirth;
+            user.Gender = req.Gender;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            user = await FetchUserWithIncludesAsync((int)req.UserId);
+
+            if (!result.Succeeded) return BadRequest("Desila se greška prilikom ažuriranja korisnika.");
+            var dto = ConvertUserToUserDto(user);
+            return dto;
+        }
+
+        [HttpPost("updatecompanybaseinfo")]
+        public async Task<ActionResult<UserDto>> UpdateCompanyBaseInfo([FromBody] CompanyBaseInfoRequest req)
+        {
+            if (HttpContext.User.GetUserId() == null)
+            {
+                return Unauthorized("Korisnik ne postoji!");
+            }
+            var userId = HttpContext.User.GetUserId();
+            var user = await FetchUserWithIncludesAsync(userId);
+            if (user.IsCompany == false)
+                return BadRequest("Korisnik ne pripada kompaniji!");
+            //user.Email = req.Email;
+            user.FirstName = req.FirstName;
+            user.LastName = req.LastName;
+            user.PhoneNumber = req.PhoneNumber;
+            user.CityId = req.CityId;
+            user.Company.CompanyName = req.CompanyName;
+            user.Company.Address = req.Address;
+            user.Company.AboutUs = req.AboutUs;
+            user.Company.PhoneNumber = req.PhoneNumber;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            user = await FetchUserWithIncludesAsync(userId);
+
+            if (!result.Succeeded) return BadRequest("Desila se greška prilikom ažuriranja kompanije.");
+            var dto = ConvertCompanyUserToUserDto(user);
+            return dto;
+        }
+
+        private async Task<User> FetchUserWithIncludesAsync(int? userId, string? email = null)
+        {
+
+            var userQuery = _userManager.Users
+                .Include(u => u.UserEducations)
+                .Include(u => u.Company)
+                .Include(u => u.UserRoles)
+                .ThenInclude(u => u.Role)
+                .Include(u => u.City)
+                .Include(u => u.JobType)
+                .Include(u => u.JobCategory);
+
+            var user = await userQuery
+                .SingleOrDefaultAsync(u =>
+                    (string.IsNullOrEmpty(email) && u.Id == userId) ||
+                    (!string.IsNullOrEmpty(email) &&
+                        (u.UserName == email.ToLower() || u.Email == email)));
+
+            return user;
+        }
+
+        [HttpPost("updateuserjobpreferences")]
+        public async Task<ActionResult<UserDto>> UpdateUserJobPreferences([FromBody] UserJobPreferencesRequest req)
+        {
+            if (HttpContext.User.GetUserId() == null)
+            {
+                return Unauthorized("Korisnik ne postoji!");
+            }
+            req.UserId = HttpContext.User.GetUserId();
+
+            var user = await FetchUserWithIncludesAsync((int)req.UserId);
+
+            user.Biography = req.Biography;
+            user.Position = req.Position;
+            user.JobCategoryId = req.JobCategoryId;
+            user.JobTypeId = req.JobTypeId;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded) return BadRequest("Desila se greška prilikom ažuriranja korisnika.");
+            var dto = ConvertUserToUserDto(user);
+            return dto;
+        }
+
+        [HttpPost("upsertusereducation")]
+        public async Task<ActionResult<UserDto>> UpsertUserEducation([FromBody] UserEducationRequest req)
+        {
+            if (HttpContext.User.GetUserId() == null)
+            {
+                return Unauthorized("Korisnik ne postoji!");
+            }
+            req.UserId = HttpContext.User.GetUserId();
+
+            var user = await FetchUserWithIncludesAsync((int)req.UserId);
+
+            if (req.UserEducationId == null)
+            {
+                var userEducation = new UserEducation()
+                {
+                    Degree = req.Degree,
+                    EducationEndYear = req.EducationEndYear,
+                    EducationStartYear = req.EducationStartYear,
+                    FieldOfStudy = req.FieldOfStudy,
+                    InstitutionName = req.InstitutionName,
+                    University = req.University,
+                };
+                user.UserEducations.Add(userEducation);
+                var result = await _userManager.UpdateAsync(user);
+                if (!result.Succeeded) return BadRequest("Desila se greška prilikom ažuriranja korisnika.");
+            }
+            else
+            {
+                var result = await _uow.UserRepository.UpdateUserEducationAsync(req);
+                if (!result) return BadRequest("Desila se greška prilikom ažuriranja korisnika.");
+            }
+            var updatedUser = await FetchUserWithIncludesAsync((int)req.UserId);
+            var dto = ConvertUserToUserDto(updatedUser);
+            return dto;
+        }
+
+        [HttpPost("deleteusereducation")]
+        public async Task<ActionResult<UserDto>> DeleteUserEducation([FromBody] int userEducationId)
+        {
+            if (HttpContext.User.GetUserId() == null)
+            {
+                return Unauthorized("Korisnik ne postoji!");
+            }
+            var userId = HttpContext.User.GetUserId();
+
+            var user = await FetchUserWithIncludesAsync(userId);
+
+            var educationToDelete = user.UserEducations.FirstOrDefault(e => e.Id == userEducationId);
+            if (educationToDelete != null)
+            {
+                user.UserEducations.Remove(educationToDelete);
+                var result = await _userManager.UpdateAsync(user); // Update the user with the removed education
+                if (!result.Succeeded)
+                {
+                    return BadRequest("Greška prilikom brisanja edukacije korisnika.");
+                }
+            }
+            else
+            {
+                return NotFound("Edukacija korisnika ne postoji.");
+            }
+            var dto = ConvertUserToUserDto(user);
+            return dto;
+        }
+
+        [HttpPost("useruploadresume")]
+        public async Task<ActionResult<UserDto>> UserUploadResume([FromForm] UserUploadResumeRequest req)
+        {
+            if (HttpContext.User.GetUserId() == null)
+            {
+                return Unauthorized("Korisnik ne postoji!");
+            }
+            var userId = HttpContext.User.GetUserId();
+
+            var user = await FetchUserWithIncludesAsync(userId);
+
+            if (req.CvFile == null)
+            {
+                return BadRequest("CV nije uploadovan.");
+            }
+
+            if (req.CvFile != null)
+            {
+                var fileUrl = await _blobStorageService.UploadFileAsync(req.CvFile);
+                var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
+                user.CvFilePath = decodedFileUrl;
+                user.CvFileName = req.CvFile.FileName;
+                await _userManager.UpdateAsync(user);
+            }
+
+            var dto = ConvertUserToUserDto(user);
+            return dto;
+        }
+
+        [HttpGet("userdeleteresume")]
+        public async Task<ActionResult<UserDto>> UserDeleteResume()
+        {
+            if (HttpContext.User.GetUserId() == null)
+            {
+                return Unauthorized("Korisnik ne postoji!");
+            }
+            var userId = HttpContext.User.GetUserId();
+
+            var user = await FetchUserWithIncludesAsync(userId);
+
+            user.CvFileName = null;
+            user.CvFilePath = null;
+            //IMPLEMENTE DELETE FILE FROM BLOB
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded) return BadRequest("Desila se greška prilikom brisanja cv-a korisnika.");
+
+            var dto = ConvertUserToUserDto(user);
+            return dto;
+        }
+
+        [HttpGet("cvfile")]
+        public async Task<IActionResult> GetCVFile()
+        {
+            var userId = HttpContext.User.GetUserId();
+            var user = await _userManager.Users
+               .SingleAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                return Forbid("Niste autorizovani za pristup.");
+            }
+            var fileName = Path.GetFileName(user.CvFilePath);
+            var fileDto = await _blobStorageService.GetFileAsync(fileName);
+
+            if (fileDto.FileContent == null)
+            {
+                return NotFound("Cv nije pronađen.");
+            }
+
+            return File(fileDto.FileContent, fileDto.MimeType, fileName);
         }
 
         [HttpPost("profile")]
@@ -380,6 +606,80 @@ namespace API.Controllers
             await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
 
             return Ok();
+        }
+
+
+        private UserDto ConvertUserToUserDto(User user, string token = null)
+        {
+            var dto = new UserDto
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                CityId = user.CityId,
+                City = user.City?.Name,
+                UserName = user.UserName,
+                PhotoUrl = user.Photo?.Url,  // If user.Photo is null, will safely return null
+                Email = user.Email,
+                IsCompany = user.IsCompany,
+                CompanyAddress = user.Company?.Address,
+                CompanyId = user.Company?.Id,
+                CompanyName = user.Company?.CompanyName,
+                CompanyPhone = user.Company?.PhoneNumber,
+                AboutCompany = user.Company?.AboutUs,
+                Credits = user.Credits,
+                PhoneNumber = user.PhoneNumber,
+                Gender = user.Gender,
+                DateOfBirth = user.DateOfBirth,
+                Biography = user.Biography,
+                JobCategoryId = user.JobCategoryId,
+                JobTypeId = user.JobTypeId,
+                JobCategory = user.JobCategory?.Name,
+                JobType = user.JobType?.Name,
+                CvFilePath = user.CvFilePath, // Assuming this is the correct field
+                CvFileName = user.CvFileName,
+                Position = user.Position,
+                Roles = user.UserRoles.Select(r => r.Role.Name).ToList(),
+                UserEducations = user.UserEducations?.Select(userEducation => new UserEducationDto
+                {
+                    University = userEducation.University,
+                    UserId = userEducation.UserId,
+                    EducationEndYear = userEducation.EducationEndYear,
+                    EducationStartYear = userEducation.EducationStartYear,
+                    Degree = userEducation.Degree,
+                    FieldOfStudy = userEducation.FieldOfStudy,
+                    UserEducationId = userEducation.Id,
+                    InstitutionName = userEducation.InstitutionName // Fixed this field assignment
+                }).ToList() ?? new List<UserEducationDto>() // In case user.UserEducations is null, return an empty list
+            };
+            if(!string.IsNullOrEmpty(token))
+                dto.Token = token;
+            return dto;
+        }
+
+        private UserDto ConvertCompanyUserToUserDto(User user, string token = null)
+        {
+            var dto = new UserDto
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                CityId = user.CityId,
+                City = user.City?.Name,
+                UserName = user.UserName,
+                PhotoUrl = user.Photo?.Url,  // If user.Photo is null, will safely return null
+                Email = user.Email,
+                IsCompany = user.IsCompany,
+                CompanyAddress = user.Company?.Address,
+                CompanyId = user.Company?.Id,
+                CompanyName = user.Company?.CompanyName,
+                CompanyPhone = user.Company?.PhoneNumber,
+                AboutCompany = user.Company?.AboutUs,
+                Credits = user.Credits,
+                PhoneNumber = user.PhoneNumber,
+                Roles = user.UserRoles.Select(r => r.Role.Name).ToList(),
+            };
+            if (!string.IsNullOrEmpty(token))
+                dto.Token = token;
+            return dto;
         }
 
     }

@@ -24,6 +24,7 @@ namespace API.Entities
         public string Position { get; set; }
         public string Biography { get; set; }
         public string CvFilePath { get; set; }
+        public string CvFileName { get; set; }
         public int Credits { get; set; }
 
         public bool IsCompany { get; set; }

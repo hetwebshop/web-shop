@@ -14,17 +14,17 @@ namespace API.Entities.JobPost
         public string ApplicantLastName { get; set; }
         public string ApplicantEmail { get; set; }
         public string ApplicantPhoneNumber { get; set; }
-        public DateTime ApplicantDateOfBirth { get; set; }
-        public Gender ApplicantGender { get; set; }
+        public DateTime? ApplicantDateOfBirth { get; set; }
+        public Gender? ApplicantGender { get; set; }
         public decimal? Price { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public int SubmittingUserId { get; set; }
         public User User { get; set; }
-        public int JobTypeId { get; set; }
-        public JobType JobType { get; set; }
-        public int JobCategoryId { get; set; }
-        public JobCategory JobCategory { get; set; }
+        public int? JobTypeId { get; set; }
+        public JobType? JobType { get; set; }
+        public int? JobCategoryId { get; set; }
+        public JobCategory? JobCategory { get; set; }
         public int JobPostStatusId { get; set; }
         public JobPostStatus JobPostStatus { get; set; }
         public int CityId { get; set; } = 1;
@@ -32,6 +32,7 @@ namespace API.Entities.JobPost
         public int AdvertisementTypeId { get; set; }
         public AdvertisementType AdvertisementType { get; set; }
         public string CvFilePath { get; set; }
+        public string CvFileName { get; set; }
         public DateTime AdStartDate { get; set; }
         public DateTime AdEndDate { get; set; }
         public bool IsDeleted { get; set; } = false;

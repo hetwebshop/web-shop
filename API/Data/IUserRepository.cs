@@ -19,5 +19,6 @@ namespace API.Data
         Task<List<UserEducation>> GetAllUserEducationsAsync(int userId);
         Task<bool> RemoveAllUserEducationsAsync(int userId);
         Task<User> GetUserByIdAsync(int userId);
+        Task<bool> UpdateUserEducationAsync(UserEducationRequest userEducation);
     }
 }

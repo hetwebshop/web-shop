@@ -22,9 +22,19 @@ namespace API.Mappers
                 .ForMember(dest => dest.City, src => src.MapFrom(x => x.City.Name))
                 .ForMember(dest => dest.CityId, src => src.MapFrom(x => x.CityId))
                 .ForMember(dest => dest.ApplicantGender, src => src.MapFrom(x => x.ApplicantGender))
-                .ForMember(dest => dest.ApplicantEducations, src => src.MapFrom(x => x.ApplicantEducations))
+               .ForMember(dest => dest.ApplicantEducations, src => src.MapFrom(x =>
+                    x.ApplicantEducations.Select(r => new ApplicantEducationDto
+                    {
+                        Degree = r.Degree,
+                        EducationEndYear = r.EducationEndYear,
+                        EducationStartYear = r.EducationStartYear,
+                        FieldOfStudy = r.FieldOfStudy,
+                        University = r.University,
+                        InstitutionName = r.University,
+                        UserEducationId = r.Id
+                    }).ToList() ?? new List<ApplicantEducationDto>()))
                 .ForMember(dest => dest.AdvertisementTypeId, src => src.MapFrom(x => x.AdvertisementTypeId))
-                .ForMember(dest => dest.CvFilePath, src => src.MapFrom(x => Path.GetFileName(x.CvFilePath)))
+                .ForMember(dest => dest.CvFilePath, src => src.MapFrom(x => x.CvFilePath))
                 .ForMember(dest => dest.PricingPlanName, src => src.MapFrom(x => x.PricingPlan.Name))
                 .ForMember(dest => dest.AdDuration, src => src.MapFrom(x => x.PricingPlan.AdActiveDays));
 

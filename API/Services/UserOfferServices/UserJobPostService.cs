@@ -116,5 +116,17 @@ namespace API.Services.UserOfferServices
             var reactivated = await userJobPostRepository.ReactivateUserJobPostByIdAsync(jobPostId);
             return reactivated;
         }
+
+        public async Task<UserJobPostDto> UpdateAdUserBaseInfo(UserAdBaseInfoRequest userAdBaseInfoRequest)
+        {
+            var updated = await userJobPostRepository.UpdateAdUserBaseInfo(userAdBaseInfoRequest);
+            return updated.ToDto();
+        }
+        public async Task<UserJobPostDto> UpdateAdInfo(UserAdInfoUpdateRequest userAdInfoUpdateRequest)
+        {
+            var updated = await userJobPostRepository.UpdateAdInfo(userAdInfoUpdateRequest);
+            var dto = updated.ToDto();
+            return dto;
+        }
     }
 }

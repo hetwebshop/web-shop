@@ -2,6 +2,7 @@
 using API.DTOs;
 using API.Entities;
 using API.Entities.CompanyJobPost;
+using API.Entities.JobPost;
 using API.PaginationEntities;
 using AutoMapper;
 using System.Collections.Generic;
@@ -21,11 +22,21 @@ namespace API.Mappers
                 .ForMember(dest => dest.City, src => src.MapFrom(x => x.City.Name))
                 .ForMember(dest => dest.CityId, src => src.MapFrom(x => x.CityId))
                 .ForMember(dest => dest.PricingPlanName, src => src.MapFrom(x => x.PricingPlan.Name))
-                .ForMember(dest => dest.AdDuration, src => src.MapFrom(x => x.PricingPlan.AdActiveDays));
+                .ForMember(dest => dest.AdDuration, src => src.MapFrom(x => x.PricingPlan.AdActiveDays))
+                .ForMember(dest => dest.JobCategoryId, src => src.MapFrom(x => x.JobCategoryId))
+                .ForMember(dest => dest.JobTypeId, src => src.MapFrom(x => x.JobTypeId))
+                .ForMember(dest => dest.EmailForReceivingApplications, src => src.MapFrom(x => x.EmailForReceivingApplications))
+               .ForMember(dest => dest.SalaryRange, src => src.MapFrom(x => x.MinSalary != null && x.MaxSalary != null ? new[] { x.MinSalary, x.MaxSalary } : null));
 
             this.CreateMap<CompanyJobPostDto, CompanyJobPost>()
-                .ForMember(dest => dest.JobPostStatusId, src => src.MapFrom(x => x.JobPostStatusId != 0 ? x.JobPostStatusId : (int)Helpers.JobPostStatus.Active)).ForMember(dest => dest.PricingPlan, src => src.MapFrom(x => new PricingPlan { AdActiveDays = x.AdDuration, Name = x.PricingPlanName }))
-                .ForMember(dest => dest.PricingPlan, src => src.MapFrom(x => new PricingPlan { AdActiveDays = x.AdDuration, Name = x.PricingPlanName }));
+                //.ForMember(dest => dest.City, src => src.MapFrom(x => new City { Id = x.CityId, Name = x.City }))
+                //.ForMember(dest => dest.JobPostStatus, src => src.MapFrom(x => new JobPostStatus { Id = x.JobPostStatusId != 0 ? x.JobPostStatusId : (int)Helpers.JobPostStatus.Active }))
+                .ForMember(dest => dest.JobPostStatusId, src => src.MapFrom(x => x.JobPostStatusId != 0 ? x.JobPostStatusId : (int)Helpers.JobPostStatus.Active))
+                //.ForMember(dest => dest.JobType, src => src.MapFrom(x => new JobType { Name = x.JobType, Id = x.JobTypeId }))
+                //.ForMember(dest => dest.JobCategory, src => src.MapFrom(x => new JobCategory { Name = x.JobCategory, Id = x.JobCategoryId }))
+                .ForMember(dest => dest.PricingPlan, src => src.MapFrom(x => new PricingPlan { AdActiveDays = x.AdDuration, Name = x.PricingPlanName }))
+                .ForMember(dest => dest.MaxSalary, src => src.MapFrom(x => x.SalaryRange != null && x.SalaryRange.Length > 1 ? x.SalaryRange[1] : (int?)null))
+                .ForMember(dest => dest.MinSalary, src => src.MapFrom(x => x.SalaryRange != null && x.SalaryRange.Length > 0 ? x.SalaryRange[0] : (int?)null));
 
 
             CreateMap(typeof(PagedList<>), typeof(PagedList<>)).ConvertUsing(typeof(PagedListConverter<,>));

@@ -22,5 +22,7 @@ namespace API.Services.UserOfferServices
         Task<bool> DeleteUserJobPostByIdAsync(int userId, int jobPostId);
         Task<bool> CloseUserJobPostByIdAsync(int userId, int jobPostId);
         Task<bool> ReactivateUserJobPostByIdAsync(int userId, int jobPostId);
+        Task<UserJobPostDto> UpdateAdUserBaseInfo(UserAdBaseInfoRequest userAdBaseInfoRequest);
+        Task<UserJobPostDto> UpdateAdInfo(UserAdInfoUpdateRequest userAdInfoUpdateRequest);
     }
 }

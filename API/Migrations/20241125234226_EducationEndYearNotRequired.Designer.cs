@@ -4,6 +4,7 @@ using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20241125234226_EducationEndYearNotRequired")]
+    partial class EducationEndYearNotRequired
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -99,12 +101,6 @@ namespace API.Migrations
                     b.Property<DateTime>("AdStartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Benefits")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Certifications")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("CityId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -121,19 +117,7 @@ namespace API.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETDATE()");
 
-                    b.Property<string>("DocumentsRequired")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EducationLevel")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("EmailForReceivingApplications")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("EmploymentTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("HowToApply")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
@@ -151,23 +135,11 @@ namespace API.Migrations
                     b.Property<int>("JobTypeId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("MaxSalary")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MinSalary")
-                        .HasColumnType("int");
-
                     b.Property<string>("Position")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PricingPlanId")
                         .HasColumnType("int");
-
-                    b.Property<int>("RequiredExperience")
-                        .HasColumnType("int");
-
-                    b.Property<string>("RequiredSkills")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("SubmittingUserId")
                         .HasColumnType("int");
@@ -177,14 +149,9 @@ namespace API.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETDATE()");
 
-                    b.Property<string>("WorkEnvironmentDescription")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CityId");
-
-                    b.HasIndex("EmploymentTypeId");
 
                     b.HasIndex("JobCategoryId");
 
@@ -242,7 +209,7 @@ namespace API.Migrations
                     b.Property<string>("Degree")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("EducationEndYear")
+                    b.Property<int>("EducationEndYear")
                         .HasColumnType("int");
 
                     b.Property<int>("EducationStartYear")
@@ -265,22 +232,6 @@ namespace API.Migrations
                     b.HasIndex("UserJobPostId");
 
                     b.ToTable("ApplicantEducations");
-                });
-
-            modelBuilder.Entity("API.Entities.JobPost.EmploymentType", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("EmploymentTypes");
                 });
 
             modelBuilder.Entity("API.Entities.JobPost.JobCategory", b =>
@@ -354,7 +305,7 @@ namespace API.Migrations
                     b.Property<int>("AdvertisementTypeId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("ApplicantDateOfBirth")
+                    b.Property<DateTime>("ApplicantDateOfBirth")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ApplicantEmail")
@@ -363,7 +314,7 @@ namespace API.Migrations
                     b.Property<string>("ApplicantFirstName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ApplicantGender")
+                    b.Property<int>("ApplicantGender")
                         .HasColumnType("int");
 
                     b.Property<string>("ApplicantLastName")
@@ -385,22 +336,19 @@ namespace API.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETDATE()");
 
-                    b.Property<string>("CvFileName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("CvFilePath")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("JobCategoryId")
+                    b.Property<int>("JobCategoryId")
                         .HasColumnType("int");
 
                     b.Property<int>("JobPostStatusId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("JobTypeId")
+                    b.Property<int>("JobTypeId")
                         .HasColumnType("int");
 
                     b.Property<string>("Position")
@@ -545,9 +493,6 @@ namespace API.Migrations
 
                     b.Property<int>("Credits")
                         .HasColumnType("int");
-
-                    b.Property<string>("CvFileName")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CvFilePath")
                         .HasColumnType("nvarchar(max)");
@@ -819,12 +764,6 @@ namespace API.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("API.Entities.JobPost.EmploymentType", "EmploymentType")
-                        .WithMany()
-                        .HasForeignKey("EmploymentTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("API.Entities.JobPost.JobCategory", "JobCategory")
                         .WithMany("CompanyJobPosts")
                         .HasForeignKey("JobCategoryId")
@@ -856,8 +795,6 @@ namespace API.Migrations
                         .IsRequired();
 
                     b.Navigation("City");
-
-                    b.Navigation("EmploymentType");
 
                     b.Navigation("JobCategory");
 
@@ -897,7 +834,8 @@ namespace API.Migrations
                     b.HasOne("API.Entities.JobPost.JobCategory", "JobCategory")
                         .WithMany("UserJobPosts")
                         .HasForeignKey("JobCategoryId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("API.Entities.JobPost.JobPostStatus", "JobPostStatus")
                         .WithMany()
@@ -908,7 +846,8 @@ namespace API.Migrations
                     b.HasOne("API.Entities.JobPost.JobType", "JobType")
                         .WithMany()
                         .HasForeignKey("JobTypeId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("API.Entities.PricingPlan", "PricingPlan")
                         .WithMany()

@@ -1,4 +1,5 @@
 ﻿using API.Data;
+using API.Data.ICompanyJobPostRepository;
 using API.DTOs;
 using API.Extensions;
 using API.Mappers;
@@ -14,14 +15,16 @@ namespace API.Controllers
     {
         private readonly ICompanyJobPostService _jobPostService;
         private readonly IUnitOfWork _uow;
+        private readonly ICompanyJobPostRepository _jobPostRepository;
 
-        public CompanyJobController(ICompanyJobPostService jobPostService, IUnitOfWork uow)
+        public CompanyJobController(ICompanyJobPostService jobPostService, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository)
         {
             _jobPostService = jobPostService;
             _uow = uow;
+            _jobPostRepository = companyJobPostRepository;
         }
 
-        [HttpGet("ads")]
+        [HttpPost("ads")]
         [AllowAnonymous]
         public async Task<IActionResult> GetAds([FromQuery] AdsPaginationParameters adsParameters)
         {
@@ -30,8 +33,17 @@ namespace API.Controllers
             return Ok(pagedResponse);
         }
 
-        [HttpGet("company-ads")]
-        public async Task<IActionResult> GetCompanyAds([FromQuery] AdsPaginationParameters adsParameters)
+        [HttpGet("employmenttypes")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetEmploymentTypes()
+        {
+            var employmentTypes = await _jobPostRepository.GetEmploymentTypesAsync();
+            return Ok(employmentTypes);
+        }
+
+
+        [HttpPost("company-ads")]
+        public async Task<IActionResult> GetCompanyAds([FromBody] AdsPaginationParameters adsParameters)
         {
             var currentUserId = HttpContext.User.GetUserId();
             adsParameters.UserId = currentUserId;
@@ -80,6 +92,33 @@ namespace API.Controllers
             return Ok(updatedItem);
         }
 
+        [HttpPatch("adinfo/{id}")]
+        public async Task<IActionResult> UpdateAdInfo(int id, [FromBody] CompanyUpdateAdInfoRequest companyJobPostDto)
+        {
+            var currentUserId = HttpContext.User.GetUserId();
+            var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
+            if (user == null || user.CompanyId == null)
+                return Unauthorized("You do not belong to the current company.");
+            var companyJob = await _jobPostService.GetCompanyJobPostByIdAsync(id);
+            var valid = await CheckDoesAdBelongsToUser(companyJob, currentUserId);
+            if (!valid)
+                return Unauthorized("Nemate pravo pristupa ovom oglasu");
+            companyJob.CityId = companyJobPostDto.CityId;
+            companyJob.JobCategoryId = companyJobPostDto.JobCategoryId;
+            companyJob.JobDescription = companyJobPostDto.JobDescription;
+            companyJob.JobTypeId = companyJobPostDto.JobTypeId;
+            companyJob.EmailForReceivingApplications = companyJobPostDto.EmailForReceivingApplications;
+            var updatedItem = await _jobPostService.UpdateCompanyJobPostAsync(companyJob);
+            return Ok(updatedItem);
+        }
+
+        private async Task<bool> CheckDoesAdBelongsToUser(CompanyJobPostDto companyJob, int userId)
+        {
+            if (companyJob != null && companyJob.SubmittingUserId != userId)
+                return false;
+            return true;
+        }
+
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteCompanyJobPost(int id)
         {
@@ -87,6 +126,10 @@ namespace API.Controllers
             var user = await _uow.UserRepository.GetUserByIdAsync(userId);
             if (user == null || user.CompanyId == null)
                 return Unauthorized("You do not belong to the current company.");
+            var companyJob = await _jobPostService.GetCompanyJobPostByIdAsync(id);
+            var valid = await CheckDoesAdBelongsToUser(companyJob, userId);
+            if (!valid)
+                return Unauthorized("Nemate pravo pristupa ovom oglasu");
             var deleted = await _jobPostService.DeleteCompanyJobPostByIdAsync((int)user.CompanyId, id);
             return Ok(deleted);
         }
@@ -98,6 +141,10 @@ namespace API.Controllers
             var user = await _uow.UserRepository.GetUserByIdAsync(userId);
             if (user == null || user.CompanyId == null)
                 return Unauthorized("You do not belong to the current company.");
+            var companyJob = await _jobPostService.GetCompanyJobPostByIdAsync(id);
+            var valid = await CheckDoesAdBelongsToUser(companyJob, userId);
+            if (!valid)
+                return Unauthorized("Nemate pravo pristupa ovom oglasu");
             var closed = await _jobPostService.CloseCompanyJobPostByIdAsync((int)user.CompanyId, id);
             return Ok(closed);
         }
@@ -109,6 +156,10 @@ namespace API.Controllers
             var user = await _uow.UserRepository.GetUserByIdAsync(userId);
             if (user == null || user.CompanyId == null)
                 return Unauthorized("You do not belong to the current company.");
+            var companyJob = await _jobPostService.GetCompanyJobPostByIdAsync(id);
+            var valid = await CheckDoesAdBelongsToUser(companyJob, userId);
+            if (!valid)
+                return Unauthorized("Nemate pravo pristupa ovom oglasu");
             var reactivated = await _jobPostService.ReactivateCompanyJobPostByIdAsync((int)user.CompanyId, id);
             return Ok(reactivated);
         }

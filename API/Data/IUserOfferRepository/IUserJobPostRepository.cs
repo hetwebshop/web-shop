@@ -1,4 +1,5 @@
 ﻿using API.Data.Pagination;
+using API.DTOs;
 using API.Entities.JobPost;
 using API.Helpers;
 using API.PaginationEntities;
@@ -21,5 +22,12 @@ namespace API.Data.IUserOfferRepository
         Task<bool> DeleteUserJobPostByIdAsync(int id);
         Task<bool> CloseUserJobPostByIdAsync(int id);
         Task<bool> ReactivateUserJobPostByIdAsync(int id);
+        Task<UserJobPost> UpdateAdUserBaseInfo(UserAdBaseInfoRequest userAdBaseInfoRequest);
+        Task<UserJobPost> UpdateAdInfo(UserAdInfoUpdateRequest userAdInfoUpdateRequest);
+        Task<UserJobPost> UpsertApplicantEducationAsync(ApplicantEducationRequest req);
+        Task<UserJobPost> DeleteApplicantEducationByIdAsync(int educationId);
+        Task<List<ApplicantEducation>> GetAllEducationsByAdIdAsync(int adId);
+        Task<UserJobPost> UpdateUserAdCvFilePathAsync(int userAdId, string cvFilePath, string cvFileName);
+        Task<UserJobPost> DeleteUserAdFileAsync(int userAdId);
     }
 }

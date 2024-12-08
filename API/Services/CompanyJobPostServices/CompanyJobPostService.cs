@@ -3,6 +3,7 @@ using API.Data.Pagination;
 using API.DTOs;
 using API.Mappers;
 using API.PaginationEntities;
+using AutoMapper;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -43,8 +44,16 @@ namespace API.Services.CompanyJobPostServices
 
         public async Task<CompanyJobPostDto> UpdateCompanyJobPostAsync(CompanyJobPostDto companyJobPostDto)
         {
-            var newItem = await companyJobPostRepository.UpdateCompanyJobPostAsync(companyJobPostDto.ToEntity());
-            return newItem.ToDto();
+            try
+            {
+                var newItem = await companyJobPostRepository.UpdateCompanyJobPostAsync(companyJobPostDto.ToEntity());
+                return newItem.ToDto();
+            }
+            catch (AutoMapperMappingException ex)
+            {
+                throw;
+            }
+
         }
 
         public async Task<List<CompanyJobPostDto>> GetCompanyAdsAsync(int companyId)

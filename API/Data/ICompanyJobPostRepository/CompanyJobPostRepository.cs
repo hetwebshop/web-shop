@@ -1,5 +1,6 @@
 ﻿using API.Data.Pagination;
 using API.Entities.CompanyJobPost;
+using API.Entities.JobPost;
 using API.PaginationEntities;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -59,9 +60,15 @@ namespace API.Data.ICompanyJobPostRepository
             }
 
             companyJobPosts = companyJobPosts
-            .Include(u => u.PricingPlan)
-            .OrderBy(u => u.PricingPlan.Priority)
-            .ThenByDescending(u => u.AdStartDate);
+                .Include(r => r.JobCategory).
+                Include(r => r.JobPostStatus).
+                Include(r => r.JobType).
+                Include(r => r.User).
+                Include(r => r.PricingPlan).
+                Include(r => r.City).
+                ThenInclude(r => r.Country)
+                    .OrderBy(u => u.PricingPlan.Priority)
+                    .ThenByDescending(u => u.AdStartDate);
             //companyJobPosts = _sortHelper.ApplySort(companyJobPosts, adsParameters.OrderBy);
             return await PagedList<CompanyJobPost>.ToPagedListAsync(companyJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }
@@ -71,7 +78,16 @@ namespace API.Data.ICompanyJobPostRepository
             var companyJobPosts = FindByCondition(u => u.SubmittingUserId == adsParameters.UserId
                                 && u.JobPostStatusId == (int)adsParameters.adStatus);
             //companyJobPosts = _sortHelper.ApplySort(companyJobPosts, adsParameters.OrderBy);
-            companyJobPosts = companyJobPosts.Include(r => r.PricingPlan).OrderByDescending(r => r.AdStartDate);
+            companyJobPosts = companyJobPosts
+                .Include(r => r.JobCategory).
+                Include(r => r.JobPostStatus).
+                Include(r => r.JobType).
+                Include(r => r.User).
+                Include(r => r.PricingPlan).
+                Include(r => r.City).
+                ThenInclude(r => r.Country)
+                    .OrderBy(u => u.PricingPlan.Priority)
+                    .ThenByDescending(u => u.AdStartDate);
             return await PagedList<CompanyJobPost>.ToPagedListAsync(companyJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }
 
@@ -95,7 +111,11 @@ namespace API.Data.ICompanyJobPostRepository
                 if (pricingPlan == null)
                     return null;
                 newCompanyJobPost.PricingPlan = pricingPlan;
+                newCompanyJobPost.AdStartDate = DateTime.UtcNow;
+                newCompanyJobPost.AdEndDate = DateTime.UtcNow.AddDays(pricingPlan.AdActiveDays);
                 await DataContext.CompanyJobPosts.AddAsync(newCompanyJobPost);
+                var user = DataContext.Users.First(r => r.Id == newCompanyJobPost.SubmittingUserId);
+                user.Credits -= 1;
                 await DataContext.SaveChangesAsync();
                 return newCompanyJobPost;
             }
@@ -112,11 +132,11 @@ namespace API.Data.ICompanyJobPostRepository
             if (existingCompanyJobPost != null)
             {
                 existingCompanyJobPost.JobDescription = updatedCompanyJobPost.JobDescription;
-                existingCompanyJobPost.CreatedAt = updatedCompanyJobPost.CreatedAt;
+                //existingCompanyJobPost.CreatedAt = updatedCompanyJobPost.CreatedAt;
                 existingCompanyJobPost.UpdatedAt = updatedCompanyJobPost.UpdatedAt;
                 existingCompanyJobPost.JobTypeId = updatedCompanyJobPost.JobTypeId;
                 existingCompanyJobPost.JobCategoryId = updatedCompanyJobPost.JobCategoryId;
-                existingCompanyJobPost.JobPostStatusId = updatedCompanyJobPost.JobPostStatusId;
+                //existingCompanyJobPost.JobPostStatusId = updatedCompanyJobPost.JobPostStatusId;
                 existingCompanyJobPost.CityId = updatedCompanyJobPost.CityId;
                 existingCompanyJobPost.Position = updatedCompanyJobPost.Position;
                 existingCompanyJobPost.AdName = updatedCompanyJobPost.AdName;
@@ -163,6 +183,12 @@ namespace API.Data.ICompanyJobPostRepository
                 return true;
             }
             return false;
+        }
+
+        public async Task<List<EmploymentType>> GetEmploymentTypesAsync()
+        {
+            var employmentTypes = await DataContext.EmploymentTypes.ToListAsync();
+            return employmentTypes;
         }
     }
 }

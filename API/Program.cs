@@ -10,6 +10,7 @@ using Microsoft.OpenApi.Models;
 using System;
 using System.IO;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Azure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,7 +40,7 @@ app.UseSwaggerUI(c =>
 
 app.UseRouting();
 app.UseCors(options =>
-options.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://job-point.azurewebsites.net", "http://localhost:4200"));
+options.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://job-point.azurewebsites.net", "http://localhost:4200", "http://localhost:3000", "https://jobshubui.azurewebsites.net"));
 app.UseStaticFiles();
 //app.UseStaticFiles(new StaticFileOptions
 //{

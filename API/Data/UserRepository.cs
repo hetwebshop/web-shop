@@ -76,5 +76,20 @@ namespace API.Data
         {
             return DataContext.Users.Where(r => r.Id == userId).FirstOrDefault();
         }
+
+        public async Task<bool> UpdateUserEducationAsync(UserEducationRequest userEducation)
+        {
+            var existingEducation = DataContext.UserEducations.First(r => r.Id == userEducation.UserEducationId);
+            if (existingEducation == null)
+                return false;
+            existingEducation.EducationStartYear = userEducation.EducationStartYear;
+            existingEducation.EducationEndYear = userEducation.EducationEndYear;
+            existingEducation.University = userEducation.University;
+            existingEducation.InstitutionName = userEducation.InstitutionName;
+            existingEducation.FieldOfStudy = userEducation.FieldOfStudy;
+            existingEducation.Degree = userEducation.Degree;
+            await SaveChanges();
+            return true;
+        }
     }
 }

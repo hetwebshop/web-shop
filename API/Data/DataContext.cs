@@ -29,6 +29,7 @@ namespace API.Data
         public DbSet<Company> Companies { get; set; }
         public DbSet<CompanyJobPost> CompanyJobPosts { get; set; }
         public DbSet<PricingPlan> PricingPlans { get; set; }
+        public DbSet<EmploymentType> EmploymentTypes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -100,14 +101,14 @@ namespace API.Data
                 entity.HasOne(e => e.JobType)
                       .WithMany()
                       .HasForeignKey(e => e.JobTypeId)
-                      .IsRequired()
-                      .OnDelete(DeleteBehavior.Restrict);
+                      .IsRequired(false)
+                      .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasOne(e => e.JobCategory)
                       .WithMany(c => c.UserJobPosts)
                       .HasForeignKey(e => e.JobCategoryId)
-                      .IsRequired()
-                      .OnDelete(DeleteBehavior.Restrict);
+                      .IsRequired(false)
+                      .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasMany(e => e.ApplicantEducations)
                       .WithOne(c => c.UserJobPost)

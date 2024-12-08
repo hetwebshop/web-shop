@@ -30,5 +30,17 @@ namespace API.Entities.CompanyJobPost
         public int PricingPlanId { get; set; }
         public string CompanyName { get; set; }
         public string CompanyCity { get; set; }
+        public int EmploymentTypeId { get; set; }
+        public EmploymentType EmploymentType { get; set; }
+        public string Benefits { get; set; }
+        public string WorkEnvironmentDescription { get; set; }
+        public string RequiredSkills { get; set; }
+        public string EducationLevel { get; set; }
+        public string Certifications { get; set; }
+        public int RequiredExperience { get; set; }
+        public string HowToApply { get; set; }
+        public string DocumentsRequired { get; set; }
+        public int? MinSalary { get; set; }
+        public int? MaxSalary { get; set; }
     }
 }

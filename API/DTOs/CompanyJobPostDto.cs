@@ -21,8 +21,18 @@ namespace API.DTOs
         public DateTime AdStartDate { get; set; }
         public DateTime AdEndDate { get; set; }
         public bool IsDeleted { get; set; } = false;
-        public string AdName { get; set; }
         public string Position { get; set; }
         public string EmailForReceivingApplications { get; set; }
+        public int EmploymentTypeId { get; set; }
+        public string EmploymentType { get; set; }
+        public string Benefits { get; set; }
+        public string WorkEnvironmentDescription { get; set; }
+        public string RequiredSkills { get; set; }
+        public string EducationLevel { get; set; }
+        public string Certifications { get; set; }
+        public int RequiredExperience { get; set; }
+        public string HowToApply { get; set; }
+        public string DocumentsRequired { get; set; }
+        public int[] SalaryRange { get; set; }
     }
 }

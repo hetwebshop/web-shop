@@ -20,9 +20,9 @@ namespace API.DTOs
         public string ApplicantGender { get; set; }
         public decimal? Price { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public int JobTypeId { get; set; }
+        public int? JobTypeId { get; set; }
         public string JobType { get; set; }
-        public int JobCategoryId { get; set; }
+        public int? JobCategoryId { get; set; }
         public string JobCategory { get; set; }
         public int JobPostStatusId { get; set; }
         public string JobPostStatus { get; set; }
@@ -32,6 +32,7 @@ namespace API.DTOs
         public int AdvertisementTypeId { get; set; }
         public IFormFile CvFile { get; set; }
         public string CvFilePath { get; set; }
+        public string CvFileName { get; set; }
         public DateTime AdStartDate { get; set; }
         public DateTime AdEndDate { get; set; }
         public bool IsDeleted { get; set; } = false;
@@ -40,6 +41,7 @@ namespace API.DTOs
         public int CurrentUserCredits { get; set; }
         public int AdDuration { get; set; }
         public string PricingPlanName { get; set; }
+        public bool? IsUserProfileCvFileSubmitted { get; set; }
 
         public List<ApplicantEducationDto> ApplicantEducations { get; set; }
     }
