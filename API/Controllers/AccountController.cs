@@ -289,10 +289,14 @@ namespace API.Controllers
 
             var userQuery = _userManager.Users
                 .Include(u => u.UserEducations)
+                .Include(u => u.EducationLevel)
+                .Include(u => u.EmploymentType)
+                .Include(u => u.UserPreviousCompanies)
                 .Include(u => u.Company)
                 .Include(u => u.UserRoles)
                 .ThenInclude(u => u.Role)
                 .Include(u => u.City)
+                .Include(u => u.EmploymentStatus)
                 .Include(u => u.JobType)
                 .Include(u => u.JobCategory);
 
@@ -320,10 +324,16 @@ namespace API.Controllers
             user.Position = req.Position;
             user.JobCategoryId = req.JobCategoryId;
             user.JobTypeId = req.JobTypeId;
+            user.EmploymentTypeId = req.EmploymentTypeId;
+            user.YearsOfExperience = req.YearsOfExperience;
+            user.EducationLevelId = req.EducationLevelId;
+            user.EmploymentStatusId = req.EmploymentStatusId;
 
             var result = await _userManager.UpdateAsync(user);
-
             if (!result.Succeeded) return BadRequest("Desila se greška prilikom ažuriranja korisnika.");
+            
+            user = await FetchUserWithIncludesAsync((int)req.UserId);
+
             var dto = ConvertUserToUserDto(user);
             return dto;
         }
@@ -361,6 +371,71 @@ namespace API.Controllers
             }
             var updatedUser = await FetchUserWithIncludesAsync((int)req.UserId);
             var dto = ConvertUserToUserDto(updatedUser);
+            return dto;
+        }
+
+        [HttpPost("upsertusercompany")]
+        public async Task<ActionResult<UserDto>> UpserUserCompany([FromBody] UserCompanyRequest req)
+        {
+            if (HttpContext.User.GetUserId() == null)
+            {
+                return Unauthorized("Korisnik ne postoji!");
+            }
+            req.UserId = HttpContext.User.GetUserId();
+
+            var user = await FetchUserWithIncludesAsync((int)req.UserId);
+
+            if (req.UserCompanyId == null)
+            {
+                var userCompany = new UserPreviousCompanies()
+                {
+                    Position = req.Position,
+                    Description = req.Description,
+                    CompanyName = req.CompanyName,
+                    StartYear = req.StartYear,
+                    EndYear = req.EndYear,
+                };
+                user.UserPreviousCompanies.Add(userCompany);
+                var result = await _userManager.UpdateAsync(user);
+                if (!result.Succeeded) return BadRequest("Desila se greška prilikom ažuriranja korisnika.");
+            }
+            else
+            {
+                var result = await _uow.UserRepository.UpdateUserPreviousCompaniesAsync(req);
+                if (!result) return BadRequest("Desila se greška prilikom ažuriranja korisnika.");
+            }
+            var updatedUser = await FetchUserWithIncludesAsync((int)req.UserId);
+            var dto = ConvertUserToUserDto(updatedUser);
+            return dto;
+        }
+
+
+        [HttpPost("deleteusercompany")]
+        public async Task<ActionResult<UserDto>> DeleteUserCompany([FromBody] int userCompanyId)
+        {
+            if (HttpContext.User.GetUserId() == null)
+            {
+                return Unauthorized("Korisnik ne postoji!");
+            }
+            var userId = HttpContext.User.GetUserId();
+
+            var user = await FetchUserWithIncludesAsync(userId);
+
+            var itemToDelete = user.UserPreviousCompanies.FirstOrDefault(e => e.Id == userCompanyId);
+            if (itemToDelete != null)
+            {
+                user.UserPreviousCompanies.Remove(itemToDelete);
+                var result = await _userManager.UpdateAsync(user); // Update the user with the removed education
+                if (!result.Succeeded)
+                {
+                    return BadRequest("Greška prilikom brisanja kompanije korisnika.");
+                }
+            }
+            else
+            {
+                return NotFound("Edukacija korisnika ne postoji.");
+            }
+            var dto = ConvertUserToUserDto(user);
             return dto;
         }
 
@@ -628,6 +703,7 @@ namespace API.Controllers
                 AboutCompany = user.Company?.AboutUs,
                 Credits = user.Credits,
                 PhoneNumber = user.PhoneNumber,
+                YearsOfExperience = user.YearsOfExperience,
                 Gender = user.Gender,
                 DateOfBirth = user.DateOfBirth,
                 Biography = user.Biography,
@@ -639,6 +715,21 @@ namespace API.Controllers
                 CvFileName = user.CvFileName,
                 Position = user.Position,
                 Roles = user.UserRoles.Select(r => r.Role.Name).ToList(),
+                EmploymentType = user.EmploymentType?.Name,
+                EmploymentTypeId = user.EmploymentType?.Id,
+                EmploymentStatusId = user.EmploymentStatusId,
+                EmploymentStatus = user.EmploymentStatus?.Name,
+                EducationLevel = user.EducationLevel?.Name,
+                EducationLevelId = user.EducationLevel?.Id,
+                UserPreviousCompanies = user.UserPreviousCompanies?.Select(userPreviousCompany => new UserPreviousCompaniesDto()
+                {
+                    CompanyName = userPreviousCompany.CompanyName,
+                    Position = userPreviousCompany.Position,
+                    Description = userPreviousCompany.Description,
+                    StartYear = userPreviousCompany.StartYear,
+                    EndYear = userPreviousCompany.EndYear,
+                    UserCompanyId = userPreviousCompany.Id
+                }).ToList() ?? new List<UserPreviousCompaniesDto>(),
                 UserEducations = user.UserEducations?.Select(userEducation => new UserEducationDto
                 {
                     University = userEducation.University,

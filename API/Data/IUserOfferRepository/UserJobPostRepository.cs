@@ -1,5 +1,6 @@
 ﻿using API.Data.Pagination;
 using API.DTOs;
+using API.Entities;
 using API.Entities.JobPost;
 using API.Helpers;
 using API.PaginationEntities;
@@ -30,6 +31,10 @@ namespace API.Data.IUserOfferRepository
                 Include(r => r.JobPostStatus).
                 Include(r => r.JobType).
                 Include(r => r.User).
+                Include(u => u.EducationLevel).
+                Include(u => u.EmploymentType).
+                Include(u => u.ApplicantPreviousCompanies).
+                Include(u => u.EmploymentStatus).
                 Include(r => r.ApplicantEducations).
                 //Include(r => r.UserJobSubcategories).
                 Include(r => r.PricingPlan).
@@ -75,6 +80,10 @@ namespace API.Data.IUserOfferRepository
                 .Include(u => u.City)
                 .Include(u => u.JobType)
                 .Include(u => u.JobCategory)
+                .Include(u => u.EducationLevel)
+                .Include(u => u.EmploymentType)
+                .Include(u => u.EmploymentStatus)
+                .Include(u => u.ApplicantPreviousCompanies)
                 .OrderBy(u => u.PricingPlan.Priority)
                 .ThenByDescending(u => u.AdStartDate);
            // userJobPosts = _sortHelper.ApplySort(userJobPosts, adsParameters.OrderBy);
@@ -86,7 +95,16 @@ namespace API.Data.IUserOfferRepository
             var userJobPosts = FindByCondition(u => u.SubmittingUserId == adsParameters.UserId 
                                 && u.JobPostStatusId == (int)adsParameters.adStatus && u.AdvertisementTypeId == adsParameters.advertisementTypeId);
             //userJobPosts = _sortHelper.ApplySort(userJobPosts, adsParameters.OrderBy);
-            userJobPosts = userJobPosts.Include(r => r.PricingPlan).OrderByDescending(r => r.AdStartDate);
+            userJobPosts = userJobPosts
+            .Include(u => u.PricingPlan)
+            .Include(u => u.City)
+            .Include(u => u.JobType)
+            .Include(u => u.JobCategory)
+            .Include(u => u.EducationLevel)
+            .Include(u => u.EmploymentType)
+            .Include(u => u.EmploymentStatus)
+            .Include(u => u.ApplicantPreviousCompanies)
+            .OrderByDescending(r => r.AdStartDate);
             return await PagedList<UserJobPost>.ToPagedListAsync(userJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }
 
@@ -254,6 +272,10 @@ namespace API.Data.IUserOfferRepository
                 existingUserJobPost.JobTypeId = updateAdInfo.JobTypeId;
                 existingUserJobPost.Position = updateAdInfo.Position;
                 existingUserJobPost.Biography = updateAdInfo.Biography;
+                existingUserJobPost.YearsOfExperience = updateAdInfo.YearsOfExperience;
+                existingUserJobPost.EmploymentStatusId = updateAdInfo.EmploymentStatusId;
+                existingUserJobPost.EmploymentTypeId = updateAdInfo.EmploymentTypeId;
+                existingUserJobPost.EducationLevelId = updateAdInfo.EducationLevelId;
                 //existingUserJobPost.Price = updateAdInfo.Pr
                 await DataContext.SaveChangesAsync();
                 await DataContext.Entry(existingUserJobPost)
@@ -302,6 +324,38 @@ namespace API.Data.IUserOfferRepository
             return existingUserJobPost;
         }
 
+        public async Task<UserJobPost> UpsertApplicantCompanyAsync(ApplicantCompanyRequst req)
+        {
+            if (req.UserCompanyId == null)
+            {
+                var item = new ApplicantPreviousCompanies()
+                {
+                    Position = req.Position,
+                    CompanyName = req.CompanyName,
+                    Description = req.Description,
+                    StartYear = req.StartYear,
+                    EndYear = req.EndYear,
+                    UserJobPostId = req.UserAdId
+                };
+                await DataContext.ApplicantPreviousCompanies.AddAsync(item);
+            }
+            else
+            {
+                var existing = DataContext.ApplicantPreviousCompanies.First(r => r.Id == req.UserCompanyId && r.UserJobPostId == req.UserAdId);
+                if (existing == null)
+                    return null;
+                existing.Position = req.Position;
+                existing.CompanyName = req.CompanyName;
+                existing.StartYear = req.StartYear;
+                existing.EndYear = req.EndYear;
+                existing.Description = req.Description;
+            }
+
+            await DataContext.SaveChangesAsync();
+            var existingUserJobPost = await FetchUserAdWithNecessaryDependencies(req.UserAdId);
+            return existingUserJobPost;
+        }
+
         private async Task<UserJobPost> FetchUserAdWithNecessaryDependencies(int adId)
         {
             var existingUserJobPost = await DataContext.UserJobPosts
@@ -309,6 +363,10 @@ namespace API.Data.IUserOfferRepository
                 .Include(ujp => ujp.JobType)
                 .Include(ujp => ujp.City)
                 .Include(r => r.ApplicantEducations)
+                .Include(u => u.EducationLevel)
+                .Include(u => u.EmploymentType)
+                .Include(u => u.EmploymentStatus)
+                .Include(u => u.ApplicantPreviousCompanies)
                 .FirstOrDefaultAsync(ujp => ujp.Id == adId);
             return existingUserJobPost;
         }
@@ -325,10 +383,28 @@ namespace API.Data.IUserOfferRepository
             return existingUserJobPost;
         }
 
+        public async Task<UserJobPost> DeleteApplicantCompanyByIdAsync(int id)
+        {
+            var existing = DataContext.ApplicantPreviousCompanies.First(r => r.Id == id);
+            if (existing == null)
+                return null;
+            var adId = existing.UserJobPostId;
+            DataContext.ApplicantPreviousCompanies.Remove(existing);
+            await DataContext.SaveChangesAsync();
+            var existingUserJobPost = await FetchUserAdWithNecessaryDependencies(adId);
+            return existingUserJobPost;
+        }
+
         public async Task<List<ApplicantEducation>> GetAllEducationsByAdIdAsync(int adId)
         {
             var educations = await DataContext.ApplicantEducations.Where(r => r.UserJobPostId == adId).ToListAsync();
             return educations;
+        }
+
+        public async Task<List<ApplicantPreviousCompanies>> GetAllApplicantCompaniesByAdIdAsync(int adId)
+        {
+            var items = await DataContext.ApplicantPreviousCompanies.Where(r => r.UserJobPostId == adId).ToListAsync();
+            return items;
         }
 
         public async Task<UserJobPost> UpdateUserAdCvFilePathAsync(int userAdId, string cvFilePath, string cvFileName)

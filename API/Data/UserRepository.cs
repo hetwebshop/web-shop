@@ -91,5 +91,19 @@ namespace API.Data
             await SaveChanges();
             return true;
         }
+
+        public async Task<bool> UpdateUserPreviousCompaniesAsync(UserCompanyRequest req)
+        {
+            var existing = DataContext.UserPreviousCompanies.First(r => r.Id == req.UserCompanyId);
+            if (existing == null)
+                return false;
+            existing.CompanyName = req.CompanyName;
+            existing.Position = req.Position;
+            existing.Description = req.Description;
+            existing.StartYear = req.StartYear;
+            existing.EndYear = req.EndYear;
+            await SaveChanges();
+            return true;
+        }
     }
 }

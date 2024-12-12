@@ -41,6 +41,21 @@ namespace API.Controllers
             return Ok(employmentTypes);
         }
 
+        [HttpGet("educationlevels")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetEducationLevels()
+        {
+            var educationLevels = await _jobPostRepository.GetEducationLevels();
+            return Ok(educationLevels);
+        }
+
+        [HttpGet("employmentstatuses")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetEmploymentStatuses()
+        {
+            var employmentStatuses = await _jobPostRepository.GetEmploymentStatusesAsync();
+            return Ok(employmentStatuses);
+        }
 
         [HttpPost("company-ads")]
         public async Task<IActionResult> GetCompanyAds([FromBody] AdsPaginationParameters adsParameters)

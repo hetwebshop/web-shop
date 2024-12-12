@@ -1,4 +1,5 @@
 ﻿using API.Data.Pagination;
+using API.Entities;
 using API.Entities.CompanyJobPost;
 using API.Entities.JobPost;
 using API.PaginationEntities;
@@ -19,5 +20,7 @@ namespace API.Data.ICompanyJobPostRepository
         Task<bool> CloseCompanyJobPostByIdAsync(int id);
         Task<bool> ReactivateCompanyJobPostByIdAsync(int id);
         Task<List<EmploymentType>> GetEmploymentTypesAsync();
+        Task<List<EducationLevel>> GetEducationLevels();
+        Task<List<EmploymentStatus>> GetEmploymentStatusesAsync();
     }
 }

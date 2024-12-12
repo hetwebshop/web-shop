@@ -38,6 +38,15 @@ namespace API.DTOs
         public DateTime DateOfBirth { get; set; }
         public List<UserEducationDto> UserEducations { get; set; }
         public List<string> Roles { get; set; }
+
+        public string EmploymentType { get; set; }
+        public int? EmploymentTypeId { get; set; }
+        public string EducationLevel { get; set; }
+        public int? EducationLevelId { get; set; }
+        public int? YearsOfExperience { get; set; }
+        public int? EmploymentStatusId { get; set; }
+        public string EmploymentStatus { get; set; }
+        public List<UserPreviousCompaniesDto> UserPreviousCompanies { get; set; }
     }
 
     public class UserInfoDto

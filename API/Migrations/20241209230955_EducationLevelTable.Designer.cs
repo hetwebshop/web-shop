@@ -4,6 +4,7 @@ using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20241209230955_EducationLevelTable")]
+    partial class EducationLevelTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,39 +23,6 @@ namespace API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
-
-            modelBuilder.Entity("API.Entities.ApplicantPreviousCompanies", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("CompanyName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("EndYear")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Position")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("StartYear")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserJobPostId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserJobPostId");
-
-                    b.ToTable("ApplicantPreviousCompanies");
-                });
 
             modelBuilder.Entity("API.Entities.City", b =>
                 {
@@ -263,23 +232,7 @@ namespace API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EducationLevels");
-                });
-
-            modelBuilder.Entity("API.Entities.EmploymentStatus", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("EmploymentStatuses");
+                    b.ToTable("EducationLevel");
                 });
 
             modelBuilder.Entity("API.Entities.JobPost.AdvertisementType", b =>
@@ -458,15 +411,6 @@ namespace API.Migrations
                     b.Property<string>("CvFilePath")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("EducationLevelId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("EmploymentStatusId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("EmploymentTypeId")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -496,20 +440,11 @@ namespace API.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETDATE()");
 
-                    b.Property<int?>("YearsOfExperience")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AdvertisementTypeId");
 
                     b.HasIndex("CityId");
-
-                    b.HasIndex("EducationLevelId");
-
-                    b.HasIndex("EmploymentStatusId");
-
-                    b.HasIndex("EmploymentTypeId");
 
                     b.HasIndex("JobCategoryId");
 
@@ -640,21 +575,12 @@ namespace API.Migrations
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("EducationLevelId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
-
-                    b.Property<int?>("EmploymentStatusId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("EmploymentTypeId")
-                        .HasColumnType("int");
 
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
@@ -719,20 +645,11 @@ namespace API.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<int?>("YearsOfExperience")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CityId");
 
                     b.HasIndex("CompanyId");
-
-                    b.HasIndex("EducationLevelId");
-
-                    b.HasIndex("EmploymentStatusId");
-
-                    b.HasIndex("EmploymentTypeId");
 
                     b.HasIndex("JobCategoryId");
 
@@ -787,39 +704,6 @@ namespace API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserEducations");
-                });
-
-            modelBuilder.Entity("API.Entities.UserPreviousCompanies", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("CompanyName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("EndYear")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Position")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("StartYear")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserPreviousCompanies");
                 });
 
             modelBuilder.Entity("API.Entities.UserRole", b =>
@@ -923,17 +807,6 @@ namespace API.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("API.Entities.ApplicantPreviousCompanies", b =>
-                {
-                    b.HasOne("API.Entities.JobPost.UserJobPost", "UserJobPost")
-                        .WithMany("ApplicantPreviousCompanies")
-                        .HasForeignKey("UserJobPostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("UserJobPost");
                 });
 
             modelBuilder.Entity("API.Entities.City", b =>
@@ -1047,18 +920,6 @@ namespace API.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("API.Entities.EducationLevel", "EducationLevel")
-                        .WithMany()
-                        .HasForeignKey("EducationLevelId");
-
-                    b.HasOne("API.Entities.EmploymentStatus", "EmploymentStatus")
-                        .WithMany()
-                        .HasForeignKey("EmploymentStatusId");
-
-                    b.HasOne("API.Entities.JobPost.EmploymentType", "EmploymentType")
-                        .WithMany()
-                        .HasForeignKey("EmploymentTypeId");
-
                     b.HasOne("API.Entities.JobPost.JobCategory", "JobCategory")
                         .WithMany("UserJobPosts")
                         .HasForeignKey("JobCategoryId")
@@ -1091,12 +952,6 @@ namespace API.Migrations
 
                     b.Navigation("City");
 
-                    b.Navigation("EducationLevel");
-
-                    b.Navigation("EmploymentStatus");
-
-                    b.Navigation("EmploymentType");
-
                     b.Navigation("JobCategory");
 
                     b.Navigation("JobPostStatus");
@@ -1121,18 +976,6 @@ namespace API.Migrations
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("API.Entities.EducationLevel", "EducationLevel")
-                        .WithMany()
-                        .HasForeignKey("EducationLevelId");
-
-                    b.HasOne("API.Entities.EmploymentStatus", "EmploymentStatus")
-                        .WithMany()
-                        .HasForeignKey("EmploymentStatusId");
-
-                    b.HasOne("API.Entities.JobPost.EmploymentType", "EmploymentType")
-                        .WithMany()
-                        .HasForeignKey("EmploymentTypeId");
-
                     b.HasOne("API.Entities.JobPost.JobCategory", "JobCategory")
                         .WithMany()
                         .HasForeignKey("JobCategoryId")
@@ -1152,12 +995,6 @@ namespace API.Migrations
 
                     b.Navigation("Company");
 
-                    b.Navigation("EducationLevel");
-
-                    b.Navigation("EmploymentStatus");
-
-                    b.Navigation("EmploymentType");
-
                     b.Navigation("JobCategory");
 
                     b.Navigation("JobType");
@@ -1169,17 +1006,6 @@ namespace API.Migrations
                 {
                     b.HasOne("API.Entities.User", "User")
                         .WithMany("UserEducations")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("API.Entities.UserPreviousCompanies", b =>
-                {
-                    b.HasOne("API.Entities.User", "User")
-                        .WithMany("UserPreviousCompanies")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1262,8 +1088,6 @@ namespace API.Migrations
             modelBuilder.Entity("API.Entities.JobPost.UserJobPost", b =>
                 {
                     b.Navigation("ApplicantEducations");
-
-                    b.Navigation("ApplicantPreviousCompanies");
                 });
 
             modelBuilder.Entity("API.Entities.Photo", b =>
@@ -1283,8 +1107,6 @@ namespace API.Migrations
                     b.Navigation("UserEducations");
 
                     b.Navigation("UserJobPosts");
-
-                    b.Navigation("UserPreviousCompanies");
 
                     b.Navigation("UserRoles");
                 });

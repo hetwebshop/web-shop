@@ -44,5 +44,14 @@ namespace API.DTOs
         public bool? IsUserProfileCvFileSubmitted { get; set; }
 
         public List<ApplicantEducationDto> ApplicantEducations { get; set; }
+
+        public int? EducationLevelId { get; set; }
+        public string EducationLevel { get; set; }
+        public int? EmploymentTypeId { get; set; }
+        public string EmploymentType { get; set; }
+        public int? YearsOfExperience { get; set; }
+        public int? EmploymentStatusId { get; set; }
+        public string EmploymentStatus { get; set; }
+        public List<ApplicantPreviousCompaniesDto> ApplicantPreviousCompanies { get; set; }
     }
 }

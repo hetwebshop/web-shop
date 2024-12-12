@@ -33,9 +33,23 @@ namespace API.Entities
 
         public bool IsApproved { get; set; }
 
+        public int? EducationLevelId { get; set; }
+        public EducationLevel? EducationLevel { get; set; }
+
+        public int? EmploymentTypeId { get; set; }
+        public EmploymentType? EmploymentType { get; set; }
+
+        public int? YearsOfExperience { get; set; }
+
         public ICollection<UserRole> UserRoles { get; set; }
         public ICollection<UserJobPost> UserJobPosts { get; set; }
         public ICollection<UserEducation> UserEducations { get; set; }
+
+        public ICollection<UserPreviousCompanies> UserPreviousCompanies { get; set; }
+
+
+        public int? EmploymentStatusId { get; set; }
+        public EmploymentStatus? EmploymentStatus { get; set; }
 
         public ICollection<CompanyJobPost.CompanyJobPost> CompanyJobPosts { get; set; }
     }

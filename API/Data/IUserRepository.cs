@@ -20,5 +20,6 @@ namespace API.Data
         Task<bool> RemoveAllUserEducationsAsync(int userId);
         Task<User> GetUserByIdAsync(int userId);
         Task<bool> UpdateUserEducationAsync(UserEducationRequest userEducation);
+        Task<bool> UpdateUserPreviousCompaniesAsync(UserCompanyRequest userEducation);
     }
 }

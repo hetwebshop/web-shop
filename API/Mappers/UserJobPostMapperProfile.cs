@@ -22,6 +22,19 @@ namespace API.Mappers
                 .ForMember(dest => dest.City, src => src.MapFrom(x => x.City.Name))
                 .ForMember(dest => dest.CityId, src => src.MapFrom(x => x.CityId))
                 .ForMember(dest => dest.ApplicantGender, src => src.MapFrom(x => x.ApplicantGender))
+                .ForMember(dest => dest.EmploymentType, src => src.MapFrom(x => x.EmploymentType.Name))
+                .ForMember(dest => dest.EmploymentStatus, src => src.MapFrom(x => x.EmploymentStatus.Name))
+                .ForMember(dest => dest.EducationLevel, src => src.MapFrom(x => x.EducationLevel.Name))
+                .ForMember(dest => dest.ApplicantPreviousCompanies, src => src.MapFrom(x =>
+                    x.ApplicantPreviousCompanies.Select(r => new ApplicantPreviousCompaniesDto
+                    {
+                        UserCompanyId = r.Id,
+                        CompanyName = r.CompanyName,
+                        Description = r.Description,
+                        StartYear = r.StartYear,
+                        EndYear = r.EndYear,
+                        Position = r.Position
+                    }).ToList() ?? new List<ApplicantPreviousCompaniesDto>()))
                .ForMember(dest => dest.ApplicantEducations, src => src.MapFrom(x =>
                     x.ApplicantEducations.Select(r => new ApplicantEducationDto
                     {
@@ -44,6 +57,9 @@ namespace API.Mappers
 
             this.CreateMap<ApplicantEducation, ApplicantEducationDto>();
             this.CreateMap<ApplicantEducationDto, ApplicantEducation>();
+
+            this.CreateMap<ApplicantPreviousCompanies, ApplicantPreviousCompaniesDto>();
+            this.CreateMap<ApplicantPreviousCompaniesDto, ApplicantPreviousCompanies>();
 
             CreateMap(typeof(PagedList<>), typeof(PagedList<>)).ConvertUsing(typeof(PagedListConverter<,>));
 

@@ -10,6 +10,7 @@ using API.Services;
 using API.Services.UserOfferServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -85,6 +86,16 @@ namespace API.Controllers
         {
             try
             {
+                if (!string.IsNullOrEmpty(Request.Form["applicantEducations"]))
+                {
+                    var applicantEducationsJson = Request.Form["applicantEducations"];
+                    userJobPostDto.ApplicantEducations = JsonConvert.DeserializeObject<List<ApplicantEducationDto>>(applicantEducationsJson);
+                }
+                if (!string.IsNullOrEmpty(Request.Form["applicantPreviousCompanies"]))
+                {
+                    var applicantPrevCompaniesJson = Request.Form["applicantPreviousCompanies"];
+                    userJobPostDto.ApplicantPreviousCompanies = JsonConvert.DeserializeObject<List<ApplicantPreviousCompaniesDto>>(applicantPrevCompaniesJson);
+                }
                 var currentUserId = HttpContext.User.GetUserId();
                 var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
                 if (user.Credits == 0)
@@ -269,6 +280,25 @@ namespace API.Controllers
             return result.ToDto();
         }
 
+        [HttpPost("upsertadcompany/{adId}")]
+        public async Task<ActionResult<UserJobPostDto>> UpserUserCompany(int adId, [FromBody] ApplicantCompanyRequst req)
+        {
+            if (HttpContext.User.GetUserId() == null)
+            {
+                return Unauthorized("Korisnik ne postoji!");
+            }
+            if (adId == null || adId == 0)
+                return BadRequest("Oglas ne postoji!");
+            req.UserId = HttpContext.User.GetUserId();
+            req.UserAdId = adId;
+            var userJob = await _jobPostService.GetUserJobPostByIdAsync(adId);
+            var valid = await CheckDoesAdBelongsToUser(userJob, (int)req.UserId);
+            if (!valid)
+                return Unauthorized("Nemate pravo pristupa ovom oglasu");
+            var result = await _userJobPostRepository.UpsertApplicantCompanyAsync(req);
+            return result.ToDto();
+        }
+
         [HttpPost("deleteadeducation")]
         public async Task<ActionResult<UserJobPostDto>> DeleteAdEducation(DeleteApplicantEducationRequest req)
         {
@@ -291,6 +321,30 @@ namespace API.Controllers
             }
 
             return BadRequest("Desila se greška prilikom brisanja edukacije.");
+        }
+
+        [HttpPost("deleteadcompany")]
+        public async Task<ActionResult<UserJobPostDto>> DeleteAdCompany(DeleteAplicantCompanyReq req)
+        {
+            if (HttpContext.User.GetUserId() == null)
+            {
+                return Unauthorized("Korisnik ne postoji!");
+            }
+            var userId = HttpContext.User.GetUserId();
+            var userJob = await _jobPostService.GetUserJobPostByIdAsync(req.UserAdId);
+            var valid = await CheckDoesAdBelongsToUser(userJob, userId);
+            if (!valid)
+                return Unauthorized("Nemate pravo pristupa ovom oglasu");
+
+            var adCompanies = await _userJobPostRepository.GetAllApplicantCompaniesByAdIdAsync(req.UserAdId);
+            if (adCompanies.Where(r => r.Id == req.PrevCompanyId).Any())
+            {
+                var ad = await _userJobPostRepository.DeleteApplicantCompanyByIdAsync(req.PrevCompanyId);
+                //var dto = ConvertUserAdToUserAdDto(ad);
+                return ad.ToDto();
+            }
+
+            return BadRequest("Desila se greška prilikom brisanja kompanije aplikanta.");
         }
 
         [HttpPost("uploadfile/{userAdId}")]

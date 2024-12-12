@@ -35,9 +35,10 @@ namespace API.Entities.CompanyJobPost
         public string Benefits { get; set; }
         public string WorkEnvironmentDescription { get; set; }
         public string RequiredSkills { get; set; }
-        public string EducationLevel { get; set; }
+        public int? EducationLevelId { get; set; }
+        public EducationLevel? EducationLevel { get; set; }
         public string Certifications { get; set; }
-        public int RequiredExperience { get; set; }
+        public int? RequiredExperience { get; set; }
         public string HowToApply { get; set; }
         public string DocumentsRequired { get; set; }
         public int? MinSalary { get; set; }

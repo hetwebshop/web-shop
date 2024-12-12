@@ -41,6 +41,18 @@ namespace API.Entities.JobPost
         public PricingPlan PricingPlan { get; set; }
         public int PricingPlanId { get; set; }
 
+        public int? EducationLevelId { get; set; }
+        public EducationLevel? EducationLevel { get; set; }
+
+        public int? EmploymentTypeId { get; set; }
+        public EmploymentType? EmploymentType { get; set; }
+
+        public int? YearsOfExperience { get; set; }
+
+        public int? EmploymentStatusId { get; set; }
+        public EmploymentStatus? EmploymentStatus { get; set; }
+
         public ICollection<ApplicantEducation> ApplicantEducations { get; set; }
+        public ICollection<ApplicantPreviousCompanies> ApplicantPreviousCompanies { get; set; }
     }
 }

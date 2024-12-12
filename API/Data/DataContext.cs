@@ -30,6 +30,10 @@ namespace API.Data
         public DbSet<CompanyJobPost> CompanyJobPosts { get; set; }
         public DbSet<PricingPlan> PricingPlans { get; set; }
         public DbSet<EmploymentType> EmploymentTypes { get; set; }
+        public DbSet<EducationLevel> EducationLevels { get; set; }
+        public DbSet<UserPreviousCompanies> UserPreviousCompanies { get; set; }
+        public DbSet<ApplicantPreviousCompanies> ApplicantPreviousCompanies { get; set; }
+        public DbSet<EmploymentStatus> EmploymentStatuses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

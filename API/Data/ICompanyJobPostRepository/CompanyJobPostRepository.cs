@@ -1,4 +1,5 @@
 ﻿using API.Data.Pagination;
+using API.Entities;
 using API.Entities.CompanyJobPost;
 using API.Entities.JobPost;
 using API.PaginationEntities;
@@ -28,6 +29,8 @@ namespace API.Data.ICompanyJobPostRepository
                 Include(r => r.JobType).
                 Include(r => r.User).
                 Include(r => r.PricingPlan).
+                Include(r => r.EmploymentType).
+                Include(r => r.EducationLevel).
                 Include(r => r.City).
                 ThenInclude(r => r.Country);
         }
@@ -65,6 +68,7 @@ namespace API.Data.ICompanyJobPostRepository
                 Include(r => r.JobType).
                 Include(r => r.User).
                 Include(r => r.PricingPlan).
+                Include(r => r.EducationLevel).
                 Include(r => r.City).
                 ThenInclude(r => r.Country)
                     .OrderBy(u => u.PricingPlan.Priority)
@@ -84,6 +88,7 @@ namespace API.Data.ICompanyJobPostRepository
                 Include(r => r.JobType).
                 Include(r => r.User).
                 Include(r => r.PricingPlan).
+                Include(r => r.EducationLevel).
                 Include(r => r.City).
                 ThenInclude(r => r.Country)
                     .OrderBy(u => u.PricingPlan.Priority)
@@ -189,6 +194,18 @@ namespace API.Data.ICompanyJobPostRepository
         {
             var employmentTypes = await DataContext.EmploymentTypes.ToListAsync();
             return employmentTypes;
+        }
+
+        public async Task<List<EducationLevel>> GetEducationLevels()
+        {
+            var educationLevels = await DataContext.EducationLevels.ToListAsync();
+            return educationLevels;
+        }
+
+        public async Task<List<EmploymentStatus>> GetEmploymentStatusesAsync()
+        {
+            var empStatuses = await DataContext.EmploymentStatuses.ToListAsync();
+            return empStatuses;
         }
     }
 }

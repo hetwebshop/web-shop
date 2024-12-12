@@ -12,8 +12,6 @@ namespace API.Helpers
     {
         public AutoMapperProfiles()
         {
-            #region Entity DTO Mapping
-
             CreateMap<UserRegisterDto, User>()
                 .ForMember(dest => dest.UserName,
                     opt => opt.MapFrom(src => src.UserName.ToLower()));
@@ -49,11 +47,6 @@ namespace API.Helpers
 
             CreateMap<User, UserInfoDto>()
                 .ForMember(dest => dest.PhotoUrl, act => act.MapFrom(src => src.Photo.Url));
-
-            #endregion
-
-            #region SeedData Entity Mapping
-            #endregion
         }
     }
 }
