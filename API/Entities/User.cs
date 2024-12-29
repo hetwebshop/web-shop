@@ -1,4 +1,5 @@
-﻿using API.Entities.JobPost;
+﻿using API.Entities.Applications;
+using API.Entities.JobPost;
 using API.Helpers;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -52,5 +53,7 @@ namespace API.Entities
         public EmploymentStatus? EmploymentStatus { get; set; }
 
         public ICollection<CompanyJobPost.CompanyJobPost> CompanyJobPosts { get; set; }
+
+        public ICollection<UserApplication> UserApplications { get; set; }
     }
 }

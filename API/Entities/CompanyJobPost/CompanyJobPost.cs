@@ -1,5 +1,7 @@
-﻿using API.Entities.JobPost;
+﻿using API.Entities.Applications;
+using API.Entities.JobPost;
 using System;
+using System.Collections.Generic;
 
 namespace API.Entities.CompanyJobPost
 {
@@ -43,5 +45,7 @@ namespace API.Entities.CompanyJobPost
         public string DocumentsRequired { get; set; }
         public int? MinSalary { get; set; }
         public int? MaxSalary { get; set; }
+
+        public ICollection<UserApplication> UserApplications { get; set; }
     }
 }

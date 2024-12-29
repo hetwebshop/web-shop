@@ -27,6 +27,7 @@ namespace API.Mappers
                 .ForMember(dest => dest.AdDuration, src => src.MapFrom(x => x.PricingPlan.AdActiveDays))
                 .ForMember(dest => dest.JobCategoryId, src => src.MapFrom(x => x.JobCategoryId))
                 .ForMember(dest => dest.JobTypeId, src => src.MapFrom(x => x.JobTypeId))
+                .ForMember(dest => dest.UsersThatAppliedOnJobPost, src => src.MapFrom(x => x.UserApplications.Select(r => r.SubmittingUserId).ToList()))
                 .ForMember(dest => dest.EmailForReceivingApplications, src => src.MapFrom(x => x.EmailForReceivingApplications))
                .ForMember(dest => dest.SalaryRange, src => src.MapFrom(x => x.MinSalary != null && x.MaxSalary != null ? new[] { x.MinSalary, x.MaxSalary } : null));
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace API.DTOs
 {
@@ -35,5 +36,7 @@ namespace API.DTOs
         public string HowToApply { get; set; }
         public string DocumentsRequired { get; set; }
         public int[] SalaryRange { get; set; }
+        public List<int>? UsersThatAppliedOnJobPost { get; set; }
+        public bool? CanCurrentUserApplyOnAd { get; set; } = true;
     }
 }

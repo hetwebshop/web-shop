@@ -1,6 +1,7 @@
 ﻿using API.Data.Pagination;
 using API.DTOs;
 using API.Entities;
+using API.Entities.Applications;
 using API.Entities.JobPost;
 using API.Helpers;
 using API.PaginationEntities;
@@ -137,6 +138,20 @@ namespace API.Data.IUserOfferRepository
                 return newUserJobPost;
             }
             catch(Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<UserApplication> CreateUserApplicationAsync(UserApplication application)
+        {
+            try
+            {
+                await DataContext.UserApplications.AddAsync(application);
+                await DataContext.SaveChangesAsync();
+                return application;
+            }
+            catch (Exception ex)
             {
                 throw;
             }

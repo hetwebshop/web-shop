@@ -135,6 +135,46 @@ namespace API.Controllers
             }
         }
 
+        [HttpPost("createapplication")]
+        public async Task<IActionResult> CreateUserApplication([FromForm] UserApplicationDto userApplication)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(Request.Form["educations"]))
+                {
+                    var applicantEducationsJson = Request.Form["educations"];
+                    userApplication.Educations = JsonConvert.DeserializeObject<List<UserEducationDto>>(applicantEducationsJson);
+                }
+                if (!string.IsNullOrEmpty(Request.Form["previousCompanies"]))
+                {
+                    var applicantPrevCompaniesJson = Request.Form["previousCompanies"];
+                    userApplication.PreviousCompanies = JsonConvert.DeserializeObject<List<UserPreviousCompaniesDto>>(applicantPrevCompaniesJson);
+                }
+                var currentUserId = HttpContext.User.GetUserId();
+                var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
+                userApplication.SubmittingUserId = currentUserId;
+                if (userApplication.CvFile != null)
+                {
+                    var fileUrl = await _blobStorageService.UploadFileAsync(userApplication.CvFile);
+                    var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
+                    userApplication.CvFilePath = decodedFileUrl;
+                    userApplication.CvFileName = userApplication.CvFile.FileName;
+                }
+                else if (userApplication.IsUserProfileCvFileSubmitted == true)
+                {
+                    userApplication.CvFilePath = user.CvFilePath;
+                    userApplication.CvFileName = user.CvFileName;
+                }
+
+                var newItem = await _jobPostService.CreateUserApplicationAsync(userApplication);
+                return Ok(newItem);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateUserJobPost(int id, [FromForm] UserJobPostDto userJobPostDto)
         {
@@ -214,7 +254,7 @@ namespace API.Controllers
                 return Forbid("Nemate pravo pristupa.");
             }
             var user = await _uow.UserRepository.GetUserByIdAsync(userId);
-            if (user == null) // || user.IsCompany with active subscription
+            if (user == null || !user.IsCompany)
             {
                 return Forbid("Nemate pravo pristupa.");
             }

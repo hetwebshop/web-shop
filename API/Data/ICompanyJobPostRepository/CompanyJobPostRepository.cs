@@ -30,6 +30,7 @@ namespace API.Data.ICompanyJobPostRepository
                 Include(r => r.User).
                 Include(r => r.PricingPlan).
                 Include(r => r.EmploymentType).
+                Include(r => r.UserApplications).
                 Include(r => r.EducationLevel).
                 Include(r => r.City).
                 ThenInclude(r => r.Country);
@@ -69,6 +70,7 @@ namespace API.Data.ICompanyJobPostRepository
                 Include(r => r.User).
                 Include(r => r.PricingPlan).
                 Include(r => r.EducationLevel).
+                Include(r => r.UserApplications).
                 Include(r => r.City).
                 ThenInclude(r => r.Country)
                     .OrderBy(u => u.PricingPlan.Priority)
@@ -89,6 +91,7 @@ namespace API.Data.ICompanyJobPostRepository
                 Include(r => r.User).
                 Include(r => r.PricingPlan).
                 Include(r => r.EducationLevel).
+                Include(r => r.UserApplications).
                 Include(r => r.City).
                 ThenInclude(r => r.Country)
                     .OrderBy(u => u.PricingPlan.Priority)
@@ -96,9 +99,16 @@ namespace API.Data.ICompanyJobPostRepository
             return await PagedList<CompanyJobPost>.ToPagedListAsync(companyJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }
 
+
         public async Task<List<CompanyJobPost>> GetCompanyAdsAsync(int companyId)
         {
             var userJobPosts = await GetCompanyJobPostBaseQuery().Where(r => r.User.CompanyId == companyId).ToListAsync();
+            return userJobPosts;
+        }
+        
+        public async Task<List<CompanyJobPost>> GetCompanyActiveAdsAsync(int companyId)
+        {
+            var userJobPosts = await GetCompanyJobPostBaseQuery().Where(r => r.User.CompanyId == companyId && r.JobPostStatusId == 1 && r.AdEndDate >= DateTime.Now).ToListAsync();
             return userJobPosts;
         }
 

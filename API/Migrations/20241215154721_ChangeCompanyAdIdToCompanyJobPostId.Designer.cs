@@ -4,6 +4,7 @@ using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20241215154721_ChangeCompanyAdIdToCompanyJobPostId")]
+    partial class ChangeCompanyAdIdToCompanyJobPostId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,24 +65,6 @@ namespace API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("AIMatchingDescription")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("AIMatchingEducationLevel")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("AIMatchingExperience")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("AIMatchingResult")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("AIMatchingSkills")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ApplicationStatusId")
-                        .HasColumnType("int");
-
                     b.Property<int>("CityId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -106,13 +90,7 @@ namespace API.Migrations
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("EducationLevelId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Email")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Feedback")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
@@ -121,16 +99,7 @@ namespace API.Migrations
                     b.Property<int>("Gender")
                         .HasColumnType("int");
 
-                    b.Property<bool?>("IsOnlineMeeting")
-                        .HasColumnType("bit");
-
                     b.Property<string>("LastName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("MeetingDateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("OnlineMeetingLink")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
@@ -144,16 +113,11 @@ namespace API.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETDATE()");
 
-                    b.Property<int?>("YearsOfExperience")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CityId");
 
                     b.HasIndex("CompanyJobPostId");
-
-                    b.HasIndex("EducationLevelId");
 
                     b.HasIndex("SubmittingUserId");
 
@@ -1124,10 +1088,6 @@ namespace API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("API.Entities.EducationLevel", "EducationLevel")
-                        .WithMany()
-                        .HasForeignKey("EducationLevelId");
-
                     b.HasOne("API.Entities.User", "User")
                         .WithMany("UserApplications")
                         .HasForeignKey("SubmittingUserId")
@@ -1137,8 +1097,6 @@ namespace API.Migrations
                     b.Navigation("City");
 
                     b.Navigation("CompanyJobPost");
-
-                    b.Navigation("EducationLevel");
 
                     b.Navigation("User");
                 });

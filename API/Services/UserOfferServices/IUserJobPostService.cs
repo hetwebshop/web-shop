@@ -14,6 +14,7 @@ namespace API.Services.UserOfferServices
         Task<PagedList<UserJobPostDto>> GetUserJobPostsAsync(AdsPaginationParameters adsParameters);
         Task<UserJobPostDto> GetUserJobPostByIdAsync(int id);
         Task<UserJobPostDto> CreateUserJobPostAsync(UserJobPostDto userJobPost);
+        Task<UserApplicationDto> CreateUserApplicationAsync(UserApplicationDto userApplication);
         Task<UserJobPostDto> UpdateUserJobPostAsync(UserJobPostDto userJobPost);
         Task<List<JobCategory>> GetAllJobCategoriesAsync();
         Task<List<JobType>> GetAllJobTypesAsync();

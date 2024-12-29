@@ -63,6 +63,8 @@ namespace API.Extensions
             services.AddScoped<IPricingPlanRepository, PricingPlanRepository>();
             services.AddScoped<IPricingPlanService, PricingPlanService>();
 
+            services.AddScoped<IUserApplicationsRepository, UserApplicationsRepository>();
+
             services.AddIdentity<User, Role>(opt => { 
                 opt.Password.RequireNonAlphanumeric = false;
                 opt.Tokens.EmailConfirmationTokenProvider = "Default";
