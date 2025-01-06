@@ -2,6 +2,7 @@
 using API.Entities.Applications;
 using API.Entities.CompanyJobPost;
 using API.Entities.JobPost;
+using API.Entities.Notification;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +39,11 @@ namespace API.Data
         public DbSet<UserApplication> UserApplications { get; set; }
         public DbSet<UserApplicationEducation> UserApplicationEducations { get; set; }
         public DbSet<UserApplicationPreviousCompanies> UserApplicationPreviousCompanies { get; set; }
+        public DbSet<UserNotificationSettings> UserNotificationSettings { get; set; }
+        public DbSet<CompanyJobCategoryInterests> CompanyJobCategoryInterests { get; set; }
+        public DbSet<CompanyNotificationPreferences> CompanyNotificationPreferences { get; set; }
+
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

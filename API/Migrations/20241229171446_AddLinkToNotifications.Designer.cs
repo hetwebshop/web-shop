@@ -4,6 +4,7 @@ using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20241229171446_AddLinkToNotifications")]
+    partial class AddLinkToNotifications
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -286,29 +288,6 @@ namespace API.Migrations
                     b.ToTable("Companies");
                 });
 
-            modelBuilder.Entity("API.Entities.CompanyJobCategoryInterests", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("JobCategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JobCategoryId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("CompanyJobCategoryInterests");
-                });
-
             modelBuilder.Entity("API.Entities.CompanyJobPost.CompanyJobPost", b =>
                 {
                     b.Property<int>("Id")
@@ -429,30 +408,6 @@ namespace API.Migrations
                     b.HasIndex("SubmittingUserId");
 
                     b.ToTable("CompanyJobPosts");
-                });
-
-            modelBuilder.Entity("API.Entities.CompanyNotificationPreferences", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<bool>("IsEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("NotificationType")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("CompanyNotificationPreferences");
                 });
 
             modelBuilder.Entity("API.Entities.Country", b =>
@@ -1038,30 +993,6 @@ namespace API.Migrations
                     b.ToTable("UserEducations");
                 });
 
-            modelBuilder.Entity("API.Entities.UserNotificationSettings", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<bool>("IsEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("NotificationType")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserNotificationSettings");
-                });
-
             modelBuilder.Entity("API.Entities.UserPreviousCompanies", b =>
                 {
                     b.Property<int>("Id")
@@ -1284,25 +1215,6 @@ namespace API.Migrations
                     b.Navigation("City");
                 });
 
-            modelBuilder.Entity("API.Entities.CompanyJobCategoryInterests", b =>
-                {
-                    b.HasOne("API.Entities.JobPost.JobCategory", "JobCategory")
-                        .WithMany()
-                        .HasForeignKey("JobCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("API.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("JobCategory");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("API.Entities.CompanyJobPost.CompanyJobPost", b =>
                 {
                     b.HasOne("API.Entities.City", "City")
@@ -1364,17 +1276,6 @@ namespace API.Migrations
                     b.Navigation("JobType");
 
                     b.Navigation("PricingPlan");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("API.Entities.CompanyNotificationPreferences", b =>
-                {
-                    b.HasOne("API.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -1525,17 +1426,6 @@ namespace API.Migrations
                 {
                     b.HasOne("API.Entities.User", "User")
                         .WithMany("UserEducations")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("API.Entities.UserNotificationSettings", b =>
-                {
-                    b.HasOne("API.Entities.User", "User")
-                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

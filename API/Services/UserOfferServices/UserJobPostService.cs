@@ -3,7 +3,9 @@ using API.Data.ICompanyJobPostRepository;
 using API.Data.IUserOfferRepository;
 using API.Data.Pagination;
 using API.DTOs;
+using API.Entities;
 using API.Entities.JobPost;
+using API.Entities.Notification;
 using API.Helpers;
 using API.Mappers;
 using API.PaginationEntities;
@@ -12,6 +14,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -25,14 +28,20 @@ namespace API.Services.UserOfferServices
         private readonly ICompanyJobPostRepository companyJobPostRepo;
         private string predictionApiUrl;
         private readonly IBlobStorageService blobStorageService;
+        private readonly DataContext _dbContext;
+        private readonly IEmailService emailService;
+        private readonly string UIBaseUrl;
 
-        public UserJobPostService(IUserJobPostRepository userJobPostRepository, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IConfiguration configuration, IBlobStorageService blobStorageService)
+        public UserJobPostService(IUserJobPostRepository userJobPostRepository, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IConfiguration configuration, IBlobStorageService blobStorageService, DataContext dataContext, IEmailService emailService)
         {
             this.userJobPostRepository = userJobPostRepository;
             _uow = uow;
             companyJobPostRepo = companyJobPostRepository;
             predictionApiUrl = configuration.GetSection("PredictionApiUrl").Value;
             this.blobStorageService = blobStorageService;
+            _dbContext = dataContext;
+            this.emailService = emailService;
+            UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
         }
 
         public async Task<PagedList<UserJobPostDto>> GetJobPostsAsync(AdsPaginationParameters adsParameters)
@@ -64,6 +73,27 @@ namespace API.Services.UserOfferServices
                 var dto = newItem.ToDto();
                 var user = await _uow.UserRepository.GetUserByIdAsync(dto.SubmittingUserId);
                 dto.CurrentUserCredits = user.Credits;
+
+                var companiesToNotify = _dbContext.CompanyJobCategoryInterests.Where(r => r.JobCategoryId == newItem.JobCategoryId).Select(r => r.UserId).ToList();
+                var companiesNotifSettings = _dbContext.CompanyNotificationPreferences.Where(r => companiesToNotify.Contains(r.UserId)).ToList();
+                var emailTask = Task.Run(() => SendEmailsAsync(companiesNotifSettings, newItem));
+                foreach (var companiesSetting in companiesNotifSettings)
+                {
+                    if(companiesSetting.NotificationType == Entities.Notification.CompanyNotificationType.newInterestingUserAdInApp && companiesSetting.IsEnabled)
+                    {
+                        var notification = new Notification()
+                        {
+                            UserId = companiesSetting.UserId.ToString(),
+                            CreatedAt = DateTime.UtcNow,
+                            IsRead = false,
+                            Link = UIBaseUrl + "ad-details/" + newItem.Id,
+                            Message = "Kreiran je novi oglas za posao koji bi vam mogao biti interesantan"
+                        };
+                        _dbContext.Notifications.Add(notification);
+                    }
+                }
+                await _dbContext.SaveChangesAsync();
+
                 return dto;
             }
             catch(Exception ex)
@@ -71,7 +101,44 @@ namespace API.Services.UserOfferServices
                 throw;
             }
         }
+        private async Task SendEmailsAsync(List<CompanyNotificationPreferences> companiesNotifSettings, UserJobPost newItem)
+        {
+            var userIdsToNotify = companiesNotifSettings
+                .Where(setting => setting.NotificationType == Entities.Notification.CompanyNotificationType.newInsterestingUserAdEmail && setting.IsEnabled)
+                .Select(setting => setting.UserId)
+                .ToList();
 
+            var usersToNotify = _dbContext.Users.Where(user => userIdsToNotify.Contains(user.Id)).ToList();
+
+            var tasks = usersToNotify.Select(async user =>
+            {
+                if (user != null)
+                {
+                    await emailService.SendEmailAsync(user.Email, "Novi oglas koji bi vas mogao zanimati", $"Kreiran je novi oglas za posao u kategoriji: {newItem.JobCategory?.Name}.");
+                }
+            }).ToList();
+
+            await Task.WhenAll(tasks);
+        }
+        private async Task SendNewApplicantEmailsAsync(List<CompanyNotificationPreferences> companiesNotifSettings, string position)
+        {
+            var userIdsToNotify = companiesNotifSettings
+                .Where(setting => setting.NotificationType == Entities.Notification.CompanyNotificationType.newApplicantEmail && setting.IsEnabled)
+                .Select(setting => setting.UserId)
+                .ToList();
+
+            var usersToNotify = _dbContext.Users.Where(user => userIdsToNotify.Contains(user.Id)).ToList();
+
+            var tasks = usersToNotify.Select(async user =>
+            {
+                if (user != null)
+                {
+                    await emailService.SendEmailAsync(user.Email, "Nova prijava na vaš oglas za posao", $"Dobili ste novu prijavu za poziciju: {position}, na otvorenom oglasu za posao.");
+                }
+            }).ToList();
+
+            await Task.WhenAll(tasks);
+        }
         public async Task<UserApplicationDto> CreateUserApplicationAsync(UserApplicationDto userApplication)
         {
             try
@@ -117,6 +184,28 @@ namespace API.Services.UserOfferServices
                     entity.AIMatchingResult = predictionApiResponse.Rezultat;
                 }
                 var newItem = await userJobPostRepository.CreateUserApplicationAsync(entity);
+
+                var companyNotifPreferences = _dbContext.CompanyNotificationPreferences.Where(r => r.UserId == companyJobPost.SubmittingUserId && r.IsEnabled == true && (r.NotificationType == CompanyNotificationType.newApplicantInApp || r.NotificationType == CompanyNotificationType.newApplicantEmail)).ToList();
+                
+                if (companyNotifPreferences.Any())
+                {
+                    var emailTask = Task.Run(() => SendNewApplicantEmailsAsync(companyNotifPreferences, companyJobPost.Position));
+                    var inAppSetting = companyNotifPreferences.FirstOrDefault(r => r.NotificationType == CompanyNotificationType.newApplicantInApp);
+                    if(inAppSetting != null)
+                    {
+                        var notification = new Notification()
+                        {
+                            UserId = companyJobPost.SubmittingUserId.ToString(),
+                            CreatedAt = DateTime.UtcNow,
+                            IsRead = false,
+                            Link = UIBaseUrl + "company-settings/job-candidates/" + newItem.Id,
+                            Message = "Kreiran je nova aplikacija za posao na vašem oglasu " + companyJobPost.Position
+                        };
+                        _dbContext.Notifications.Add(notification);
+                        await _dbContext.SaveChangesAsync();
+                    }
+                }
+
                 var dto = newItem.ToDto();
                 return dto;
             }

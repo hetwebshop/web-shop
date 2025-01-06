@@ -33,9 +33,10 @@ namespace API.Controllers
         private readonly IConfiguration configuration;
         private readonly string verificationEmailBaseAddress;
         private readonly IBlobStorageService _blobStorageService;
+        private readonly DataContext _dbContext;
 
         public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration,
-            IUnitOfWork uow, IMapper mapper, ITokenService tokenService, IEmailService emailService, IBlobStorageService blobStorageService)
+            IUnitOfWork uow, IMapper mapper, ITokenService tokenService, IEmailService emailService, IBlobStorageService blobStorageService, DataContext dbContext)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -46,6 +47,7 @@ namespace API.Controllers
             this.configuration = configuration;
             verificationEmailBaseAddress = configuration.GetSection("VerificationEmailBaseAddress").Value;
             _blobStorageService = blobStorageService;
+            _dbContext = dbContext;
         }
 
         [HttpPost("register")]
@@ -71,6 +73,26 @@ namespace API.Controllers
 
             var emailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var verificationUrl = $"{verificationEmailBaseAddress}confirm-email?userId=" + user.Id + "&token=" + Uri.EscapeDataString(emailToken);
+
+
+            var notificationsSettings = new List<UserNotificationSettings>();
+            if(user != null)
+            {
+                notificationsSettings.Add(new UserNotificationSettings()
+                {
+                    UserId = user.Id,
+                    NotificationType = UserNotificationType.NewInterestingCompanyAdInApp,
+                    IsEnabled = true
+                });
+                notificationsSettings.Add(new UserNotificationSettings()
+                {
+                    UserId = user.Id,
+                    NotificationType = UserNotificationType.NewInterestingCompanyAdEmail,
+                    IsEnabled = true
+                });
+                _dbContext.UserNotificationSettings.AddRange(notificationsSettings);
+                await _dbContext.SaveChangesAsync();
+            }
 
             // Slanje verifikacionog emaila (ovdje koristite svoju email uslugu)
             await _emailService.SendEmailAsync(registerDto.Email,
@@ -135,6 +157,34 @@ namespace API.Controllers
             result = await _userManager.AddToRoleAsync(user, RoleType.Company.ToString());
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
 
+
+            var companyNotifications = new List<CompanyNotificationPreferences>();
+            companyNotifications.Add(new CompanyNotificationPreferences()
+            {
+                UserId = user.Id,
+                NotificationType = Entities.Notification.CompanyNotificationType.newApplicantInApp,
+                IsEnabled = true
+            });
+            companyNotifications.Add(new CompanyNotificationPreferences()
+            {
+                UserId = user.Id,
+                NotificationType = Entities.Notification.CompanyNotificationType.newApplicantEmail,
+                IsEnabled = true
+            });
+            companyNotifications.Add(new CompanyNotificationPreferences()
+            {
+                UserId = user.Id,
+                NotificationType = Entities.Notification.CompanyNotificationType.newInterestingUserAdInApp,
+                IsEnabled = false
+            });
+            companyNotifications.Add(new CompanyNotificationPreferences()
+            {
+                UserId = user.Id,
+                NotificationType = Entities.Notification.CompanyNotificationType.newInsterestingUserAdEmail,
+                IsEnabled = false
+            });
+            _dbContext.CompanyNotificationPreferences.AddRange(companyNotifications);
+            await _dbContext.SaveChangesAsync();
             //var token = await _tokenService.CreateToken(user);
 
             try
@@ -688,6 +738,7 @@ namespace API.Controllers
         {
             var dto = new UserDto
             {
+                Id = user.Id,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 CityId = user.CityId,

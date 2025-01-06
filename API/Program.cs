@@ -11,6 +11,7 @@ using System;
 using System.IO;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Azure;
+//using API.Services.NotificationsHub;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,8 +41,12 @@ app.UseSwaggerUI(c =>
 
 app.UseRouting();
 app.UseCors(options =>
-options.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://job-point.azurewebsites.net", "http://localhost:4200", "http://localhost:3000", "https://jobshubui.azurewebsites.net"));
+options.AllowAnyHeader().AllowCredentials().AllowAnyMethod().WithOrigins("https://job-point.azurewebsites.net", "http://localhost:4200", "http://localhost:3000", "https://jobshubui.azurewebsites.net"));
 app.UseStaticFiles();
+//app.UseEndpoints(endpoints =>
+//{
+//    endpoints.MapHub<NotificationsHub>("/hubs/notifications"); // Add this endpoint
+//});
 //app.UseStaticFiles(new StaticFileOptions
 //{
 //    FileProvider = new PhysicalFileProvider(
