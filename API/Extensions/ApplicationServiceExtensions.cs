@@ -79,8 +79,6 @@ namespace API.Extensions
                 options.TokenLifespan = TimeSpan.FromMinutes(15);
             });
 
-            services.AddSignalR().AddAzureSignalR(config["AzureSignalRConnectionString"]);
-
             services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
