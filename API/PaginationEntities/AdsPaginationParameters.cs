@@ -22,5 +22,8 @@ namespace API.PaginationEntities
         public JobPostStatus? adStatus { get; set; }
         public decimal? StartPrice { get; set; }
         public decimal? EndPrice { get; set; }
+        public List<int?> employmentTypeIds { get; set; }
+        public List<int?> educationLevelIds { get; set; }
+        public int? minYearsOfExperience { get; set; }
     }
 }

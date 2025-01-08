@@ -56,9 +56,9 @@ namespace API.Controllers
         {
             registerDto.UserName = registerDto.Email;
             if (await UserNameExist(registerDto.UserName))
-                return BadRequest("Korisničko ime je zauzeto.");
+                return BadRequest("Podaci za registraciju nisu važeći.");
             if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
-                return BadRequest("Email je već registrovan.");
+                return BadRequest("Podaci za registraciju nisu važeći.");
 
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
@@ -142,9 +142,9 @@ namespace API.Controllers
         {
             registerDto.UserName = registerDto.Email;
             if (await UserNameExist(registerDto.UserName))
-                return BadRequest("Email nije dostupan.");
+                return BadRequest("Podaci za registraciju nisu važeći.");
             if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
-                return BadRequest("Email nije dostupan.");
+                return BadRequest("Podaci za registraciju nisu važeći.");
 
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
@@ -228,6 +228,11 @@ namespace API.Controllers
             if (!result.Succeeded && loginDto.UserNameOrEmail != Constants.TestUser) return BadRequest("Pogrešan email ili password.");
 
             var token = await _tokenService.CreateToken(user);
+            var refreshToken = _tokenService.CreateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
+            await _userManager.UpdateAsync(user);
 
             var dto = ConvertUserToUserDto(user, token);
 
@@ -241,7 +246,7 @@ namespace API.Controllers
             var user = await FetchUserWithIncludesAsync(id);
 
             var accessToken = await HttpContext.GetTokenAsync("access_token");
-            var token = await _tokenService.CreateToken(user, accessToken);
+            var token = await _tokenService.CreateToken(user);
 
             var dto = ConvertUserToUserDto(user, token);
             return dto;
@@ -254,20 +259,20 @@ namespace API.Controllers
             return await _uow.UserRepository.UserExist(userName);
         }
 
-        [HttpGet("user/{userName}")]
-        [AllowAnonymous]
-        public async Task<ActionResult> GetUserInfo(string userName)
-        {
-            return Ok(await _uow.UserRepository.GetUserInfo(userName));
-        }
+        //[HttpGet("user/{userName}")]
+        //[AllowAnonymous]
+        //public async Task<ActionResult> GetUserInfo(string userName)
+        //{
+        //    return Ok(await _uow.UserRepository.GetUserInfo(userName));
+        //}
 
-        [HttpGet("profile")]
-        public async Task<ActionResult> GetUserProfile()
-        {
-            var id = HttpContext.User.GetUserId();
-            var up = await _uow.UserRepository.GetProfile(id);
-            return Ok(up);
-        }
+        //[HttpGet("profile")]
+        //public async Task<ActionResult> GetUserProfile()
+        //{
+        //    var id = HttpContext.User.GetUserId();
+        //    var up = await _uow.UserRepository.GetProfile(id);
+        //    return Ok(up);
+        //}
 
         [HttpPost("updatebaseinfo")]
         public async Task<ActionResult<UserDto>> UpdateUserBaseInfo([FromBody] UserBaseInfoRequest req)
@@ -772,6 +777,7 @@ namespace API.Controllers
                 EmploymentStatus = user.EmploymentStatus?.Name,
                 EducationLevel = user.EducationLevel?.Name,
                 EducationLevelId = user.EducationLevel?.Id,
+                RefreshToken = user.RefreshToken,
                 UserPreviousCompanies = user.UserPreviousCompanies?.Select(userPreviousCompany => new UserPreviousCompaniesDto()
                 {
                     CompanyName = userPreviousCompany.CompanyName,

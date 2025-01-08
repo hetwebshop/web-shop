@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace API.Controllers
 {
+    [Authorize]
     public class ApplicationsController : BaseController
     {
         private IUserApplicationsRepository userApplicationsRepository;
@@ -26,7 +27,6 @@ namespace API.Controllers
             _blobStorageService = blobStorageService;   
         }
 
-        [Authorize]
         [HttpGet("userapplications")]
         public async Task<IActionResult> GetAllUserApplications()
         {
@@ -50,8 +50,6 @@ namespace API.Controllers
             return Ok(userApplicationsTableData);
         }
 
-
-        [Authorize]
         [HttpGet("userapplication/{id}")]
         public async Task<IActionResult> GetUserApplicationById(int id)
         {
@@ -71,7 +69,6 @@ namespace API.Controllers
             return Ok(userApplicationDto);
         }
 
-        [Authorize]
         [HttpGet("cvfile")]
         public async Task<IActionResult> GetCVFile([FromQuery] int userApplicationId)
         {
@@ -101,7 +98,6 @@ namespace API.Controllers
             return File(fileDto.FileContent, fileDto.MimeType, fileName);
         }
 
-        [Authorize]
         [HttpPatch("updateapplicationstatus/{applicationId}")]
         public async Task<IActionResult> UpdateApplicationStatus(int applicationId, [FromBody] UpdateApplicationStatusRequest req)
         {
@@ -136,7 +132,6 @@ namespace API.Controllers
             return Ok(userApplicationDto);
         }
 
-        [Authorize]
         [HttpPatch("rejectselectedcandidates")]
         public async Task<IActionResult> RejectSelectedCandidates([FromBody] RejectSelectedCandidatesRequest req)
         {

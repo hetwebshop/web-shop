@@ -39,7 +39,7 @@ namespace API.Extensions
             services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
             services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped<ITokenService, TokenService>();
+            services.AddTransient<ITokenService, TokenService>();
             services.AddScoped<IPhotoService, PhotoService>();
             services.AddScoped<SeedData, SeedData>();
 
@@ -66,7 +66,11 @@ namespace API.Extensions
             services.AddScoped<IUserApplicationsRepository, UserApplicationsRepository>();
 
             services.AddIdentity<User, Role>(opt => { 
-                opt.Password.RequireNonAlphanumeric = false;
+                opt.Password.RequireNonAlphanumeric = true;
+                opt.Password.RequiredLength = 8;
+                opt.Password.RequireDigit = true;
+                opt.Password.RequireUppercase = true;
+                opt.Password.RequireLowercase = true;
                 opt.Tokens.EmailConfirmationTokenProvider = "Default";
                 opt.SignIn.RequireConfirmedEmail = true;
                 opt.Tokens.EmailConfirmationTokenProvider = "Default";
@@ -90,9 +94,10 @@ namespace API.Extensions
                     {
                         ValidateIssuerSigningKey = true,
                         ValidateLifetime = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"])),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"])),
                         ValidateIssuer = false,
-                        ValidateAudience = false
+                        ValidateAudience = false,
+                        ClockSkew = TimeSpan.Zero
                     };
                 });
 

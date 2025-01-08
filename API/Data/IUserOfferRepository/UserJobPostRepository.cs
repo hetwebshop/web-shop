@@ -52,6 +52,9 @@ namespace API.Data.IUserOfferRepository
                 (adsParameters.jobCategoryIds == null  || !adsParameters.jobCategoryIds.Any() || adsParameters.jobCategoryIds.Contains(u.JobCategoryId)) &&
                 (adsParameters.jobTypeIds == null || !adsParameters.jobTypeIds.Any() || adsParameters.jobTypeIds.Contains(u.JobTypeId)) &&
                 (adsParameters.advertisementTypeId == null || u.AdvertisementTypeId == adsParameters.advertisementTypeId) &&
+                (adsParameters.minYearsOfExperience == null || u.YearsOfExperience >= adsParameters.minYearsOfExperience) &&
+                (adsParameters.employmentTypeIds == null || !adsParameters.employmentTypeIds.Any() || adsParameters.employmentTypeIds.Contains(u.EmploymentTypeId)) &&
+                (adsParameters.educationLevelIds == null || !adsParameters.educationLevelIds.Any() || adsParameters.educationLevelIds.Contains(u.EducationLevelId)) &&
                 (adsParameters.StartPrice == null || u.Price >= adsParameters.StartPrice) &&
                 (adsParameters.EndPrice == null || u.Price <= adsParameters.EndPrice) &&
                 (

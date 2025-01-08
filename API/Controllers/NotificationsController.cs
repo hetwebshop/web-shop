@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 
 namespace API.Controllers
 {
+    [Authorize]
     public class NotificationsController : BaseController
     {
         private readonly DataContext _dbContext;

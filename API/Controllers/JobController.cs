@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 
 namespace API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     public class JobController : BaseController
     {
         private readonly IUserJobPostService _jobPostService;
@@ -57,6 +57,7 @@ namespace API.Controllers
         }
 
         [HttpGet("user-job/{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetUserJobById(int id)
         {
             var userJob = await _jobPostService.GetUserJobPostByIdAsync(id);
@@ -225,6 +226,7 @@ namespace API.Controllers
         }
 
         [HttpGet("types")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllJobTypes()
         {
             var jobTypes = await _jobPostService.GetAllJobTypesAsync();
@@ -232,6 +234,7 @@ namespace API.Controllers
         }
 
         [HttpGet("categories")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllJobCategories()
         {
             var jobCategories = await _jobPostService.GetAllJobCategoriesAsync();
@@ -239,6 +242,7 @@ namespace API.Controllers
         }
 
         [HttpGet("adtypes")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllAdTypes()
         {
             var adTypes = await _jobPostService.GetAllAdvertisementTypesAsync();

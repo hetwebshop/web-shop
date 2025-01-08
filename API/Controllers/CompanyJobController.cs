@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace API.Controllers
 {
+    [Authorize]
     public class CompanyJobController : BaseController
     {
         private readonly ICompanyJobPostService _jobPostService;
@@ -30,6 +31,7 @@ namespace API.Controllers
         }
 
         [HttpPost("ads")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAds([FromQuery] AdsPaginationParameters adsParameters)
         {
             var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);

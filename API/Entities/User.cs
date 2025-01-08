@@ -55,5 +55,8 @@ namespace API.Entities
         public ICollection<CompanyJobPost.CompanyJobPost> CompanyJobPosts { get; set; }
 
         public ICollection<UserApplication> UserApplications { get; set; }
+
+        public string? RefreshToken { get; set; }
+        public DateTime RefreshTokenExpiryTime { get; set; }
     }
 }

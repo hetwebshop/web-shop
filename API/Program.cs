@@ -29,8 +29,16 @@ builder.Services.AddSwaggerGen(c =>
 
 //middleware
 var app = builder.Build();
-app.UseMiddleware<ExceptionMiddleware>();
-//app.UseMiddleware<TokenMiddleware>();
+app.UseRouting();
+app.UseCors(options =>
+options.AllowAnyHeader().AllowCredentials().AllowAnyMethod().WithOrigins("https://job-point.azurewebsites.net", "http://localhost:4200", "http://localhost:3000", "https://jobshubui.azurewebsites.net"));
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseStaticFiles();
+app.UseDefaultFiles();
+
 app.UseHttpsRedirection();
 
 app.UseSwagger();
@@ -39,24 +47,7 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
 });
 
-app.UseRouting();
-app.UseCors(options =>
-options.AllowAnyHeader().AllowCredentials().AllowAnyMethod().WithOrigins("https://job-point.azurewebsites.net", "http://localhost:4200", "http://localhost:3000", "https://jobshubui.azurewebsites.net"));
-app.UseStaticFiles();
-//app.UseEndpoints(endpoints =>
-//{
-//    endpoints.MapHub<NotificationsHub>("/hubs/notifications"); // Add this endpoint
-//});
-//app.UseStaticFiles(new StaticFileOptions
-//{
-//    FileProvider = new PhysicalFileProvider(
-//          Path.Combine(Directory.GetCurrentDirectory(), "uploads")),
-//    RequestPath = "/uploads"
-//});
-app.UseAuthentication();
-app.UseAuthorization();
-app.UseDefaultFiles();
-app.UseStaticFiles();
+
 app.MapControllers();
 
 //Seed
