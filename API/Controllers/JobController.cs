@@ -18,6 +18,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using JobPostStatus = API.Helpers.JobPostStatus;
 
 namespace API.Controllers
 {
@@ -61,6 +62,8 @@ namespace API.Controllers
         public async Task<IActionResult> GetUserJobById(int id)
         {
             var userJob = await _jobPostService.GetUserJobPostByIdAsync(id);
+            if(userJob.IsDeleted || userJob.JobPostStatusId != (int)JobPostStatus.Active || userJob.AdEndDate < DateTime.Now)
+                return NotFound("Oglas je obrisan, zatvoren, ili je istekao.");
             return Ok(userJob);
         }
 

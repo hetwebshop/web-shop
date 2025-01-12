@@ -45,6 +45,9 @@ namespace API.Data.ICompanyJobPostRepository
                 (adsParameters.cityIds == null || adsParameters.cityIds.Contains(u.CityId)) &&
                 (adsParameters.jobCategoryIds == null || adsParameters.jobCategoryIds.Contains(u.JobCategoryId)) &&
                 (adsParameters.jobTypeIds == null || adsParameters.jobTypeIds.Contains(u.JobTypeId)) &&
+                (adsParameters.educationLevelIds == null || adsParameters.educationLevelIds.Contains(u.EducationLevelId)) &&
+                (adsParameters.employmentTypeIds == null || adsParameters.employmentTypeIds.Contains(u.EmploymentTypeId)) &&
+                (adsParameters.minYearsOfExperience == null || adsParameters.minYearsOfExperience >= u.RequiredExperience || u.RequiredExperience == null) &&
                 u.IsDeleted == false &&
                 (
                     (adsParameters.fromDate == null && adsParameters.toDate == null) ||
@@ -160,9 +163,69 @@ namespace API.Data.ICompanyJobPostRepository
                 await DataContext.SaveChangesAsync();
             }
 
-            var updatedItem = await DataContext.CompanyJobPosts.FindAsync(updatedCompanyJobPost.Id);
+            var updatedItem = await GetCompanyJobPostBaseQuery().Where(r => r.Id == updatedCompanyJobPost.Id).FirstAsync();
+
             return updatedItem;
         }
+
+        public async Task<CompanyJobPost> UpdateCompensationAndWorkEnvAsync(CompanyJobPost updatedCompanyJobPost)
+        {
+            var existingCompanyJobPost = await DataContext.CompanyJobPosts.FindAsync(updatedCompanyJobPost.Id);
+
+            if (existingCompanyJobPost != null)
+            {
+                existingCompanyJobPost.WorkEnvironmentDescription = updatedCompanyJobPost.WorkEnvironmentDescription;
+                existingCompanyJobPost.UpdatedAt = updatedCompanyJobPost.UpdatedAt;
+                existingCompanyJobPost.MaxSalary = updatedCompanyJobPost.MaxSalary;
+                existingCompanyJobPost.MinSalary = updatedCompanyJobPost.MinSalary;
+                existingCompanyJobPost.Benefits = updatedCompanyJobPost.Benefits;
+
+                await DataContext.SaveChangesAsync();
+            }
+
+            var updatedItem = await GetCompanyJobPostBaseQuery().Where(r => r.Id == updatedCompanyJobPost.Id).FirstAsync();
+
+            return updatedItem;
+        }
+
+        public async Task<CompanyJobPost> UpdateQualificationsAndExperienceAsync(CompanyJobPost updatedCompanyJobPost)
+        {
+            var existingCompanyJobPost = await DataContext.CompanyJobPosts.FindAsync(updatedCompanyJobPost.Id);
+
+            if (existingCompanyJobPost != null)
+            {
+                existingCompanyJobPost.RequiredSkills = updatedCompanyJobPost.RequiredSkills;
+                existingCompanyJobPost.UpdatedAt = updatedCompanyJobPost.UpdatedAt;
+                existingCompanyJobPost.RequiredExperience = updatedCompanyJobPost.RequiredExperience;
+                existingCompanyJobPost.EducationLevelId = updatedCompanyJobPost.EducationLevelId;
+                existingCompanyJobPost.Certifications = updatedCompanyJobPost.Certifications;
+
+                await DataContext.SaveChangesAsync();
+            }
+
+            var updatedItem = await GetCompanyJobPostBaseQuery().Where(r => r.Id == updatedCompanyJobPost.Id).FirstAsync();
+
+            return updatedItem;
+        }
+
+        public async Task<CompanyJobPost> UpdateHowToApplyAsync(CompanyJobPost updatedCompanyJobPost)
+        {
+            var existingCompanyJobPost = await DataContext.CompanyJobPosts.FindAsync(updatedCompanyJobPost.Id);
+
+            if (existingCompanyJobPost != null)
+            {
+                existingCompanyJobPost.HowToApply = updatedCompanyJobPost.HowToApply;
+                existingCompanyJobPost.UpdatedAt = updatedCompanyJobPost.UpdatedAt;
+                existingCompanyJobPost.DocumentsRequired = updatedCompanyJobPost.DocumentsRequired;
+
+                await DataContext.SaveChangesAsync();
+            }
+
+            var updatedItem = await GetCompanyJobPostBaseQuery().Where(r => r.Id == updatedCompanyJobPost.Id).FirstAsync();
+
+            return updatedItem;
+        }
+
         public async Task<bool> DeleteCompanyJobPostByIdAsync(int id)
         {
             var companyJobPost = await DataContext.CompanyJobPosts.FindAsync(id);
@@ -182,6 +245,7 @@ namespace API.Data.ICompanyJobPostRepository
             if (companyJobPost != null)
             {
                 companyJobPost.JobPostStatusId = (int)Helpers.JobPostStatus.Closed;
+                companyJobPost.IsDeleted = false;
                 await DataContext.SaveChangesAsync();
                 return true;
             }
@@ -194,6 +258,7 @@ namespace API.Data.ICompanyJobPostRepository
             if (companyJobPost != null)
             {
                 companyJobPost.JobPostStatusId = (int)Helpers.JobPostStatus.Active;
+                companyJobPost.IsDeleted = false;
                 await DataContext.SaveChangesAsync();
                 return true;
             }

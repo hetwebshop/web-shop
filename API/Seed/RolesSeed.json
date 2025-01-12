@@ -1,0 +1,12 @@
+﻿[
+  {
+    "Id": 2,
+    "Name": "User",
+    "NormalizedName": "USER"
+  },
+  {
+    "Id": 3,
+    "Name": "Company",
+    "NormalizedName": "COMPANY"
+  }
+]

@@ -13,6 +13,10 @@ namespace API.Services.CompanyJobPostServices
         Task<CompanyJobPostDto> GetCompanyJobPostByIdAsync(int id);
         Task<CompanyJobPostDto> CreateCompanyJobPostAsync(CompanyJobPostDto userJobPost);
         Task<CompanyJobPostDto> UpdateCompanyJobPostAsync(CompanyJobPostDto userJobPost);
+        Task<CompanyJobPostDto> UpdateCompensationAndWorkEnvAsync(CompanyJobPostDto userJobPost);
+        Task<CompanyJobPostDto> UpdateQualificationsAndExpereinceAsync(CompanyJobPostDto userJobPost);
+        Task<CompanyJobPostDto> UpdateHowToApplyAsync(CompanyJobPostDto userJobPost);
+
         Task<List<CompanyJobPostDto>> GetCompanyAdsAsync(int companyId);
         Task<bool> DeleteCompanyJobPostByIdAsync(int companyId, int jobPostId);
         Task<bool> CloseCompanyJobPostByIdAsync(int companyId, int jobPostId);

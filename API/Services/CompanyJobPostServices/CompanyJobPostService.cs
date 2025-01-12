@@ -113,7 +113,45 @@ namespace API.Services.CompanyJobPostServices
             {
                 throw;
             }
+        }
 
+        public async Task<CompanyJobPostDto> UpdateCompensationAndWorkEnvAsync(CompanyJobPostDto companyJobPostDto)
+        {
+            try
+            {
+                var newItem = await companyJobPostRepository.UpdateCompensationAndWorkEnvAsync(companyJobPostDto.ToEntity());
+                return newItem.ToDto();
+            }
+            catch (AutoMapperMappingException ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<CompanyJobPostDto> UpdateQualificationsAndExpereinceAsync(CompanyJobPostDto companyJobPostDto)
+        {
+            try
+            {
+                var newItem = await companyJobPostRepository.UpdateQualificationsAndExperienceAsync(companyJobPostDto.ToEntity());
+                return newItem.ToDto();
+            }
+            catch (AutoMapperMappingException ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<CompanyJobPostDto> UpdateHowToApplyAsync(CompanyJobPostDto companyJobPostDto)
+        {
+            try
+            {
+                var newItem = await companyJobPostRepository.UpdateHowToApplyAsync(companyJobPostDto.ToEntity());
+                return newItem.ToDto();
+            }
+            catch (AutoMapperMappingException ex)
+            {
+                throw;
+            }
         }
 
         public async Task<List<CompanyJobPostDto>> GetCompanyAdsAsync(int companyId)

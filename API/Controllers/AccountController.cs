@@ -360,6 +360,22 @@ namespace API.Controllers
                     (string.IsNullOrEmpty(email) && u.Id == userId) ||
                     (!string.IsNullOrEmpty(email) &&
                         (u.UserName == email.ToLower() || u.Email == email)));
+            if (user != null)
+            {
+                if (user.UserEducations != null)
+                {
+                    user.UserEducations = user.UserEducations
+                        .OrderBy(r => r.EducationStartYear)
+                        .ToList();
+                }
+
+                if (user.UserPreviousCompanies != null)
+                {
+                    user.UserPreviousCompanies = user.UserPreviousCompanies
+                        .OrderBy(r => r.StartYear)
+                        .ToList();
+                }
+            }
 
             return user;
         }

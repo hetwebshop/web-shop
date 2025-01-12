@@ -14,7 +14,7 @@ namespace API.Data
 {
     public class UserRepository : BaseRepository, IUserRepository
     {
-        public UserRepository(DataContext dataContext, IMapper mapper, IPhotoService photoService) : base(dataContext, mapper, photoService)
+        public UserRepository(DataContext dataContext, IMapper mapper) : base(dataContext, mapper)
         {
 
         }
@@ -39,11 +39,11 @@ namespace API.Data
                 User = new User { Id = userId }
             };
             var publicId = photo.PublicId;
-            await UpdatePhoto(file, photo, true);
+            //await UpdatePhoto(file, photo, true);
             if (!await SaveChanges())
                 throw new HttpException("Failed to update photo.", StatusCodes.Status500InternalServerError);
 
-            await DeletePhoto(publicId);
+            //await DeletePhoto(publicId);
             return photo.Url;
         }
 
@@ -51,7 +51,7 @@ namespace API.Data
         {
             var photo = await DataContext.Photos.FirstOrDefaultAsync(p => p.User.Id == userId);
             if (photo?.Url == null) throw new HttpException("Photo already removed!");
-            await DeletePhoto(photo);
+            //await DeletePhoto(photo);
         }
 
         public async Task<List<UserEducation>> GetAllUserEducationsAsync(int userId)

@@ -45,7 +45,7 @@ namespace API.Services
             {
                 SigningCredentials = cred,
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddSeconds(10),
+                Expires = expireDate,
                 Issuer = _configuration["Jwt:Issuer"],
                 Audience = _configuration["Jwt:Audience"]
             };

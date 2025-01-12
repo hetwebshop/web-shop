@@ -1,36 +1,434 @@
 ﻿[
   {
-    "Id": 1,
-    "Name": "IT",
-    "ParentId": null,
-    "Subcategories": [
-      {
-        "Id": 2,
-        "Name": "Software Development",
-        "ParentId": 1
-      },
-      {
-        "Id": 3,
-        "Name": "Data Science",
-        "ParentId": 1
-      }
-    ]
+    "Id": 64,
+    "Name": "Tehnička industrija"
   },
   {
-    "Id": 4,
-    "Name": "Engineering",
-    "ParentId": null,
-    "Subcategories": [
-      {
-        "Id": 5,
-        "Name": "Electrical Engineering",
-        "ParentId": 4
-      },
-      {
-        "Id": 6,
-        "Name": "Mechanical Engineering",
-        "ParentId": 4
-      }
-    ]
+    "Id": 65,
+    "Name": "Inženjer elektrotehnike"
+  },
+  {
+    "Id": 66,
+    "Name": "Inženjer građevine"
+  },
+  {
+    "Id": 67,
+    "Name": "Mehaničar"
+  },
+  {
+    "Id": 68,
+    "Name": "Elektromonter"
+  },
+  {
+    "Id": 69,
+    "Name": "Instalater"
+  },
+  {
+    "Id": 70,
+    "Name": "Teslićar"
+  },
+  {
+    "Id": 71,
+    "Name": "Zavarivač"
+  },
+  {
+    "Id": 72,
+    "Name": "CNC operater"
+  },
+  {
+    "Id": 73,
+    "Name": "Mašinski inženjer"
+  },
+  {
+    "Id": 74,
+    "Name": "Rukovalac mašinama"
+  },
+  {
+    "Id": 75,
+    "Name": "Informacione tehnologije"
+  },
+  {
+    "Id": 76,
+    "Name": "Programer"
+  },
+  {
+    "Id": 77,
+    "Name": "Web dizajner"
+  },
+  {
+    "Id": 78,
+    "Name": "IT menadžer"
+  },
+  {
+    "Id": 79,
+    "Name": "Sistemski administrator"
+  },
+  {
+    "Id": 80,
+    "Name": "Razvoj mobilnih aplikacija"
+  },
+  {
+    "Id": 81,
+    "Name": "Software inženjer"
+  },
+  {
+    "Id": 82,
+    "Name": "UX/UI dizajner"
+  },
+  {
+    "Id": 83,
+    "Name": "IT podrška"
+  },
+  {
+    "Id": 84,
+    "Name": "Web developer"
+  },
+  {
+    "Id": 85,
+    "Name": "Administracija"
+  },
+  {
+    "Id": 86,
+    "Name": "Administrativni asistent"
+  },
+  {
+    "Id": 87,
+    "Name": "Personalni asistent"
+  },
+  {
+    "Id": 88,
+    "Name": "Menadžer administracije"
+  },
+  {
+    "Id": 89,
+    "Name": "Koordinator operacija"
+  },
+  {
+    "Id": 90,
+    "Name": "Finansije i računovodstvo"
+  },
+  {
+    "Id": 91,
+    "Name": "Računovođa"
+  },
+  {
+    "Id": 92,
+    "Name": "Finansijski analitičar"
+  },
+  {
+    "Id": 93,
+    "Name": "Finansijski menadžer"
+  },
+  {
+    "Id": 94,
+    "Name": "Poreski konsultant"
+  },
+  {
+    "Id": 95,
+    "Name": "Ljudski resursi"
+  },
+  {
+    "Id": 96,
+    "Name": "HR menadžer"
+  },
+  {
+    "Id": 97,
+    "Name": "HR asistent"
+  },
+  {
+    "Id": 98,
+    "Name": "Konsultant za ljudske resurse"
+  },
+  {
+    "Id": 99,
+    "Name": "Kadrovska politika"
+  },
+  {
+    "Id": 100,
+    "Name": "Prodaja i marketing"
+  },
+  {
+    "Id": 101,
+    "Name": "Stručnjak za prodaju"
+  },
+  {
+    "Id": 102,
+    "Name": "Marketing menadžer"
+  },
+  {
+    "Id": 103,
+    "Name": "Stručnjak za digitalni marketing"
+  },
+  {
+    "Id": 104,
+    "Name": "Analitičar tržišta"
+  },
+  {
+    "Id": 105,
+    "Name": "Promotivni menadžer"
+  },
+  {
+    "Id": 106,
+    "Name": "Zdravstvo i medicina"
+  },
+  {
+    "Id": 107,
+    "Name": "Ljekar"
+  },
+  {
+    "Id": 108,
+    "Name": "Sestrinstvo"
+  },
+  {
+    "Id": 109,
+    "Name": "Farmaceut"
+  },
+  {
+    "Id": 110,
+    "Name": "Medicinski tehničar"
+  },
+  {
+    "Id": 111,
+    "Name": "Fizioterapeut"
+  },
+  {
+    "Id": 112,
+    "Name": "Apotekar"
+  },
+  {
+    "Id": 113,
+    "Name": "Obrazovanje"
+  },
+  {
+    "Id": 114,
+    "Name": "Nastavnik"
+  },
+  {
+    "Id": 115,
+    "Name": "Profesionalni predavač"
+  },
+  {
+    "Id": 116,
+    "Name": "Učitelj"
+  },
+  {
+    "Id": 117,
+    "Name": "Pedagog"
+  },
+  {
+    "Id": 118,
+    "Name": "Pravo i pravne usluge"
+  },
+  {
+    "Id": 119,
+    "Name": "Advokat"
+  },
+  {
+    "Id": 120,
+    "Name": "Notar"
+  },
+  {
+    "Id": 121,
+    "Name": "Pravni asistent"
+  },
+  {
+    "Id": 122,
+    "Name": "Konsultant za pravo"
+  },
+  {
+    "Id": 123,
+    "Name": "Logistika i transport"
+  },
+  {
+    "Id": 124,
+    "Name": "Logistički menadžer"
+  },
+  {
+    "Id": 125,
+    "Name": "Rukovodilac transporta"
+  },
+  {
+    "Id": 126,
+    "Name": "Koordinator logistike"
+  },
+  {
+    "Id": 127,
+    "Name": "Operater u logistici"
+  },
+  {
+    "Id": 128,
+    "Name": "Turizam i ugostiteljstvo"
+  },
+  {
+    "Id": 129,
+    "Name": "Turistički vodič"
+  },
+  {
+    "Id": 130,
+    "Name": "Restoran menadžer"
+  },
+  {
+    "Id": 131,
+    "Name": "Uslužni radnik"
+  },
+  {
+    "Id": 132,
+    "Name": "Hotel menadžer"
+  },
+  {
+    "Id": 133,
+    "Name": "Kultura i umjetnost"
+  },
+  {
+    "Id": 134,
+    "Name": "Umetnik"
+  },
+  {
+    "Id": 135,
+    "Name": "Galenski radnik"
+  },
+  {
+    "Id": 136,
+    "Name": "Kustos muzeja"
+  },
+  {
+    "Id": 137,
+    "Name": "Kreativni direktor"
+  },
+  {
+    "Id": 138,
+    "Name": "Građevinska industrija"
+  },
+  {
+    "Id": 139,
+    "Name": "Građevinski radnik"
+  },
+  {
+    "Id": 140,
+    "Name": "Građevinski inženjer"
+  },
+  {
+    "Id": 141,
+    "Name": "Projekt menadžer"
+  },
+  {
+    "Id": 142,
+    "Name": "Građevinski nadzornik"
+  },
+  {
+    "Id": 143,
+    "Name": "Energija i ekologija"
+  },
+  {
+    "Id": 144,
+    "Name": "Inženjer za obnovljive izvore energije"
+  },
+  {
+    "Id": 145,
+    "Name": "Ekolog"
+  },
+  {
+    "Id": 146,
+    "Name": "Konsultant za ekologiju"
+  },
+  {
+    "Id": 147,
+    "Name": "Inženjer za energiju"
+  },
+  {
+    "Id": 148,
+    "Name": "Nauka i istraživanje"
+  },
+  {
+    "Id": 149,
+    "Name": "Znanstvenik"
+  },
+  {
+    "Id": 150,
+    "Name": "Istraživač"
+  },
+  {
+    "Id": 151,
+    "Name": "Laboratorijski tehničar"
+  },
+  {
+    "Id": 152,
+    "Name": "Naučni saradnik"
+  },
+  {
+    "Id": 153,
+    "Name": "Poljoprivreda i stočarstvo"
+  },
+  {
+    "Id": 154,
+    "Name": "Poljoprivredni inženjer"
+  },
+  {
+    "Id": 155,
+    "Name": "Stočar"
+  },
+  {
+    "Id": 156,
+    "Name": "Vrtlar"
+  },
+  {
+    "Id": 157,
+    "Name": "Poljoprivredni radnik"
+  },
+  {
+    "Id": 158,
+    "Name": "Telekomunikacije"
+  },
+  {
+    "Id": 159,
+    "Name": "Telekomunikacijski inženjer"
+  },
+  {
+    "Id": 160,
+    "Name": "Telekomunikacijski tehničar"
+  },
+  {
+    "Id": 161,
+    "Name": "Stručnjak za mobilne mreže"
+  },
+  {
+    "Id": 162,
+    "Name": "Inženjer za satelitske komunikacije"
+  },
+  {
+    "Id": 163,
+    "Name": "Ostalo"
+  },
+  {
+    "Id": 164,
+    "Name": "Administrativna podrška"
+  },
+  {
+    "Id": 165,
+    "Name": "Konsultant za razvoj"
+  },
+  {
+    "Id": 166,
+    "Name": "Specijalista za obuku"
+  },
+  {
+    "Id": 167,
+    "Name": "Osiguranje"
+  },
+  {
+    "Id": 168,
+    "Name": "Osiguravajući agent"
+  },
+  {
+    "Id": 169,
+    "Name": "Osiguravajući savjetnik"
+  },
+  {
+    "Id": 170,
+    "Name": "Osiguranje imovine"
+  },
+  {
+    "Id": 171,
+    "Name": "Osiguranje života"
   }
 ]

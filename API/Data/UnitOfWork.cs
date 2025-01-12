@@ -10,17 +10,15 @@ namespace API.Data
     {
         private readonly DataContext _context;
         private readonly IMapper _mapper;
-        private readonly IPhotoService _photoService;
         private readonly UserManager<User> _userManager;
 
-        public IUserRepository UserRepository => new UserRepository(_context, _mapper, _photoService);
+        public IUserRepository UserRepository => new UserRepository(_context, _mapper);
         //public IRoleRepository RoleRepository => new RoleRepository(_context, _mapper, _photoService, _userManager);
 
-        public UnitOfWork(DataContext dataContext, IMapper mapper, IPhotoService photoService, UserManager<User> userManager)
+        public UnitOfWork(DataContext dataContext, IMapper mapper, UserManager<User> userManager)
         {
             _context = dataContext;
             _mapper = mapper;
-            _photoService = photoService;
             _userManager = userManager;
         }
 

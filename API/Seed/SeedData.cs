@@ -41,6 +41,7 @@ namespace API.Seed
             await _context.Database.MigrateAsync();
             await SeedCountriesCitiesEtc();
             await SeedRoles();
+            await SeedCompanies();
             await SeedUsers();
 
             //JobPost
@@ -52,7 +53,84 @@ namespace API.Seed
             await SeedJobTypes();
             await SeedJobPostStatuses();
             await SeedJobCategoriesAndSubcategories();
-            await SeedUserJobPosts();
+            await SeedAdvertisementTypes();
+            await SeedEmploymentTypes();
+            await SeedEducationLevels();
+            await SeedEmploymentStatuses();
+            await SeedPricingPlans();
+            //await SeedUserJobPosts();
+        }
+
+        async Task SeedCompanies()
+        {
+            if (await _context.Companies.AnyAsync()) return;
+
+            var data = await File.ReadAllTextAsync("Seed/CompanySeed.json");
+            var deserialized = JsonSerializer.Deserialize<List<Company>>(data);
+
+            await _context.Companies.AddRangeAsync(deserialized);
+
+            await SetIdentityInsertAndSaveChanges("Companies");
+        }
+
+        async Task SeedAdvertisementTypes()
+        {
+            if (await _context.AdvertisementTypes.AnyAsync()) return;
+
+            var data = await File.ReadAllTextAsync("Seed/AdvertisementTypeSeed.json");
+            var deserialized = JsonSerializer.Deserialize<List<AdvertisementType>>(data);
+
+            await _context.AdvertisementTypes.AddRangeAsync(deserialized);
+
+            await SetIdentityInsertAndSaveChanges("AdvertisementTypes");
+        }
+
+        async Task SeedEmploymentTypes()
+        {
+            if (await _context.EmploymentTypes.AnyAsync()) return;
+
+            var data = await File.ReadAllTextAsync("Seed/EmploymentTypeSeed.json");
+            var deserialized = JsonSerializer.Deserialize<List<EmploymentType>>(data);
+
+            await _context.EmploymentTypes.AddRangeAsync(deserialized);
+
+            await SetIdentityInsertAndSaveChanges("EmploymentTypes");
+        }
+
+        async Task SeedEducationLevels()
+        {
+            if (await _context.EducationLevels.AnyAsync()) return;
+
+            var data = await File.ReadAllTextAsync("Seed/EducationLevelSeed.json");
+            var deserialized = JsonSerializer.Deserialize<List<EducationLevel>>(data);
+
+            await _context.EducationLevels.AddRangeAsync(deserialized);
+
+            await SetIdentityInsertAndSaveChanges("EducationLevels");
+        }
+
+        async Task SeedEmploymentStatuses()
+        {
+            if (await _context.EmploymentStatuses.AnyAsync()) return;
+
+            var data = await File.ReadAllTextAsync("Seed/EmploymentStatus.json");
+            var deserialized = JsonSerializer.Deserialize<List<EmploymentStatus>>(data);
+
+            await _context.EmploymentStatuses.AddRangeAsync(deserialized);
+
+            await SetIdentityInsertAndSaveChanges("EmploymentStatuses");
+        }
+
+        async Task SeedPricingPlans()
+        {
+            if (await _context.PricingPlans.AnyAsync()) return;
+
+            var data = await File.ReadAllTextAsync("Seed/PricingPlanSeed.json");
+            var deserialized = JsonSerializer.Deserialize<List<PricingPlan>>(data);
+
+            await _context.PricingPlans.AddRangeAsync(deserialized);
+
+            await SetIdentityInsertAndSaveChanges("PricingPlans");
         }
 
         async Task SeedJobTypes()
@@ -91,17 +169,17 @@ namespace API.Seed
             await SetIdentityInsertAndSaveChanges("JobCategories");
         }
 
-        async Task SeedUserJobPosts()
-        {
-            if (await _context.UserJobPosts.AnyAsync()) return;
+        //async Task SeedUserJobPosts()
+        //{
+        //    if (await _context.UserJobPosts.AnyAsync()) return;
 
-            var data = await File.ReadAllTextAsync("Seed/UserJobPostSeed.json");
-            var userJobPosts = JsonSerializer.Deserialize<List<UserJobPost>>(data);
+        //    var data = await File.ReadAllTextAsync("Seed/UserJobPostSeed.json");
+        //    var userJobPosts = JsonSerializer.Deserialize<List<UserJobPost>>(data);
 
-            await _context.UserJobPosts.AddRangeAsync(userJobPosts);
+        //    await _context.UserJobPosts.AddRangeAsync(userJobPosts);
 
-            await SetIdentityInsertAndSaveChanges("UserJobPosts");
-        }
+        //    await SetIdentityInsertAndSaveChanges("UserJobPosts");
+        //}
 
         async Task SeedRoles()
         {
@@ -125,23 +203,12 @@ namespace API.Seed
             foreach (var user in users)
             {
                 user.UserName = user.UserName.ToLower();
-                user.CityId = await GetRandomCityId();
-
-                switch (user.UserName)
-                {
-                    case Constants.Admin:
-                        await _userManager.CreateAsync(user, _config["AdminPassword"]);
-                        await _userManager.AddToRolesAsync(user, Enum.GetNames<RoleType>());
-                        break;
-                    case Constants.TestUser:
-                        await _userManager.CreateAsync(user, _config["AdminPassword"]);
-                        await _userManager.AddToRolesAsync(user, new[] { RoleType.User.ToString() });
-                        break;
-                    default:
-                        await _userManager.CreateAsync(user, _config["AdminPassword"]);
-                        await _userManager.AddToRoleAsync(user, RoleType.User.ToString());
-                        break;
-                }
+                var password = _config["AdminPassword"];
+                await _userManager.CreateAsync(user, password);
+                if(user.IsCompany)
+                    await _userManager.AddToRoleAsync(user, RoleType.Company.ToString());
+                else
+                    await _userManager.AddToRoleAsync(user, RoleType.User.ToString());
             }
         }
 
@@ -149,8 +216,6 @@ namespace API.Seed
         {
             await SeedCountries();
             await SeedCities();
-            //await SeedMunicipalities();
-            //await SeedCantons();
         }
 
         async Task SeedCountries()
@@ -165,18 +230,6 @@ namespace API.Seed
             await SetIdentityInsertAndSaveChanges("Countries");
         }
 
-        //async Task SeedCantons()
-        //{
-        //    if (await _context.Cantons.AnyAsync()) return;
-
-        //    var data = await File.ReadAllTextAsync("Seed/CantonSeed.json");
-        //    var cantons = JsonSerializer.Deserialize<List<Canton>>(data);
-
-        //    await _context.Cantons.AddRangeAsync(cantons);
-
-        //    await SetIdentityInsertAndSaveChanges("Cantons");
-        //}
-
         async Task SeedCities()
         {
             if (await _context.Cities.AnyAsync()) return;
@@ -188,17 +241,6 @@ namespace API.Seed
 
             await SetIdentityInsertAndSaveChanges("Cities");
         }
-
-        //async Task SeedMunicipalities()
-        //{
-        //    if (await _context.Municipalities.AnyAsync()) return;
-
-        //    var data = await File.ReadAllTextAsync("Seed/MunicipalitySeed.json");
-        //    var municipalities = JsonSerializer.Deserialize<List<Municipality>>(data);
-
-        //    await _context.Municipalities.AddRangeAsync(municipalities);
-        //    await _context.SaveChangesAsync();
-        //}
 
         private async Task SetIdentityInsertAndSaveChanges(string tableName)
         {
@@ -214,15 +256,5 @@ namespace API.Seed
                 _context.Database.CloseConnection();
             }
         }
-
-        async Task<int> GetRandomCityId()
-        {
-            var cities = _context.Cities.ToList();
-            var random = new Random();
-            int randomIndex = random.Next(0, cities.Count);
-
-            return randomIndex;
-        }
-
     }
 }

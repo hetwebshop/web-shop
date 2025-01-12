@@ -120,9 +120,24 @@ namespace API.Data.IUserOfferRepository
 
         public async Task<UserJobPost> GetUserJobPostByIdAsync(int id)
         {
-            var userJobPost = await GetUserJobPostBaseQuery().FirstOrDefaultAsync(r => r.Id == id);
+            var userJobPost = await GetUserJobPostBaseQuery()
+                                    .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (userJobPost != null && userJobPost.ApplicantEducations.Any())
+            {
+                userJobPost.ApplicantEducations = userJobPost.ApplicantEducations
+                                                            .OrderBy(r => r.EducationStartYear)
+                                                            .ToList();
+            }
+            if (userJobPost != null && userJobPost.ApplicantPreviousCompanies.Any())
+            {
+                userJobPost.ApplicantPreviousCompanies = userJobPost.ApplicantPreviousCompanies
+                                                            .OrderBy(r => r.StartYear)
+                                                            .ToList();
+            }
             return userJobPost;
         }
+
 
         public async Task<UserJobPost> CreateUserJobPostAsync(UserJobPost newUserJobPost)
         {
@@ -241,6 +256,7 @@ namespace API.Data.IUserOfferRepository
             if (userJobPost != null)
             {
                 userJobPost.JobPostStatusId = (int)Helpers.JobPostStatus.Closed;
+                userJobPost.IsDeleted = false;
                 await DataContext.SaveChangesAsync();
                 return true;
             }
@@ -253,6 +269,7 @@ namespace API.Data.IUserOfferRepository
             if (userJobPost != null)
             {
                 userJobPost.JobPostStatusId = (int)Helpers.JobPostStatus.Active;
+                userJobPost.IsDeleted = false;
                 await DataContext.SaveChangesAsync();
                 return true;
             }

@@ -4,7 +4,6 @@ namespace API.Helpers
 {
     public enum RoleType
     {
-        Admin,
         User,
         Company
     }

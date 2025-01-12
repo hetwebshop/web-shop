@@ -15,6 +15,10 @@ namespace API.Data.ICompanyJobPostRepository
         Task<CompanyJobPost> GetCompanyJobPostByIdAsync(int id);
         Task<CompanyJobPost> CreateCompanyJobPostAsync(CompanyJobPost companyJobPost);
         Task<CompanyJobPost> UpdateCompanyJobPostAsync(CompanyJobPost companyJobPost);
+        Task<CompanyJobPost> UpdateCompensationAndWorkEnvAsync(CompanyJobPost companyJobPost);
+        Task<CompanyJobPost> UpdateQualificationsAndExperienceAsync(CompanyJobPost companyJobPost);
+        Task<CompanyJobPost> UpdateHowToApplyAsync(CompanyJobPost companyJobPost);
+
         Task<List<CompanyJobPost>> GetCompanyAdsAsync(int companyId);
         Task<bool> DeleteCompanyJobPostByIdAsync(int id);
         Task<bool> CloseCompanyJobPostByIdAsync(int id);

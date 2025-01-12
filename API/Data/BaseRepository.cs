@@ -17,13 +17,11 @@ namespace API.Data
     {
         public DataContext DataContext { get; }
         public IMapper Mapper { get; }
-        public IPhotoService PhotoService { get; }
 
-        public BaseRepository(DataContext dataContext, IMapper mapper, IPhotoService photoService)
+        public BaseRepository(DataContext dataContext, IMapper mapper)
         {
             DataContext = dataContext;
             Mapper = mapper;
-            PhotoService = photoService;
         }
 
         #region Save
@@ -77,38 +75,6 @@ namespace API.Data
                 user.Exist = true;
 
             return user;
-        }
-
-        #endregion
-
-        #region Photo
-
-        public async Task UpdatePhoto(IFormFile file, Photo photo, bool profile = false)
-        {
-            var result = await PhotoService.UploadImage(file, profile);
-            if (result.Error != null) throw new HttpException(result.Error.Message, StatusCodes.Status500InternalServerError);
-            photo.PublicId = result.PublicId;
-            photo.Url = result.SecureUrl.AbsoluteUri;
-        }
-
-        public async Task DeletePhoto(Photo photo)
-        {
-            await PhotoService.DeleteImage(photo.PublicId);
-            photo.PublicId = null;
-            photo.Url = null;
-        }
-
-        public async Task DeletePhoto(string publicId)
-        {
-            await PhotoService.DeleteImage(publicId);
-        }
-
-        #endregion
-
-        #region Role
-        public bool IsAdminRole(string role)
-        {
-            return new[] { RoleType.Admin.ToString() }.Contains(role);
         }
 
         #endregion

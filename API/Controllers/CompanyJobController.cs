@@ -2,6 +2,7 @@
 using API.Data.ICompanyJobPostRepository;
 using API.DTOs;
 using API.Extensions;
+using API.Helpers;
 using API.Mappers;
 using API.PaginationEntities;
 using API.Services.CompanyJobPostServices;
@@ -30,8 +31,7 @@ namespace API.Controllers
             _userApplicationsRepository = userApplicationsRepository;
         }
 
-        [HttpPost("ads")]
-        [AllowAnonymous]
+        [HttpPost("adsprivate")]
         public async Task<IActionResult> GetAds([FromQuery] AdsPaginationParameters adsParameters)
         {
             var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
@@ -45,6 +45,15 @@ namespace API.Controllers
                         item.CanCurrentUserApplyOnAd = false;
                 }
             }
+            return Ok(pagedResponse);
+        }
+
+        [HttpPost("adspublic")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAdsPublic([FromQuery] AdsPaginationParameters adsParameters)
+        {
+            var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
+            var pagedResponse = jobPosts.ToPagedResponse();
             return Ok(pagedResponse);
         }
 
@@ -87,7 +96,6 @@ namespace API.Controllers
         }
 
         [HttpGet("company-job/{id}")]
-        [AllowAnonymous]
         public async Task<IActionResult> GetCompanyJobById(int id)
         {
             var companyJob = await _jobPostService.GetCompanyJobPostByIdAsync(id);
@@ -96,6 +104,17 @@ namespace API.Controllers
             {
                 companyJob.CanCurrentUserApplyOnAd = companyJob.UsersThatAppliedOnJobPost.Contains(currentUserId) ? false : true;
             }
+            if (companyJob.IsDeleted || companyJob.JobPostStatusId != (int)JobPostStatus.Active || companyJob.AdEndDate < DateTime.Now)
+                return NotFound("Oglas je obrisan, zatvoren, ili je istekao.");
+            return Ok(companyJob);
+        }
+
+        [HttpGet("company-job-public/{id}")]
+        public async Task<IActionResult> GetCompanyJobByIdPublic(int id)
+        {
+            var companyJob = await _jobPostService.GetCompanyJobPostByIdAsync(id);
+            if (companyJob.IsDeleted || companyJob.JobPostStatusId != (int)JobPostStatus.Active || companyJob.AdEndDate < DateTime.Now)
+                return NotFound("Oglas je obrisan, zatvoren, ili je istekao.");
             return Ok(companyJob);
         }
 
@@ -136,8 +155,8 @@ namespace API.Controllers
                 return NotFound();
             if (companyJobPost.User.CompanyId != companyId)
                 return Unauthorized("Not belong to current company");
-            if (companyJobPost.JobPostStatusId != 1 || companyJobPost.AdEndDate < DateTime.Now)
-                return BadRequest("Oglas je istekao");
+            //if (companyJobPost.JobPostStatusId != 1 || companyJobPost.AdEndDate < DateTime.Now)
+            //    return BadRequest("Oglas je istekao");
 
             var userApplicationsForJobPost = await _userApplicationsRepository.GetApplicationsForSpecificCompanyJobPost(jobId);
             var candidatesTableData = new List<JobCandidatesTableDataDto>();
@@ -204,7 +223,62 @@ namespace API.Controllers
             companyJob.JobDescription = companyJobPostDto.JobDescription;
             companyJob.JobTypeId = companyJobPostDto.JobTypeId;
             companyJob.EmailForReceivingApplications = companyJobPostDto.EmailForReceivingApplications;
+            companyJob.Position = companyJobPostDto.Position;
             var updatedItem = await _jobPostService.UpdateCompanyJobPostAsync(companyJob);
+            return Ok(updatedItem);
+        }
+
+        [HttpPatch("compensation-and-environment/{id}")]
+        public async Task<IActionResult> UpdateCompensationAndWorkEnvInfo(int id, [FromBody] CompanyUpdateCompensationAndWorkEnvRequest companyJobPostDto)
+        {
+            var currentUserId = HttpContext.User.GetUserId();
+            var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
+            if (user == null || user.CompanyId == null)
+                return Unauthorized("You do not belong to the current company.");
+            var companyJob = await _jobPostService.GetCompanyJobPostByIdAsync(id);
+            var valid = await CheckDoesAdBelongsToUser(companyJob, currentUserId);
+            if (!valid)
+                return Unauthorized("Nemate pravo pristupa ovom oglasu");
+            companyJob.SalaryRange = companyJobPostDto.SalaryRange;
+            companyJob.Benefits = companyJobPostDto.Benefits;
+            companyJob.WorkEnvironmentDescription = companyJobPostDto.WorkEnvironmentDescription;
+            var updatedItem = await _jobPostService.UpdateCompensationAndWorkEnvAsync(companyJob);
+            return Ok(updatedItem);
+        }
+
+        [HttpPatch("qualifications-and-experience/{id}")]
+        public async Task<IActionResult> UpdateQualificationsAndExperience(int id, [FromBody] CompanyUpdateQualificationsAndExperienceRequest companyJobPostDto)
+        {
+            var currentUserId = HttpContext.User.GetUserId();
+            var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
+            if (user == null || user.CompanyId == null)
+                return Unauthorized("You do not belong to the current company.");
+            var companyJob = await _jobPostService.GetCompanyJobPostByIdAsync(id);
+            var valid = await CheckDoesAdBelongsToUser(companyJob, currentUserId);
+            if (!valid)
+                return Unauthorized("Nemate pravo pristupa ovom oglasu");
+            companyJob.RequiredSkills = companyJobPostDto.RequiredSkills;
+            companyJob.EducationLevelId = companyJobPostDto.EducationLevelId;
+            companyJob.Certifications = companyJobPostDto.Certifications;
+            companyJob.RequiredExperience = companyJobPostDto.RequiredExperience;
+            var updatedItem = await _jobPostService.UpdateQualificationsAndExpereinceAsync(companyJob);
+            return Ok(updatedItem);
+        }
+
+        [HttpPatch("howtoapply/{id}")]
+        public async Task<IActionResult> UpdateHowToApply(int id, [FromBody] CompanyUpdateHowToApplyRequest companyJobPostDto)
+        {
+            var currentUserId = HttpContext.User.GetUserId();
+            var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
+            if (user == null || user.CompanyId == null)
+                return Unauthorized("You do not belong to the current company.");
+            var companyJob = await _jobPostService.GetCompanyJobPostByIdAsync(id);
+            var valid = await CheckDoesAdBelongsToUser(companyJob, currentUserId);
+            if (!valid)
+                return Unauthorized("Nemate pravo pristupa ovom oglasu");
+            companyJob.HowToApply = companyJobPostDto.HowToApply;
+            companyJob.DocumentsRequired = companyJobPostDto.DocumentsRequired;
+            var updatedItem = await _jobPostService.UpdateHowToApplyAsync(companyJob);
             return Ok(updatedItem);
         }
 

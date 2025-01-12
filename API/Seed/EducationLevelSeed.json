@@ -1,0 +1,26 @@
+﻿[
+  {
+    "Id": 1,
+    "Name": "Osnovno obrazovanje"
+  },
+  {
+    "Id": 2,
+    "Name": "Srednja stručna sprema - SSS"
+  },
+  {
+    "Id": 3,
+    "Name": "Viša stručna sprema - VŠS"
+  },
+  {
+    "Id": 4,
+    "Name": "Visoka stručna sprema - VSS"
+  },
+  {
+    "Id": 5,
+    "Name": "Magistar nauka - MR"
+  },
+  {
+    "Id": 6,
+    "Name": "Doktor nauka - DR"
+  }
+]

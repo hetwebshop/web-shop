@@ -1,14 +1,18 @@
 ﻿[
   {
     "Id": 1,
-    "Name": "Office"
+    "Name": "Rad u kancelariji"
   },
   {
     "Id": 2,
-    "Name": "Remote"
+    "Name": "Rad od kuće"
   },
   {
     "Id": 3,
-    "Name": "Hybrid"
+    "Name": "Hibridni rad"
+  },
+  {
+    "Id": 4,
+    "Name": "Ostalo"
   }
 ]
