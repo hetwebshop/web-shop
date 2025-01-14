@@ -9,6 +9,7 @@ namespace API.Services.CompanyJobPostServices
     public interface ICompanyJobPostService
     {
         Task<PagedList<CompanyJobPostDto>> GetJobPostsAsync(AdsPaginationParameters adsParameters);
+        Task<PagedList<CompanyPublicInfoDto>> GetRegisteredCompaniesAsync(AdsPaginationParameters adsParameters);
         Task<PagedList<CompanyJobPostDto>> GetCompanyJobPostsAsync(AdsPaginationParameters adsParameters);
         Task<CompanyJobPostDto> GetCompanyJobPostByIdAsync(int id);
         Task<CompanyJobPostDto> CreateCompanyJobPostAsync(CompanyJobPostDto userJobPost);

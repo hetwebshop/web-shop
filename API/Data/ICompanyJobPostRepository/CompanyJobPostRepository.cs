@@ -82,6 +82,13 @@ namespace API.Data.ICompanyJobPostRepository
             return await PagedList<CompanyJobPost>.ToPagedListAsync(companyJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }
 
+        public async Task<PagedList<Company>> GetRegisteredCompaniesAsync(AdsPaginationParameters adsParameters)
+        {
+            var registeredCompanies = DataContext.Companies.Include(r => r.City);
+
+            return await PagedList<Company>.ToPagedListAsync(registeredCompanies, adsParameters.PageNumber, adsParameters.PageSize);
+        }
+
         public async Task<PagedList<CompanyJobPost>> GetCompanyJobPostsAsync(AdsPaginationParameters adsParameters)
         {
             var companyJobPosts = FindByCondition(u => u.SubmittingUserId == adsParameters.UserId
@@ -125,7 +132,7 @@ namespace API.Data.ICompanyJobPostRepository
         {
             try
             {
-                var pricingPlan = DataContext.PricingPlans.FirstOrDefault(r => r.Name.Equals(newCompanyJobPost.PricingPlan.Name) && r.AdActiveDays == newCompanyJobPost.PricingPlan.AdActiveDays);
+                var pricingPlan = DataContext.PricingPlanCompanies.FirstOrDefault(r => r.Name.Equals(newCompanyJobPost.PricingPlan.Name) && r.AdActiveDays == newCompanyJobPost.PricingPlan.AdActiveDays);
                 if (pricingPlan == null)
                     return null;
                 newCompanyJobPost.PricingPlan = pricingPlan;

@@ -749,8 +749,9 @@ namespace API.Controllers
                 return NotFound("Korisnik ne postoji.");
             }
 
-            await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
-
+            var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+            if (!result.Succeeded || result.Errors.Any())
+                return BadRequest("Lozinka koju ste unijeli kao trenutnu nije ispravna.");
             return Ok();
         }
 

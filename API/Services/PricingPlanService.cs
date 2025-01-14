@@ -17,5 +17,10 @@ namespace API.Services
         {
             return _pricingPlanRepository.GetAllPricingPlansAsync();
         }
+
+        public Task<List<PricingPlanCompanies>> GetAllPricingPlansForCompaniesAsync()
+        {
+            return _pricingPlanRepository.GetAllPricingPlansForCompaniesAsync();
+        }
     }
 }

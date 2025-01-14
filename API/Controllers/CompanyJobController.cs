@@ -8,6 +8,7 @@ using API.PaginationEntities;
 using API.Services.CompanyJobPostServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,17 +23,29 @@ namespace API.Controllers
         private readonly IUnitOfWork _uow;
         private readonly ICompanyJobPostRepository _jobPostRepository;
         private readonly IUserApplicationsRepository _userApplicationsRepository;
+        private readonly DataContext _dbContext;
 
-        public CompanyJobController(ICompanyJobPostService jobPostService, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IUserApplicationsRepository userApplicationsRepository)
+        public CompanyJobController(ICompanyJobPostService jobPostService, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IUserApplicationsRepository userApplicationsRepository, DataContext dbContext)
         {
             _jobPostService = jobPostService;
             _uow = uow;
             _jobPostRepository = companyJobPostRepository;
             _userApplicationsRepository = userApplicationsRepository;
+            _dbContext = dbContext;
+        }
+
+
+        [HttpPost("registeredcompanies")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetRegisteredCompanies([FromBody] AdsPaginationParameters adsParameters)
+        {
+            var registeredCompanies = await _jobPostService.GetRegisteredCompaniesAsync(adsParameters);
+            var pagedResponse = registeredCompanies.ToPagedResponse();
+            return Ok(pagedResponse);
         }
 
         [HttpPost("adsprivate")]
-        public async Task<IActionResult> GetAds([FromQuery] AdsPaginationParameters adsParameters)
+        public async Task<IActionResult> GetAds([FromBody] AdsPaginationParameters adsParameters)
         {
             var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
             var pagedResponse = jobPosts.ToPagedResponse();
@@ -50,7 +63,7 @@ namespace API.Controllers
 
         [HttpPost("adspublic")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAdsPublic([FromQuery] AdsPaginationParameters adsParameters)
+        public async Task<IActionResult> GetAdsPublic([FromBody] AdsPaginationParameters adsParameters)
         {
             var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
             var pagedResponse = jobPosts.ToPagedResponse();

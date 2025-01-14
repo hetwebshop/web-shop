@@ -7,5 +7,6 @@ namespace API.Data
     public interface IPricingPlanRepository
     {
         Task<List<PricingPlan>> GetAllPricingPlansAsync();
+        Task<List<PricingPlanCompanies>> GetAllPricingPlansForCompaniesAsync();
     }
 }

@@ -1,0 +1,83 @@
+﻿[
+  {
+    "Id": 1,
+    "Name": "Base",
+    "AdActiveDays": 7,
+    "PriceInCredits": 100,
+    "Description": "Osnovni paket sa minimalnim mogućnostima.",
+    "Label": "Bazni",
+    "Priority": 9
+  },
+  {
+    "Id": 2,
+    "Name": "Base",
+    "AdActiveDays": 15,
+    "PriceInCredits": 180,
+    "Description": "Osnovni paket sa minimalnim mogućnostima.",
+    "Label": "Bazni",
+    "Priority": 8
+  },
+  {
+    "Id": 3,
+    "Name": "Base",
+    "AdActiveDays": 30,
+    "PriceInCredits": 300,
+    "Description": "Osnovni paket sa minimalnim mogućnostima.",
+    "Label": "Bazni",
+    "Priority": 7
+  },
+  {
+    "Id": 4,
+    "Name": "Plus",
+    "AdActiveDays": 7,
+    "PriceInCredits": 150,
+    "Description": "Paket sa dodatnim funkcionalnostima.",
+    "Label": "Plus",
+    "Priority": 6
+  },
+  {
+    "Id": 5,
+    "Name": "Plus",
+    "AdActiveDays": 15,
+    "PriceInCredits": 250,
+    "Description": "Paket sa dodatnim funkcionalnostima.",
+    "Label": "Plus",
+    "Priority": 5
+  },
+  {
+    "Id": 6,
+    "Name": "Plus",
+    "AdActiveDays": 30,
+    "PriceInCredits": 400,
+    "Description": "Paket sa dodatnim funkcionalnostima.",
+    "Label": "Plus",
+    "Priority": 4
+  },
+  {
+    "Id": 7,
+    "Name": "Premium",
+    "AdActiveDays": 7,
+    "PriceInCredits": 200,
+    "Description": "Sveobuhvatan paket sa svim funkcijama.",
+    "Label": "Premium",
+    "Priority": 3
+  },
+  {
+    "Id": 8,
+    "Name": "Premium",
+    "AdActiveDays": 15,
+    "PriceInCredits": 350,
+    "Description": "Sveobuhvatan paket sa svim funkcijama.",
+    "Label": "Premium",
+    "Priority": 2
+  },
+  {
+    "Id": 9,
+    "Name": "Premium",
+    "AdActiveDays": 30,
+    "PriceInCredits": 600,
+    "Description": "Sveobuhvatan paket sa svim funkcijama.",
+    "Label": "Premium",
+    "Priority": 1
+  }
+]

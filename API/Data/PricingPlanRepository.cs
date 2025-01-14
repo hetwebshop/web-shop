@@ -20,5 +20,11 @@ namespace API.Data
             var pricingPlans = await _context.PricingPlans.ToListAsync();
             return pricingPlans;
         }
+
+        public async Task<List<PricingPlanCompanies>> GetAllPricingPlansForCompaniesAsync()
+        {
+            var pricingPlans = await _context.PricingPlanCompanies.ToListAsync();
+            return pricingPlans;
+        }
     }
 }

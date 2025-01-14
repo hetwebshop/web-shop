@@ -247,13 +247,24 @@ namespace API.Controllers
             var companyNotificationSettings = await _dbContext.CompanyNotificationPreferences
                 .Where(n => n.UserId == userId).ToListAsync();
             var companyCategoriesOfInterests = await _dbContext.CompanyJobCategoryInterests.Where(r => r.UserId == userId).ToListAsync();
+            if (!companyNotificationSettings.Any())
+            {
+                return Ok(new CompanyNotificationSettingsDto()
+                {
+                    EmailApplicantNotification = false,
+                    EmailJobNotification = false,
+                    InAppJobNotification = false,
+                    InAppApplicantNotification = false,
+                    SelectedJobCategories = new List<int>()
+                });
+            }
             var companyNotifDto = new CompanyNotificationSettingsDto()
             {
-                EmailApplicantNotification = companyNotificationSettings.First(r => r.NotificationType == CompanyNotificationType.newApplicantEmail).IsEnabled,
-                EmailJobNotification = companyNotificationSettings.First(r => r.NotificationType == CompanyNotificationType.newInsterestingUserAdEmail).IsEnabled,
-                InAppJobNotification = companyNotificationSettings.First(r => r.NotificationType == CompanyNotificationType.newInterestingUserAdInApp).IsEnabled,
-                InAppApplicantNotification = companyNotificationSettings.First(r => r.NotificationType == CompanyNotificationType.newApplicantInApp).IsEnabled,
-                SelectedJobCategories = companyCategoriesOfInterests.Select(r => r.JobCategoryId).ToList()
+                EmailApplicantNotification = companyNotificationSettings.FirstOrDefault(r => r.NotificationType == CompanyNotificationType.newApplicantEmail).IsEnabled,
+                EmailJobNotification = companyNotificationSettings.FirstOrDefault(r => r.NotificationType == CompanyNotificationType.newInsterestingUserAdEmail).IsEnabled,
+                InAppJobNotification = companyNotificationSettings.FirstOrDefault(r => r.NotificationType == CompanyNotificationType.newInterestingUserAdInApp).IsEnabled,
+                InAppApplicantNotification = companyNotificationSettings.FirstOrDefault(r => r.NotificationType == CompanyNotificationType.newApplicantInApp).IsEnabled,
+                SelectedJobCategories = companyCategoriesOfInterests?.Select(r => r.JobCategoryId).ToList()
             };
             return Ok(companyNotifDto);
         }

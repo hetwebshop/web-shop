@@ -39,6 +39,12 @@ namespace API.Services.CompanyJobPostServices
             return companyJobPosts.ToDto();
         }
 
+        public async Task<PagedList<CompanyPublicInfoDto>> GetRegisteredCompaniesAsync(AdsPaginationParameters adsParameters)
+        {
+            var registeredCompanies = await companyJobPostRepository.GetRegisteredCompaniesAsync(adsParameters);
+            return registeredCompanies.ToDto();
+        }
+
         public async Task<PagedList<CompanyJobPostDto>> GetCompanyJobPostsAsync(AdsPaginationParameters adsParameters)
         {
             var companyJobPosts = await companyJobPostRepository.GetCompanyJobPostsAsync(adsParameters);

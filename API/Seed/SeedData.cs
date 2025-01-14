@@ -58,6 +58,7 @@ namespace API.Seed
             await SeedEducationLevels();
             await SeedEmploymentStatuses();
             await SeedPricingPlans();
+            await SeedPricingPlanForCompanies();
             //await SeedUserJobPosts();
         }
 
@@ -131,6 +132,18 @@ namespace API.Seed
             await _context.PricingPlans.AddRangeAsync(deserialized);
 
             await SetIdentityInsertAndSaveChanges("PricingPlans");
+        }
+
+        async Task SeedPricingPlanForCompanies()
+        {
+            if (await _context.PricingPlanCompanies.AnyAsync()) return;
+
+            var data = await File.ReadAllTextAsync("Seed/PricingPlanCompaniesSeed.json");
+            var deserialized = JsonSerializer.Deserialize<List<PricingPlanCompanies>>(data);
+
+            await _context.PricingPlanCompanies.AddRangeAsync(deserialized);
+
+            await SetIdentityInsertAndSaveChanges("PricingPlanCompanies");
         }
 
         async Task SeedJobTypes()

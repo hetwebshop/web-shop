@@ -21,5 +21,12 @@ namespace API.Controllers
             var pricingPlans = await _pricingPlanService.GetAllPricingPlansAsync();
             return Ok(pricingPlans);
         }
+
+        [HttpGet("pricingplanscompanies")]
+        public async Task<IActionResult> GetAllPricingPlansForCompanies()
+        {
+            var pricingPlans = await _pricingPlanService.GetAllPricingPlansForCompaniesAsync();
+            return Ok(pricingPlans);
+        }
     }
 }

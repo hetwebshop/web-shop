@@ -31,6 +31,7 @@ namespace API.Data
         public DbSet<Company> Companies { get; set; }
         public DbSet<CompanyJobPost> CompanyJobPosts { get; set; }
         public DbSet<PricingPlan> PricingPlans { get; set; }
+        public DbSet<PricingPlanCompanies> PricingPlanCompanies { get; set; }
         public DbSet<EmploymentType> EmploymentTypes { get; set; }
         public DbSet<EducationLevel> EducationLevels { get; set; }
         public DbSet<UserPreviousCompanies> UserPreviousCompanies { get; set; }
