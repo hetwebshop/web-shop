@@ -44,7 +44,7 @@ namespace API.Mappers
                 .ForMember(dest => dest.EmploymentType, opt => opt.Ignore())
                 .ForMember(dest => dest.EducationLevel, opt => opt.Ignore())
                 .ForMember(dest => dest.PricingPlan, opt => opt.Ignore())
-                .ForMember(dest => dest.PricingPlan, src => src.MapFrom(x => new PricingPlan { AdActiveDays = x.AdDuration, Name = x.PricingPlanName }))
+                .ForMember(dest => dest.PricingPlan, src => src.MapFrom(x => new PricingPlanCompanies { AdActiveDays = x.AdDuration, Name = x.PricingPlanName }))
                 .ForMember(dest => dest.MaxSalary, src => src.MapFrom(x => x.SalaryRange != null && x.SalaryRange.Length > 1 ? x.SalaryRange[1] : (int?)null))
                 .ForMember(dest => dest.MinSalary, src => src.MapFrom(x => x.SalaryRange != null && x.SalaryRange.Length > 0 ? x.SalaryRange[0] : (int?)null));
 

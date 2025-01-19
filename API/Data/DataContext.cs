@@ -43,6 +43,7 @@ namespace API.Data
         public DbSet<UserNotificationSettings> UserNotificationSettings { get; set; }
         public DbSet<CompanyJobCategoryInterests> CompanyJobCategoryInterests { get; set; }
         public DbSet<CompanyNotificationPreferences> CompanyNotificationPreferences { get; set; }
+        public DbSet<DemoMeetingRequest> DemoMeetingRequests { get; set; }
 
         public DbSet<Notification> Notifications { get; set; }
 

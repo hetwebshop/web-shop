@@ -16,6 +16,7 @@ namespace API.Controllers
         }
 
         [HttpGet("pricingplans")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllPricingPlans()
         {
             var pricingPlans = await _pricingPlanService.GetAllPricingPlansAsync();
@@ -23,6 +24,7 @@ namespace API.Controllers
         }
 
         [HttpGet("pricingplanscompanies")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllPricingPlansForCompanies()
         {
             var pricingPlans = await _pricingPlanService.GetAllPricingPlansForCompaniesAsync();

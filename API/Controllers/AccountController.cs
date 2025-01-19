@@ -259,6 +259,44 @@ namespace API.Controllers
             return await _uow.UserRepository.UserExist(userName);
         }
 
+        [HttpPost("demo-request")]
+        [AllowAnonymous]
+        public async Task<ActionResult> SubmitDemoRequest([FromBody] DemoRequestBody req)
+        {
+            // Validate the request body
+            if (string.IsNullOrEmpty(req.FirstName) ||
+                string.IsNullOrEmpty(req.LastName) ||
+                string.IsNullOrEmpty(req.Email) ||
+                string.IsNullOrEmpty(req.Phone))
+            {
+                return BadRequest("All required fields must be provided: FirstName, LastName, Email, and Phone.");
+            }
+
+            var demoMeeting = new DemoMeetingRequest
+            {
+                FirstName = req.FirstName,
+                LastName = req.LastName,
+                Phone = req.Phone,
+                Email = req.Email,
+                Message = req.Message,
+                Company = req.Company,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            try
+            {
+                await _dbContext.AddAsync(demoMeeting);
+                await _dbContext.SaveChangesAsync();
+                await _emailService.SendEmailAsync(configuration.GetSection("AdminRecipientEmailAddress").Value, "Novi zahtjev za demo sastankom", $"Dobili ste novi zahtjev za demo sastankom od korisnika sa Emailom: {req.Email}");
+                return Ok("Demo request submitted successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while submitting the request. Please try again later.");
+            }
+        }
+
+
         //[HttpGet("user/{userName}")]
         //[AllowAnonymous]
         //public async Task<ActionResult> GetUserInfo(string userName)

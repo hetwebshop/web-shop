@@ -31,7 +31,7 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 app.UseRouting();
 app.UseCors(options =>
-options.AllowAnyHeader().AllowCredentials().AllowAnyMethod().WithOrigins("https://job-point.azurewebsites.net", "http://localhost:4200", "http://localhost:3000", "https://jobshubui.azurewebsites.net"));
+options.AllowAnyHeader().AllowCredentials().AllowAnyMethod().WithOrigins("https://job-point.azurewebsites.net", "http://localhost:4200", "http://localhost:3000", "https://jobshubui.azurewebsites.net", "https://jobifyui.azurewebsites.net"));
 
 app.UseAuthentication();
 app.UseAuthorization();
