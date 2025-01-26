@@ -40,6 +40,8 @@ namespace API.Entities.JobPost
         public string AdAdditionalDescription { get; set; }
         public PricingPlan PricingPlan { get; set; }
         public int PricingPlanId { get; set; }
+        public DateTime RefreshDateTime { get; set; }
+        public int? RefreshIntervalInDays { get; set; }
 
         public int? EducationLevelId { get; set; }
         public EducationLevel? EducationLevel { get; set; }

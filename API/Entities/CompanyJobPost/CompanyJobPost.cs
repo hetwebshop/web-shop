@@ -45,6 +45,8 @@ namespace API.Entities.CompanyJobPost
         public string DocumentsRequired { get; set; }
         public int? MinSalary { get; set; }
         public int? MaxSalary { get; set; }
+        public DateTime RefreshDateTime { get; set; }
+        public int? RefreshIntervalInDays { get; set; }
 
         public ICollection<UserApplication> UserApplications { get; set; }
     }

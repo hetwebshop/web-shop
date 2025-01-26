@@ -89,7 +89,7 @@ namespace API.Data.IUserOfferRepository
                 .Include(u => u.EmploymentStatus)
                 .Include(u => u.ApplicantPreviousCompanies)
                 .OrderBy(u => u.PricingPlan.Priority)
-                .ThenByDescending(u => u.AdStartDate);
+                .ThenByDescending(u => u.RefreshDateTime);
            // userJobPosts = _sortHelper.ApplySort(userJobPosts, adsParameters.OrderBy);
             return await PagedList<UserJobPost>.ToPagedListAsync(userJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }
@@ -108,7 +108,8 @@ namespace API.Data.IUserOfferRepository
             .Include(u => u.EmploymentType)
             .Include(u => u.EmploymentStatus)
             .Include(u => u.ApplicantPreviousCompanies)
-            .OrderByDescending(r => r.AdStartDate);
+                .OrderBy(u => u.PricingPlan.Priority)
+                .ThenByDescending(u => u.RefreshDateTime);
             return await PagedList<UserJobPost>.ToPagedListAsync(userJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }
 
@@ -149,6 +150,8 @@ namespace API.Data.IUserOfferRepository
                 newUserJobPost.PricingPlan = pricingPlan;
                 newUserJobPost.AdStartDate = DateTime.UtcNow;
                 newUserJobPost.AdEndDate = DateTime.UtcNow.AddDays(pricingPlan.AdActiveDays);
+                newUserJobPost.RefreshDateTime = DateTime.UtcNow;
+                newUserJobPost.RefreshIntervalInDays = pricingPlan.Name == "Premium" ? 3 : pricingPlan.Name == "Plus" ? 7 : null;
                 await DataContext.UserJobPosts.AddAsync(newUserJobPost);
                 var user = DataContext.Users.First(r => r.Id == newUserJobPost.SubmittingUserId);
                 user.Credits -= 1;

@@ -52,9 +52,11 @@ namespace API.Controllers
             var currentUserId = HttpContext.User.GetUserId();
             if(currentUserId != null && currentUserId != 0)
             {
-                foreach(var item in pagedResponse.Items)
+                var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
+                
+                foreach (var item in pagedResponse.Items)
                 {
-                    if (item.UsersThatAppliedOnJobPost.Any() && item.UsersThatAppliedOnJobPost.Contains(currentUserId))
+                    if ((item.UsersThatAppliedOnJobPost.Any() && item.UsersThatAppliedOnJobPost.Contains(currentUserId)) || user.UserRoles.Select(r => r.Role.Name).Contains("Company"))
                         item.CanCurrentUserApplyOnAd = false;
                 }
             }
@@ -113,9 +115,10 @@ namespace API.Controllers
         {
             var companyJob = await _jobPostService.GetCompanyJobPostByIdAsync(id);
             var currentUserId = HttpContext.User.GetUserId();
+            var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
             if (currentUserId != null && currentUserId != 0)
             {
-                companyJob.CanCurrentUserApplyOnAd = companyJob.UsersThatAppliedOnJobPost.Contains(currentUserId) ? false : true;
+                companyJob.CanCurrentUserApplyOnAd = companyJob.UsersThatAppliedOnJobPost.Contains(currentUserId) || user.UserRoles.Select(r => r.Role.Name).Contains("Company") ? false : true;
             }
             if (companyJob.IsDeleted || companyJob.JobPostStatusId != (int)JobPostStatus.Active || companyJob.AdEndDate < DateTime.Now)
                 return NotFound("Oglas je obrisan, zatvoren, ili je istekao.");

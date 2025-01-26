@@ -38,5 +38,7 @@ namespace API.DTOs
         public int[] SalaryRange { get; set; }
         public List<int>? UsersThatAppliedOnJobPost { get; set; }
         public bool? CanCurrentUserApplyOnAd { get; set; } = true;
+        public DateTime? RefreshDateTime { get; set; }
+        public int? RefreshIntervalInDays { get; set; }
     }
 }

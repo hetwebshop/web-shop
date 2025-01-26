@@ -4,6 +4,7 @@ using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250119003246_JobPostRefreshInterval")]
+    partial class JobPostRefreshInterval
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -396,7 +398,7 @@ namespace API.Migrations
                     b.Property<DateTime>("RefreshDateTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("RefreshIntervalInDays")
+                    b.Property<int>("RefreshIntervalInDays")
                         .HasColumnType("int");
 
                     b.Property<int?>("RequiredExperience")
@@ -755,7 +757,7 @@ namespace API.Migrations
                     b.Property<DateTime>("RefreshDateTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("RefreshIntervalInDays")
+                    b.Property<int>("RefreshIntervalInDays")
                         .HasColumnType("int");
 
                     b.Property<int>("SubmittingUserId")

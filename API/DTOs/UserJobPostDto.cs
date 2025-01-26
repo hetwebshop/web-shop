@@ -53,5 +53,7 @@ namespace API.DTOs
         public int? EmploymentStatusId { get; set; }
         public string EmploymentStatus { get; set; }
         public List<ApplicantPreviousCompaniesDto> ApplicantPreviousCompanies { get; set; }
+        public DateTime? RefreshDateTime { get; set; }
+        public int? RefreshIntervalInDays { get; set; }
     }
 }

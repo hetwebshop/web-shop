@@ -74,7 +74,7 @@ namespace API.Data
 
         public async Task<User> GetUserByIdAsync(int userId)
         {
-            return DataContext.Users.Where(r => r.Id == userId).FirstOrDefault();
+            return DataContext.Users.Where(r => r.Id == userId).Include(r => r.UserRoles).ThenInclude(r => r.Role).FirstOrDefault();
         }
 
         public async Task<bool> UpdateUserEducationAsync(UserEducationRequest userEducation)
