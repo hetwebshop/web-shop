@@ -40,5 +40,6 @@ namespace API.DTOs
         public bool? CanCurrentUserApplyOnAd { get; set; } = true;
         public DateTime? RefreshDateTime { get; set; }
         public int? RefreshIntervalInDays { get; set; }
+        public string? PhotoUrl { get; set; }
     }
 }

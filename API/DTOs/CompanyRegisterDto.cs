@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace API.DTOs
 {
@@ -21,5 +22,7 @@ namespace API.DTOs
         [Required(ErrorMessage = "Potvrda lozinke je obavezna.")]
         [Compare("Password", ErrorMessage = "Lozinka i potvrda lozinke se ne podudaraju.")]
         public string ConfirmPassword { get; set; }
+
+        public IFormFile Photo { get; set; }
     }
 }

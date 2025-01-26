@@ -47,6 +47,7 @@ namespace API.Entities.CompanyJobPost
         public int? MaxSalary { get; set; }
         public DateTime RefreshDateTime { get; set; }
         public int? RefreshIntervalInDays { get; set; }
+        public string PhotoUrl { get; set; }
 
         public ICollection<UserApplication> UserApplications { get; set; }
     }

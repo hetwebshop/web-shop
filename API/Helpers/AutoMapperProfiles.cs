@@ -44,9 +44,6 @@ namespace API.Helpers
 
 
             CreateMap<UserEducation, UserEducationDto>().ReverseMap();
-
-            CreateMap<User, UserInfoDto>()
-                .ForMember(dest => dest.PhotoUrl, act => act.MapFrom(src => src.Photo.Url));
         }
     }
 }

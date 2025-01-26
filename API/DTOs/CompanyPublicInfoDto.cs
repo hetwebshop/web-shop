@@ -6,5 +6,6 @@
         public string CompanyName { get; set; }
         public string City { get; set; }
         public string AboutUs { get; set; }
+        public string PhotoUrl { get; set; }
     }
 }

@@ -14,12 +14,11 @@ namespace API.Data
         Task<UserInfoDto> GetUserInfo(string userName);
         Task<bool> UserExist(string userName);
         Task<UserProfileDto> GetProfile(int id);
-        Task<string> UpdateUserPhoto(IFormFile file, int userId);
-        Task DeleteUserPhoto(int userId);
         Task<List<UserEducation>> GetAllUserEducationsAsync(int userId);
         Task<bool> RemoveAllUserEducationsAsync(int userId);
         Task<User> GetUserByIdAsync(int userId);
         Task<bool> UpdateUserEducationAsync(UserEducationRequest userEducation);
         Task<bool> UpdateUserPreviousCompaniesAsync(UserCompanyRequest userEducation);
+        Task<bool> UpdateUserPhotoUrl(User user, string photoUrl);
     }
 }

@@ -8,6 +8,7 @@ using API.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -62,7 +63,6 @@ namespace API.Controllers
 
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
-            user.Photo = new Photo();
             user.IsApproved = false;
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
@@ -105,7 +105,6 @@ namespace API.Controllers
                 LastName = user.LastName,
                 CityId = user.CityId,
                 UserName = user.UserName,
-                PhotoUrl = user.Photo?.Url,
                 Email = user.Email
             };
         }
@@ -138,7 +137,7 @@ namespace API.Controllers
 
         [HttpPost("register-company")]
         [AllowAnonymous]
-        public async Task<ActionResult<UserDto>> RegisterCompany(CompanyRegisterDto registerDto)
+        public async Task<ActionResult<UserDto>> RegisterCompany([FromForm] CompanyRegisterDto registerDto)
         {
             registerDto.UserName = registerDto.Email;
             if (await UserNameExist(registerDto.UserName))
@@ -148,7 +147,13 @@ namespace API.Controllers
 
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
-            user.Photo = new Photo();
+            if (registerDto.Photo != null)
+            {
+                var fileUrl = await _blobStorageService.UploadFileAsync(registerDto.Photo);
+                var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
+                user.PhotoUrl = decodedFileUrl;
+                user.Company.PhotoUrl = decodedFileUrl;
+            }
             user.IsApproved = false;
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
@@ -204,7 +209,7 @@ namespace API.Controllers
                 CityId = user.CityId,
                 UserName = user.UserName,
                 //Token = token,
-                PhotoUrl = user.Photo?.Url,
+                PhotoUrl = user.PhotoUrl,
                 Email = user.Email,
                 IsCompany = true,
                 CompanyAddress = user.Company.Address,
@@ -296,6 +301,52 @@ namespace API.Controllers
             }
         }
 
+        [HttpPost("uploadProfilePhoto")]
+        public async Task<ActionResult<UserDto>> UploadProfilePhoto(IFormFile photo)
+        {
+            if (photo == null || photo.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+            var userId = HttpContext.User.GetUserId();
+            if (userId == null)
+                return Forbid("Niste autorizovani za ovu funkcionalnost.");
+            try
+            {
+                var fileUrl = await _blobStorageService.UploadFileAsync(photo);
+                var user =  await _uow.UserRepository.GetUserByIdAsync(userId);
+                var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
+                await _uow.UserRepository.UpdateUserPhotoUrl(user, decodedFileUrl);
+                var updatedUser = await FetchUserWithIncludesAsync(userId);
+                var dto = ConvertCompanyUserToUserDto(user);
+                return dto;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+        [HttpPost("removeProfilePhoto")]
+        public async Task<ActionResult<UserDto>> RemoveProfilePhoto()
+        {
+            var userId = HttpContext.User.GetUserId();
+            if (userId == null)
+                return Forbid("Niste autorizovani za ovu funkcionalnost.");
+            try
+            {
+                var user = await _uow.UserRepository.GetUserByIdAsync(userId);
+                await _uow.UserRepository.UpdateUserPhotoUrl(user, null);
+                var updatedUser = await FetchUserWithIncludesAsync(userId);
+                var dto = ConvertCompanyUserToUserDto(user);
+                return dto;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
         //[HttpGet("user/{userName}")]
         //[AllowAnonymous]
@@ -718,22 +769,6 @@ namespace API.Controllers
             return userProfile;
         }
 
-        [HttpPost("change-photo")]
-        public async Task<ActionResult> UpdateUserPhoto([FromForm] PhotoUpdateDto updateDto)
-        {
-            var id = HttpContext.User.GetUserId();
-            if (updateDto.Remove)
-            {
-                await _uow.UserRepository.DeleteUserPhoto(id);
-                return await _uow.SaveChanges()
-                    ? Ok(new { PhotoUrl = "" })
-                    : BadRequest("Failed to update photo.");
-            }
-
-            var url = await _uow.UserRepository.UpdateUserPhoto(updateDto.File, id);
-            return Ok(new { PhotoUrl = url });
-        }
-
         [HttpPost("forgot-password")]
         [AllowAnonymous]
         public async Task<IActionResult> RequestPasswordReset([FromBody] ForgotPasswordDto request)
@@ -804,7 +839,7 @@ namespace API.Controllers
                 CityId = user.CityId,
                 City = user.City?.Name,
                 UserName = user.UserName,
-                PhotoUrl = user.Photo?.Url,  // If user.Photo is null, will safely return null
+                PhotoUrl = user.PhotoUrl,
                 Email = user.Email,
                 IsCompany = user.IsCompany,
                 CompanyAddress = user.Company?.Address,
@@ -868,7 +903,7 @@ namespace API.Controllers
                 CityId = user.CityId,
                 City = user.City?.Name,
                 UserName = user.UserName,
-                PhotoUrl = user.Photo?.Url,  // If user.Photo is null, will safely return null
+                PhotoUrl = user.PhotoUrl,
                 Email = user.Email,
                 IsCompany = user.IsCompany,
                 CompanyAddress = user.Company?.Address,

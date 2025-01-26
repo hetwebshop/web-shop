@@ -6,6 +6,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,28 +33,6 @@ namespace API.Data
             return user;
         }
 
-        public async Task<string> UpdateUserPhoto(IFormFile file, int userId)
-        {
-            var photo = await DataContext.Photos.FirstOrDefaultAsync(p => p.User.Id == userId) ?? new Photo
-            {
-                User = new User { Id = userId }
-            };
-            var publicId = photo.PublicId;
-            //await UpdatePhoto(file, photo, true);
-            if (!await SaveChanges())
-                throw new HttpException("Failed to update photo.", StatusCodes.Status500InternalServerError);
-
-            //await DeletePhoto(publicId);
-            return photo.Url;
-        }
-
-        public async Task DeleteUserPhoto(int userId)
-        {
-            var photo = await DataContext.Photos.FirstOrDefaultAsync(p => p.User.Id == userId);
-            if (photo?.Url == null) throw new HttpException("Photo already removed!");
-            //await DeletePhoto(photo);
-        }
-
         public async Task<List<UserEducation>> GetAllUserEducationsAsync(int userId)
         {
             var userEducations = await DataContext.UserEducations.Where(u => u.UserId == userId).ToListAsync();
@@ -74,7 +53,7 @@ namespace API.Data
 
         public async Task<User> GetUserByIdAsync(int userId)
         {
-            return DataContext.Users.Where(r => r.Id == userId).Include(r => r.UserRoles).ThenInclude(r => r.Role).FirstOrDefault();
+            return DataContext.Users.Where(r => r.Id == userId).Include(r => r.UserRoles).ThenInclude(r => r.Role).Include(r => r.Company).FirstOrDefault();
         }
 
         public async Task<bool> UpdateUserEducationAsync(UserEducationRequest userEducation)
@@ -90,6 +69,25 @@ namespace API.Data
             existingEducation.Degree = userEducation.Degree;
             await SaveChanges();
             return true;
+        }
+
+        public async Task<bool> UpdateUserPhotoUrl(User user, string photoUrl)
+        {
+            try
+            {
+                user.PhotoUrl = photoUrl;
+                if(user.IsCompany != null)
+                {
+                    user.Company.PhotoUrl = photoUrl;
+                }
+                await SaveChanges();
+                return true;
+            }
+            catch(Exception ex)
+            {
+                throw;
+                return false;
+            }
         }
 
         public async Task<bool> UpdateUserPreviousCompaniesAsync(UserCompanyRequest req)

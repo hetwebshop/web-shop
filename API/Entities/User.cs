@@ -14,8 +14,7 @@ namespace API.Entities
         public DateTime LastActive { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public int? PhotoId { get; set; }
-        public Photo Photo { get; set; }
+        public string PhotoUrl { get; set; }
         public int CityId { get; set; }
         public City City { get; set; }
         public int? JobTypeId { get; set; }

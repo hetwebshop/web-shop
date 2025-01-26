@@ -207,7 +207,12 @@ namespace API.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateCompanyJobPost([FromBody] CompanyJobPostDto companyJobPostDto)
         {
-            companyJobPostDto.SubmittingUserId = HttpContext.User.GetUserId();
+            var userId = HttpContext.User.GetUserId();
+            if (userId == null)
+                return Forbid("Niste autorizovani za ovu funkcionalnost.");
+            var user = await _uow.UserRepository.GetUserByIdAsync(userId);
+            companyJobPostDto.SubmittingUserId = userId;
+            companyJobPostDto.PhotoUrl = user.PhotoUrl;
             var newItem = await _jobPostService.CreateCompanyJobPostAsync(companyJobPostDto);
             return Ok(newItem);
         }

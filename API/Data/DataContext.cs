@@ -18,7 +18,6 @@ namespace API.Data
 
         }
 
-        public DbSet<Photo> Photos { get; set; }
         public DbSet<Country> Countries { get; set; }
         public DbSet<City> Cities { get; set; }
         public DbSet<UserJobPost> UserJobPosts { get; set; }
@@ -257,12 +256,6 @@ namespace API.Data
                 .HasOne(u => u.City)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<User>()
-                .HasOne(u => u.Photo)
-                .WithOne(p => p.User)
-                .HasForeignKey<User>(u => u.PhotoId)
-                .OnDelete(DeleteBehavior.SetNull);
 
             builder.Entity<User>()
                 .HasOne(u => u.Company)
