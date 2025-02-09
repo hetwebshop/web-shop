@@ -9,6 +9,7 @@ using API.Entities.Notification;
 using API.Helpers;
 using API.Mappers;
 using API.PaginationEntities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System;
@@ -31,6 +32,7 @@ namespace API.Services.UserOfferServices
         private readonly DataContext _dbContext;
         private readonly IEmailService emailService;
         private readonly string UIBaseUrl;
+        private readonly IConfiguration _configuration;
 
         public UserJobPostService(IUserJobPostRepository userJobPostRepository, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IConfiguration configuration, IBlobStorageService blobStorageService, DataContext dataContext, IEmailService emailService)
         {
@@ -42,6 +44,7 @@ namespace API.Services.UserOfferServices
             _dbContext = dataContext;
             this.emailService = emailService;
             UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
+            _configuration = configuration;
         }
 
         public async Task<PagedList<UserJobPostDto>> GetJobPostsAsync(AdsPaginationParameters adsParameters)
@@ -81,10 +84,12 @@ namespace API.Services.UserOfferServices
                 {
                     if(companiesSetting.NotificationType == Entities.Notification.CompanyNotificationType.newInterestingUserAdInApp && companiesSetting.IsEnabled)
                     {
+                        var bosniaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time"); // Bosnian Time Zone
+                        var bosniaDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, bosniaTimeZone);
                         var notification = new Notification()
                         {
                             UserId = companiesSetting.UserId.ToString(),
-                            CreatedAt = DateTime.UtcNow,
+                            CreatedAt = bosniaDateTime,
                             IsRead = false,
                             Link = UIBaseUrl + "ad-details/" + newItem.Id,
                             Message = "Kreiran je novi oglas za posao koji bi vam mogao biti interesantan"
@@ -114,31 +119,62 @@ namespace API.Services.UserOfferServices
             {
                 if (user != null)
                 {
-                    await emailService.SendEmailAsync(user.Email, "Novi oglas koji bi vas mogao zanimati", $"Kreiran je novi oglas za posao u kategoriji: {newItem.JobCategory?.Name}.");
+                    string adUrl = _configuration.GetSection("UIBaseUrl").Value + $"ad-details/{newItem.Id}";
+                    string messageBody = $@"
+                    <p style='color: #66023C;'>Dragi <strong>{user.Email}</strong>,</p>
+                    <p style='color: #66023C;'>Kreiran je novi oglas za posao u kategoriji: <strong>{newItem.JobCategory?.Name}</strong>.</p>
+                    <p style='color: #66023C;'>Pogledajte detalje i prijavite se za ovu priliku što je prije moguće.</p>
+                    <p style='text-align: center;'>
+                        <a href='{adUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Pogledajte Oglas</a>
+                    </p>";
+                    var subject = "Novi oglas koji bi vas mogao zanimati";
+
+                    var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, _configuration);
+                    await emailService.SendEmailWithTemplateAsync(user.Email, subject, emailTemplate);
                 }
             }).ToList();
 
             await Task.WhenAll(tasks);
         }
-        private async Task SendNewApplicantEmailsAsync(List<CompanyNotificationPreferences> companiesNotifSettings, string position)
+
+        private async Task SendNewApplicantEmailsAsync(List<CompanyNotificationPreferences> companiesNotifSettings, string position, int userApplicationId, string emailForReceivingApplications, int userId)
         {
             var userIdsToNotify = companiesNotifSettings
-                .Where(setting => setting.NotificationType == Entities.Notification.CompanyNotificationType.newApplicantEmail && setting.IsEnabled)
-                .Select(setting => setting.UserId)
-                .ToList();
+            .Where(setting => setting.NotificationType == Entities.Notification.CompanyNotificationType.newApplicantEmail && setting.IsEnabled)
+            .Select(setting => setting.UserId)
+            .ToList();
 
-            var usersToNotify = _dbContext.Users.Where(user => userIdsToNotify.Contains(user.Id)).ToList();
+            var user = await _dbContext.Users
+                .Where(r => r.Id == userId)
+                .Include(r => r.Company) 
+                .FirstOrDefaultAsync();   
 
-            var tasks = usersToNotify.Select(async user =>
+            if (user != null && user.Company != null && userIdsToNotify.Contains(userId)) 
             {
-                if (user != null)
-                {
-                    await emailService.SendEmailAsync(user.Email, "Nova prijava na vaš oglas za posao", $"Dobili ste novu prijavu za poziciju: {position}, na otvorenom oglasu za posao.");
-                }
-            }).ToList();
+                var applicationUrl = UIBaseUrl + $"company-settings/candidate-details/{userApplicationId}";
 
-            await Task.WhenAll(tasks);
+                string messageBody = $@"
+            <p style='color: #66023C;'>Dragi <strong>{user.Company.CompanyName}</strong>,</p>
+            <p style='color: #66023C;'>Dobili ste novu prijavu za poziciju: <strong>{position}</strong>.</p>
+            <p style='color: #66023C;'>Pogledajte prijavu i obavite daljnje radnje prema vašim potrebama.</p>
+            <p style='text-align: center;'>
+                <a href='{applicationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Pogledajte Prijavu</a>
+            </p>";
+
+                var subject = "Nova prijava na vaš oglas za posao";
+                var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, _configuration);
+
+                try
+                {
+                    await emailService.SendEmailWithTemplateAsync(emailForReceivingApplications, subject, emailTemplate);
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
+            }
         }
+
         public async Task<UserApplicationDto> CreateUserApplicationAsync(UserApplicationDto userApplication)
         {
             try
@@ -189,14 +225,17 @@ namespace API.Services.UserOfferServices
                 
                 if (companyNotifPreferences.Any())
                 {
-                    var emailTask = Task.Run(() => SendNewApplicantEmailsAsync(companyNotifPreferences, companyJobPost.Position));
+                    var emailTask = Task.Run(() => SendNewApplicantEmailsAsync(companyNotifPreferences, companyJobPost.Position, newItem.Id, companyJobPost.EmailForReceivingApplications, companyJobPost.SubmittingUserId));
                     var inAppSetting = companyNotifPreferences.FirstOrDefault(r => r.NotificationType == CompanyNotificationType.newApplicantInApp);
                     if(inAppSetting != null)
                     {
+
+                        var bosniaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time"); // Bosnian Time Zone
+                        var bosniaDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, bosniaTimeZone);
                         var notification = new Notification()
                         {
                             UserId = companyJobPost.SubmittingUserId.ToString(),
-                            CreatedAt = DateTime.UtcNow,
+                            CreatedAt = bosniaDateTime,
                             IsRead = false,
                             Link = UIBaseUrl + "company-settings/job-candidates/" + newItem.Id,
                             Message = "Kreiran je nova aplikacija za posao na vašem oglasu " + companyJobPost.Position

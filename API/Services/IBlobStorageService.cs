@@ -7,5 +7,6 @@ namespace API.Services
     {
         Task<string> UploadFileAsync(IFormFile file);
         Task<FileDto> GetFileAsync(string fileName);
+        Task<bool> RemoveFileAsync(string fileName);
     }
 }

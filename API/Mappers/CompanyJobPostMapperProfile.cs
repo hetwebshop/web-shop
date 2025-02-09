@@ -28,8 +28,7 @@ namespace API.Mappers
                 .ForMember(dest => dest.JobCategoryId, src => src.MapFrom(x => x.JobCategoryId))
                 .ForMember(dest => dest.JobTypeId, src => src.MapFrom(x => x.JobTypeId))
                 .ForMember(dest => dest.UsersThatAppliedOnJobPost, src => src.MapFrom(x => x.UserApplications.Select(r => r.SubmittingUserId).ToList()))
-                .ForMember(dest => dest.EmailForReceivingApplications, src => src.MapFrom(x => x.EmailForReceivingApplications))
-               .ForMember(dest => dest.SalaryRange, src => src.MapFrom(x => x.MinSalary != null && x.MaxSalary != null ? new[] { x.MinSalary, x.MaxSalary } : null));
+                .ForMember(dest => dest.EmailForReceivingApplications, src => src.MapFrom(x => x.EmailForReceivingApplications));
 
             this.CreateMap<CompanyJobPostDto, CompanyJobPost>()
                 //.ForMember(dest => dest.City, src => src.MapFrom(x => new City { Id = x.CityId, Name = x.City }))
@@ -44,9 +43,7 @@ namespace API.Mappers
                 .ForMember(dest => dest.EmploymentType, opt => opt.Ignore())
                 .ForMember(dest => dest.EducationLevel, opt => opt.Ignore())
                 .ForMember(dest => dest.PricingPlan, opt => opt.Ignore())
-                .ForMember(dest => dest.PricingPlan, src => src.MapFrom(x => new PricingPlanCompanies { AdActiveDays = x.AdDuration, Name = x.PricingPlanName }))
-                .ForMember(dest => dest.MaxSalary, src => src.MapFrom(x => x.SalaryRange != null && x.SalaryRange.Length > 1 ? x.SalaryRange[1] : (int?)null))
-                .ForMember(dest => dest.MinSalary, src => src.MapFrom(x => x.SalaryRange != null && x.SalaryRange.Length > 0 ? x.SalaryRange[0] : (int?)null));
+                .ForMember(dest => dest.PricingPlan, src => src.MapFrom(x => new PricingPlanCompanies { AdActiveDays = x.AdDuration, Name = x.PricingPlanName }));
 
 
             CreateMap(typeof(PagedList<>), typeof(PagedList<>)).ConvertUsing(typeof(PagedListConverter<,>));

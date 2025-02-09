@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 
 namespace API.DTOs
@@ -35,11 +36,14 @@ namespace API.DTOs
         public int? RequiredExperience { get; set; }
         public string HowToApply { get; set; }
         public string DocumentsRequired { get; set; }
-        public int[] SalaryRange { get; set; }
+        public int? MinSalary { get; set; }
+        public int? MaxSalary { get; set; }
         public List<int>? UsersThatAppliedOnJobPost { get; set; }
         public bool? CanCurrentUserApplyOnAd { get; set; } = true;
         public DateTime? RefreshDateTime { get; set; }
         public int? RefreshIntervalInDays { get; set; }
         public string? PhotoUrl { get; set; }
+        public string CompanyName { get; set; }
+        public IFormFile? Logo { get; set; }
     }
 }

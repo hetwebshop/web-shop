@@ -22,5 +22,6 @@ namespace API.Services.CompanyJobPostServices
         Task<bool> DeleteCompanyJobPostByIdAsync(int companyId, int jobPostId);
         Task<bool> CloseCompanyJobPostByIdAsync(int companyId, int jobPostId);
         Task<bool> ReactivateCompanyJobPostByIdAsync(int companyId, int jobPostId);
+        Task<bool> UpdateCompanyJobPostLogoAsync(int id, string logoUrl);
     }
 }

@@ -147,10 +147,12 @@ namespace API.Data.IUserOfferRepository
                 var pricingPlan = DataContext.PricingPlans.FirstOrDefault(r => r.Name.Equals(newUserJobPost.PricingPlan.Name) && r.AdActiveDays == newUserJobPost.PricingPlan.AdActiveDays);
                 if (pricingPlan == null)
                     return null;
+                var bosniaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time"); // Bosnian Time Zone
+                var bosniaDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, bosniaTimeZone);
                 newUserJobPost.PricingPlan = pricingPlan;
-                newUserJobPost.AdStartDate = DateTime.UtcNow;
-                newUserJobPost.AdEndDate = DateTime.UtcNow.AddDays(pricingPlan.AdActiveDays);
-                newUserJobPost.RefreshDateTime = DateTime.UtcNow;
+                newUserJobPost.AdStartDate = bosniaDateTime;
+                newUserJobPost.AdEndDate = bosniaDateTime.AddDays(pricingPlan.AdActiveDays);
+                newUserJobPost.RefreshDateTime = bosniaDateTime;
                 newUserJobPost.RefreshIntervalInDays = pricingPlan.Name == "Premium" ? 3 : pricingPlan.Name == "Plus" ? 7 : null;
                 await DataContext.UserJobPosts.AddAsync(newUserJobPost);
                 var user = DataContext.Users.First(r => r.Id == newUserJobPost.SubmittingUserId);

@@ -34,6 +34,12 @@ namespace API.Services
             return blobClient.Uri.ToString();
         }
 
+        public async Task<bool> RemoveFileAsync(string fileName)
+        {
+            var blobClient = _containerClient.GetBlobClient(fileName);
+            return await blobClient.DeleteIfExistsAsync();
+        }
+
         public async Task<FileDto> GetFileAsync(string fileName)
         {
             var blobClient = _containerClient.GetBlobClient(fileName);

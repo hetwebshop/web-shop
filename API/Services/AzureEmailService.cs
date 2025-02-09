@@ -35,5 +35,19 @@ namespace API.Services
                 throw;
             }
         }
+
+        public async Task SendEmailWithTemplateAsync(string recipientEmail, string subject, string body)
+        {
+            try
+            {
+                var emailMessage = new EmailMessage(_senderEmail, recipientEmail, new EmailContent(subject) { Html = body });
+                var response = await _emailClient.SendAsync(WaitUntil.Completed, emailMessage);
+            }
+            catch (RequestFailedException ex)
+            {
+                Console.WriteLine($"Error sending email: {ex.Message}");
+                throw;
+            }
+        }
     }
 }

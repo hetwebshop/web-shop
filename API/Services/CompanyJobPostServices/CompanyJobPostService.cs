@@ -5,6 +5,7 @@ using API.DTOs;
 using API.Entities;
 using API.Entities.CompanyJobPost;
 using API.Entities.Notification;
+using API.Helpers;
 using API.Mappers;
 using API.PaginationEntities;
 using AutoMapper;
@@ -101,7 +102,18 @@ namespace API.Services.CompanyJobPostServices
             {
                 if (user != null)
                 {
-                    await _emailService.SendEmailAsync(user.Email, "Novi oglas koji bi vas mogao zanimati", $"Kreiran je novi oglas za posao u kategoriji: {newItem.JobCategoryId}.");
+                    string adUrl = _configuration.GetSection("UIBaseUrl").Value + $"company-ad-details/{newItem.Id}";
+                    string messageBody = $@"
+                    <p style='color: #66023C;'>Dragi <strong>{user.Email}</strong>,</p>
+                    <p style='color: #66023C;'>Kreiran je novi oglas za posao u kategoriji: <strong>{newItem.JobCategory?.Name}</strong>.</p>
+                    <p style='color: #66023C;'>Pogledajte detalje i prijavite se za ovu priliku što je prije moguće.</p>
+                    <p style='text-align: center;'>
+                        <a href='{adUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Pogledajte Oglas</a>
+                    </p>";
+                    var subject = "Novi oglas koji bi vas mogao zanimati";
+
+                    var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, _configuration);
+                    await _emailService.SendEmailWithTemplateAsync(user.Email, subject, emailTemplate);
                 }
             }).ToList();
 
@@ -127,6 +139,19 @@ namespace API.Services.CompanyJobPostServices
             {
                 var newItem = await companyJobPostRepository.UpdateCompensationAndWorkEnvAsync(companyJobPostDto.ToEntity());
                 return newItem.ToDto();
+            }
+            catch (AutoMapperMappingException ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<bool> UpdateCompanyJobPostLogoAsync(int id, string logoUrl)
+        {
+            try
+            {
+                var isUpdated = await companyJobPostRepository.UpdateCompanyJobPostLogoAsync(id, logoUrl);
+                return isUpdated;
             }
             catch (AutoMapperMappingException ex)
             {

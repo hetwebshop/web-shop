@@ -25,5 +25,15 @@ namespace API.Services
 
             var response = await client.SendEmailAsync(msg);
         }
+
+        public async Task SendEmailWithTemplateAsync(string recipientEmail, string subject, string body)
+        {
+            var client = new SendGridClient(_sendGridApiKey);
+            var from = new EmailAddress(_senderEmail, "HET");
+            var to = new EmailAddress(recipientEmail);
+            var msg = MailHelper.CreateSingleEmail(from, to, subject, body, htmlContent: body);
+
+            var response = await client.SendEmailAsync(msg);
+        }
     }
 }

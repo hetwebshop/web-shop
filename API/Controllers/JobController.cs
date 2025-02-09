@@ -2,6 +2,7 @@
 using API.Data.IUserOfferRepository;
 using API.DTOs;
 using API.Entities.JobPost;
+using API.Entities.Notification;
 using API.Extensions;
 using API.Helpers;
 using API.Mappers;
@@ -10,6 +11,8 @@ using API.Services;
 using API.Services.UserOfferServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -29,13 +32,21 @@ namespace API.Controllers
         private readonly IUnitOfWork _uow;
         private readonly IBlobStorageService _blobStorageService;
         private readonly IUserJobPostRepository _userJobPostRepository;
+        private readonly DataContext _dbContext;
+        private readonly IEmailService emailService;
+        private readonly string UIBaseUrl;
+        private readonly IConfiguration _configuration;
 
-        public JobController(IUserJobPostService jobPostService, IUnitOfWork uow, IBlobStorageService blobStorageService, IUserJobPostRepository userJobPostRepository)
+        public JobController(IUserJobPostService jobPostService, IUnitOfWork uow, IBlobStorageService blobStorageService, IUserJobPostRepository userJobPostRepository, DataContext dbContext, IEmailService emailService, IConfiguration configuration)
         {
             _jobPostService = jobPostService;
             _uow = uow;
             _blobStorageService = blobStorageService;
             _userJobPostRepository = userJobPostRepository;
+            _dbContext = dbContext;
+            this.emailService = emailService;
+            UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
+            _configuration = configuration;
         }
 
         [HttpPost("ads")]
@@ -44,6 +55,24 @@ namespace API.Controllers
         {
             var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
             var pagedResponse = jobPosts.ToPagedResponse();
+            return Ok(pagedResponse);
+        }
+
+        [HttpPost("ads-private")]
+        public async Task<IActionResult> GetAdsPrivate([FromBody] AdsPaginationParameters adsParameters)
+        {
+            var userId = HttpContext.User.GetUserId();
+            if (userId == null)
+                return Unauthorized("Nemate pravo pristupa!");
+            var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
+            var pagedResponse = jobPosts.ToPagedResponse();
+            var contactedAdsByCurrentUser = await _dbContext.ContactUserRequests.Where(r => r.FromUserId == userId).ToListAsync();
+            var contactedAdsByCurrentUserIds = contactedAdsByCurrentUser.Select(r => r.Id);
+            foreach(var item in pagedResponse.Items)
+            {
+                if (contactedAdsByCurrentUserIds.Contains(item.Id) || item.SubmittingUserId == userId)
+                    item.CanCurrentUserApplyOnAd = false;
+            }
             return Ok(pagedResponse);
         }
 
@@ -64,6 +93,21 @@ namespace API.Controllers
             var userJob = await _jobPostService.GetUserJobPostByIdAsync(id);
             if(userJob.IsDeleted || userJob.JobPostStatusId != (int)JobPostStatus.Active || userJob.AdEndDate < DateTime.Now)
                 return NotFound("Oglas je obrisan, zatvoren, ili je istekao.");
+            return Ok(userJob);
+        }
+
+        [HttpGet("user-job-private/{id}")]
+        public async Task<IActionResult> GetUserJobByIdPrivate(int id)
+        {
+            var userId = HttpContext.User.GetUserId();
+            if (userId == null)
+                return Unauthorized("Nemate pravo pristupa!");
+            var userJob = await _jobPostService.GetUserJobPostByIdAsync(id);
+            if (userJob.IsDeleted || userJob.JobPostStatusId != (int)JobPostStatus.Active || userJob.AdEndDate < DateTime.Now)
+                return NotFound("Oglas je obrisan, zatvoren, ili je istekao.");
+            var contactedAdsByCurrentUserIds = await _dbContext.ContactUserRequests.Where(r => r.FromUserId == userId).Select(r => r.FromUserId).ToListAsync();
+            if (contactedAdsByCurrentUserIds.Contains(userJob.Id) || userJob.SubmittingUserId == userId)
+                userJob.CanCurrentUserApplyOnAd = false;
             return Ok(userJob);
         }
 
@@ -439,6 +483,114 @@ namespace API.Controllers
             var result = await _userJobPostRepository.DeleteUserAdFileAsync(userAdId);
             //IMPLEMENTE DELETE FILE FROM BLOB
             return result.ToDto();
+        }
+
+        [HttpPost("contactuser/{userAdId}")]
+        public async Task<IActionResult> SendContactMessage(int userAdId, [FromBody] ContactUserRequestDto request)
+        {
+            var userId = HttpContext.User.GetUserId();
+            if(userId == null)
+                return BadRequest(new { message = "Korisnik je obavezan!" });
+            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Message))
+            {
+                return BadRequest(new { message = "Email i poruka su obavezni!" });
+            }
+
+            var userApplication = await _jobPostService.GetUserJobPostByIdAsync(userAdId);
+            var user = await _uow.UserRepository.GetUserByIdAsync(userId);
+            if (user == null || userApplication == null)
+                return BadRequest(new { message = "Korisnik nije pronadjen!" });
+
+            var bosniaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time"); // Bosnian Time Zone
+            var bosniaDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, bosniaTimeZone);
+
+            var contactUserRequest = new ContactUserRequest()
+            {
+                Email = request.Email,
+                Message = request.Message,
+                Phone = request.Phone,
+                Subject = request.Subject,
+                UserJobPostId = userAdId,
+                FromUserId = userId,
+                CreatedAt = bosniaDateTime,
+                CompanyName = user.Company?.CompanyName ?? "Ponuda od drugog korisnika",
+                ToUserId = userApplication.SubmittingUserId
+            };
+
+            await _dbContext.ContactUserRequests.AddAsync(contactUserRequest);
+            await _dbContext.SaveChangesAsync();
+
+            var notification = new Notification()
+            {
+                UserId = userApplication.SubmittingUserId.ToString(),
+                CreatedAt = bosniaDateTime,
+                IsRead = false,
+                Link = UIBaseUrl + $"user-settings/job-offers/{contactUserRequest.Id}",
+                Message = "Nova poslovna prilika! Poslodavac Vas želi kontaktirati"
+            };
+            _dbContext.Notifications.Add(notification);
+
+            await _dbContext.SaveChangesAsync();
+
+            await SendNewContactUserEmailAsync(userApplication, contactUserRequest.Id, request.Message, request.Subject, request.Phone, request.Email);
+
+            return Ok(new { message = "Poruka je uspešno poslana!" });
+        }
+
+        [HttpGet("userjoboffers")]
+        public async Task<IActionResult> GetAllUserJobOffers()
+        {
+            var currentUserId = HttpContext.User.GetUserId();
+            if (currentUserId == null)
+                return Unauthorized("Nemate pravo pristupa");
+            var userJobOffers = await _dbContext.ContactUserRequests.Where(r => r.ToUserId == currentUserId).Include(r => r.UserJobPost).OrderByDescending(r => r.CreatedAt).ToListAsync();
+            var userJobOffersTableData = new List<UserJobOffersTableData>();
+            foreach (var jobOffer in userJobOffers)
+            {
+                var tableData = new UserJobOffersTableData()
+                {
+                    JobPosition = jobOffer.UserJobPost.Position,
+                    CreatedAt = jobOffer.CreatedAt,
+                    CompanyName = jobOffer.CompanyName,
+                    UserJobPostId = jobOffer.UserJobPostId,
+                    Phone = jobOffer.Phone,
+                    Email = jobOffer.Email,
+                    Message = jobOffer.Message,
+                    Subject = jobOffer.Subject,
+                    Id = jobOffer.Id
+                };
+                userJobOffersTableData.Add(tableData);
+            }
+            return Ok(userJobOffersTableData);
+        }
+
+        private async Task SendNewContactUserEmailAsync(UserJobPostDto userAd, int contactUserId, string message, string requestSubject, string phone, string email)
+        {
+            if (userAd != null)
+            {
+                var applicationUrl = UIBaseUrl + $"user-settings/job-offers/{contactUserId}";
+
+                string messageBody = $@"
+            <h4 style='color: black;'>Naslov: {requestSubject}</h4>
+            <p style='color: #66023C;'>Poruka: {message}</p>
+            <p style='color: #66023C;'>Email poslodavca: {email}</p>
+            <p style='color: #66023C;'>Broj telefona poslodavca: {phone}</p>
+            <p style='text-align: center;'>
+                <a href='{applicationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Pogledajte oglas</a>
+            </p>";
+
+                var subject = "Poslovni oglasi - Nova poslovna prilika! Poslodavac Vas želi kontaktirati";
+                var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, _configuration);
+
+                try
+                {
+                    await emailService.SendEmailWithTemplateAsync(userAd.ApplicantEmail, subject, emailTemplate);
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
+            }
         }
 
         private UserJobPostDto ConvertUserAdToUserAdDto(UserJobPost userJobPost)

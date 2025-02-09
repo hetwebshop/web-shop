@@ -28,5 +28,6 @@ namespace API.Data.ICompanyJobPostRepository
         Task<List<EducationLevel>> GetEducationLevels();
         Task<List<EmploymentStatus>> GetEmploymentStatusesAsync();
         Task<List<CompanyJobPost>> GetCompanyActiveAdsAsync(int companyId);
+        Task<bool> UpdateCompanyJobPostLogoAsync(int id, string logoUrl);
     }
 }

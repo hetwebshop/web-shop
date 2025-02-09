@@ -55,5 +55,7 @@ namespace API.DTOs
         public List<ApplicantPreviousCompaniesDto> ApplicantPreviousCompanies { get; set; }
         public DateTime? RefreshDateTime { get; set; }
         public int? RefreshIntervalInDays { get; set; }
+
+        public bool? CanCurrentUserApplyOnAd { get; set; }
     }
 }

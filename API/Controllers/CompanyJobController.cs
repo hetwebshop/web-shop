@@ -5,8 +5,10 @@ using API.Extensions;
 using API.Helpers;
 using API.Mappers;
 using API.PaginationEntities;
+using API.Services;
 using API.Services.CompanyJobPostServices;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -24,14 +26,16 @@ namespace API.Controllers
         private readonly ICompanyJobPostRepository _jobPostRepository;
         private readonly IUserApplicationsRepository _userApplicationsRepository;
         private readonly DataContext _dbContext;
+        private readonly IBlobStorageService _blobStorageService;
 
-        public CompanyJobController(ICompanyJobPostService jobPostService, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IUserApplicationsRepository userApplicationsRepository, DataContext dbContext)
+        public CompanyJobController(ICompanyJobPostService jobPostService, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IUserApplicationsRepository userApplicationsRepository, DataContext dbContext, IBlobStorageService blobStorageService)
         {
             _jobPostService = jobPostService;
             _uow = uow;
             _jobPostRepository = companyJobPostRepository;
             _userApplicationsRepository = userApplicationsRepository;
             _dbContext = dbContext;
+            _blobStorageService = blobStorageService;
         }
 
 
@@ -126,6 +130,7 @@ namespace API.Controllers
         }
 
         [HttpGet("company-job-public/{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetCompanyJobByIdPublic(int id)
         {
             var companyJob = await _jobPostService.GetCompanyJobPostByIdAsync(id);
@@ -205,16 +210,71 @@ namespace API.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateCompanyJobPost([FromBody] CompanyJobPostDto companyJobPostDto)
+        public async Task<IActionResult> CreateCompanyJobPost([FromForm] CompanyJobPostDto companyJobPostDto)
         {
             var userId = HttpContext.User.GetUserId();
             if (userId == null)
                 return Forbid("Niste autorizovani za ovu funkcionalnost.");
-            var user = await _uow.UserRepository.GetUserByIdAsync(userId);
             companyJobPostDto.SubmittingUserId = userId;
-            companyJobPostDto.PhotoUrl = user.PhotoUrl;
+            if(companyJobPostDto.Logo != null)
+            {
+                var fileUrl = await _blobStorageService.UploadFileAsync(companyJobPostDto.Logo);
+                var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
+                companyJobPostDto.PhotoUrl = decodedFileUrl;
+            }
             var newItem = await _jobPostService.CreateCompanyJobPostAsync(companyJobPostDto);
             return Ok(newItem);
+        }
+
+        [HttpPost("uploadLogo/{id}")]
+        public async Task<IActionResult> UploadAdLogo(int id, IFormFile photo)
+        {
+            var userId = HttpContext.User.GetUserId();
+            var user = await _uow.UserRepository.GetUserByIdAsync(userId);
+            if (user == null || user.CompanyId == null)
+                return Unauthorized("You do not belong to the current company.");
+            var companyJob = await _jobPostService.GetCompanyJobPostByIdAsync(id);
+            var valid = await CheckDoesAdBelongsToUser(companyJob, userId);
+            if (!valid)
+                return Unauthorized("Nemate pravo pristupa ovom oglasu");
+            try
+            {
+                var existingLogoUrl = companyJob.PhotoUrl;
+                //if(existingLogoUrl != null)
+                //    await _blobStorageService.RemoveFileAsync(existingLogoUrl);
+                var fileUrl = await _blobStorageService.UploadFileAsync(photo);
+                var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
+                companyJob.PhotoUrl = decodedFileUrl;
+                var updateLogo = await _jobPostService.UpdateCompanyJobPostLogoAsync(id, decodedFileUrl);
+                return Ok(companyJob);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPost("removeLogo/{id}")]
+        public async Task<IActionResult> RemoveAdLogo(int id)
+        {
+            var userId = HttpContext.User.GetUserId();
+            var user = await _uow.UserRepository.GetUserByIdAsync(userId);
+            if (user == null || user.CompanyId == null)
+                return Unauthorized("You do not belong to the current company.");
+            var companyJob = await _jobPostService.GetCompanyJobPostByIdAsync(id);
+            var valid = await CheckDoesAdBelongsToUser(companyJob, userId);
+            if (!valid)
+                return Unauthorized("Nemate pravo pristupa ovom oglasu");
+            try
+            {
+                companyJob.PhotoUrl = null;
+                var updateLogo = await _jobPostService.UpdateCompanyJobPostLogoAsync(id, null);
+                return Ok(companyJob);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpPut("update/{id}")]
@@ -245,6 +305,7 @@ namespace API.Controllers
             companyJob.JobTypeId = companyJobPostDto.JobTypeId;
             companyJob.EmailForReceivingApplications = companyJobPostDto.EmailForReceivingApplications;
             companyJob.Position = companyJobPostDto.Position;
+            companyJob.CompanyName = companyJobPostDto.CompanyName;
             var updatedItem = await _jobPostService.UpdateCompanyJobPostAsync(companyJob);
             return Ok(updatedItem);
         }
@@ -260,7 +321,8 @@ namespace API.Controllers
             var valid = await CheckDoesAdBelongsToUser(companyJob, currentUserId);
             if (!valid)
                 return Unauthorized("Nemate pravo pristupa ovom oglasu");
-            companyJob.SalaryRange = companyJobPostDto.SalaryRange;
+            companyJob.MinSalary = companyJobPostDto.MinSalary;
+            companyJob.MaxSalary = companyJobPostDto.MaxSalary;
             companyJob.Benefits = companyJobPostDto.Benefits;
             companyJob.WorkEnvironmentDescription = companyJobPostDto.WorkEnvironmentDescription;
             var updatedItem = await _jobPostService.UpdateCompensationAndWorkEnvAsync(companyJob);

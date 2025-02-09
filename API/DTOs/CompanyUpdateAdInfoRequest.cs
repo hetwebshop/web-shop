@@ -8,5 +8,6 @@
         public int JobTypeId { get; set; }
         public string JobDescription { get; set; }
         public string EmailForReceivingApplications { get; set; }
+        public string CompanyName { get; set; }
     }
 }

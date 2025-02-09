@@ -28,6 +28,7 @@ namespace API.Data.ICompanyJobPostRepository
                 Include(r => r.JobPostStatus).
                 Include(r => r.JobType).
                 Include(r => r.User).
+                ThenInclude(r => r.Company).
                 Include(r => r.PricingPlan).
                 Include(r => r.EmploymentType).
                 Include(r => r.UserApplications).
@@ -71,6 +72,7 @@ namespace API.Data.ICompanyJobPostRepository
                 Include(r => r.JobPostStatus).
                 Include(r => r.JobType).
                 Include(r => r.User).
+                ThenInclude(r => r.Company).
                 Include(r => r.PricingPlan).
                 Include(r => r.EducationLevel).
                 Include(r => r.UserApplications).
@@ -99,6 +101,7 @@ namespace API.Data.ICompanyJobPostRepository
                 Include(r => r.JobPostStatus).
                 Include(r => r.JobType).
                 Include(r => r.User).
+                ThenInclude(r => r.Company).
                 Include(r => r.PricingPlan).
                 Include(r => r.EducationLevel).
                 Include(r => r.UserApplications).
@@ -135,10 +138,12 @@ namespace API.Data.ICompanyJobPostRepository
                 var pricingPlan = DataContext.PricingPlanCompanies.FirstOrDefault(r => r.Name.Equals(newCompanyJobPost.PricingPlan.Name) && r.AdActiveDays == newCompanyJobPost.PricingPlan.AdActiveDays);
                 if (pricingPlan == null)
                     return null;
+                var bosniaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time"); // Bosnian Time Zone
+                var bosniaDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, bosniaTimeZone);
                 newCompanyJobPost.PricingPlan = pricingPlan;
-                newCompanyJobPost.AdStartDate = DateTime.UtcNow;
-                newCompanyJobPost.AdEndDate = DateTime.UtcNow.AddDays(pricingPlan.AdActiveDays);
-                newCompanyJobPost.RefreshDateTime = DateTime.UtcNow;
+                newCompanyJobPost.AdStartDate = bosniaDateTime;
+                newCompanyJobPost.AdEndDate = bosniaDateTime.AddDays(pricingPlan.AdActiveDays);
+                newCompanyJobPost.RefreshDateTime = bosniaDateTime;
                 newCompanyJobPost.RefreshIntervalInDays = pricingPlan.Name == "Premium" ? 3 : pricingPlan.Name == "Plus" ? 7 : null; 
                 await DataContext.CompanyJobPosts.AddAsync(newCompanyJobPost);
                 var user = DataContext.Users.First(r => r.Id == newCompanyJobPost.SubmittingUserId);
@@ -168,6 +173,7 @@ namespace API.Data.ICompanyJobPostRepository
                 existingCompanyJobPost.Position = updatedCompanyJobPost.Position;
                 existingCompanyJobPost.AdName = updatedCompanyJobPost.AdName;
                 existingCompanyJobPost.EmailForReceivingApplications = updatedCompanyJobPost.EmailForReceivingApplications;
+                existingCompanyJobPost.CompanyName = updatedCompanyJobPost.CompanyName;
 
                 await DataContext.SaveChangesAsync();
             }
@@ -195,6 +201,20 @@ namespace API.Data.ICompanyJobPostRepository
             var updatedItem = await GetCompanyJobPostBaseQuery().Where(r => r.Id == updatedCompanyJobPost.Id).FirstAsync();
 
             return updatedItem;
+        }
+
+        public async Task<bool> UpdateCompanyJobPostLogoAsync(int id, string logoUrl)
+        {
+            var existingCompanyJobPost = await DataContext.CompanyJobPosts.FindAsync(id);
+
+            if (existingCompanyJobPost != null)
+            {
+                existingCompanyJobPost.PhotoUrl = logoUrl;
+
+                await DataContext.SaveChangesAsync();
+                return true;
+            }
+            return false;
         }
 
         public async Task<CompanyJobPost> UpdateQualificationsAndExperienceAsync(CompanyJobPost updatedCompanyJobPost)

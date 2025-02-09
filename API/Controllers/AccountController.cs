@@ -95,9 +95,19 @@ namespace API.Controllers
             }
 
             // Slanje verifikacionog emaila (ovdje koristite svoju email uslugu)
-            await _emailService.SendEmailAsync(registerDto.Email,
-                "Verifikujte svoju email adresu",
-                $"Molimo potvrdite svoj email klikom na sljedeći link: <a href='{verificationUrl}'>Verifikuj Email</a>");
+            string messageBody = $@"
+            <p style='color: #66023C;'>Hvala vam što ste se registrirali na našu platformu. Molimo vas da potvrdite vašu email adresu kako biste aktivirali svoj račun.</p>
+            <p style='text-align: center;'>
+                <a href='{verificationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Kliknite ovdje</a>
+            </p>";
+            string subject = "Verifikujte svoju email adresu";
+            string emailHtml = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, configuration);
+
+            await _emailService.SendEmailWithTemplateAsync(
+                user.Email,
+                subject,
+                emailHtml
+            );
 
             return new UserDto
             {
@@ -107,6 +117,28 @@ namespace API.Controllers
                 UserName = user.UserName,
                 Email = user.Email
             };
+        }
+
+        [HttpGet("test-email-template")]
+        [AllowAnonymous]
+        public async Task<IActionResult> TestEmailTemplate()
+        {
+            string subject = "Verifikujte svoju email adresu";
+            string verificationUrl = "http://localhost:3000/";
+            string messageBody = $@"
+            <p style='color: #66023C;'>Hvala vam što ste se registrirali na našu platformu. Molimo vas da potvrdite vašu email adresu kako biste aktivirali svoj račun.</p>
+            <p style='text-align: center;'>
+                <a href='{verificationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Kliknite ovdje</a>
+            </p>";
+            string emailHtml = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, configuration);
+
+            // Send the email
+            await _emailService.SendEmailWithTemplateAsync(
+                "ai.jobify@gmail.com",
+                subject,
+                emailHtml
+            );
+            return Ok();
         }
 
 
@@ -194,10 +226,22 @@ namespace API.Controllers
 
             try
             {
-                await _emailService.SendEmailAsync(registerDto.Email,
-                                   "Registracija uspješna - čekate verifikaciju od našeg admina",
-                                   $"Dragi {user.Company.CompanyName},\n\nVaš korisnički račun za kompaniju je uspješno registrovan, ali čeka odobrenje od strane administratora.\n\nHvala što ste se registrovali!");
+                string messageBody = $@"
+                <p style='color: #66023C;'>Dragi <strong>{user.Company.CompanyName}</strong>,</p>
+                <p style='color: #66023C;'>Hvala što ste se registrovali na našoj platformi! Vaš korisnički račun je uspješno kreiran, međutim, još uvijek čeka odobrenje od strane administratora. Nakon verifikacije, moći ćete pristupiti svim funkcijama i resursima.</p>
+                <p style='color: #66023C;'>Vaš korisnički račun će biti aktiviran čim administrator izvrši verifikaciju.</p>
+                <p style='color: #66023C;'>Zahvaljujemo na strpljenju, i radujemo se što ćete postati dio naše zajednice!</p>";
 
+                string subject = "Registracija uspješna - Čekate Verifikaciju";
+                string emailHtml = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, configuration);
+
+                await _emailService.SendEmailWithTemplateAsync(
+                    user.Email,
+                    subject,
+                    emailHtml
+                );
+                //Notify admin
+                await _emailService.SendEmailAsync(configuration.GetSection("AdminRecipientEmailAddress").Value, "Registracija kompanije - novi zahtjev", $"Dobili ste novi zahtjev za registracijom od kompanije: {registerDto.Email}, {registerDto.CompanyName}");
             }
             catch (Exception ex)
             {
@@ -277,6 +321,8 @@ namespace API.Controllers
                 return BadRequest("All required fields must be provided: FirstName, LastName, Email, and Phone.");
             }
 
+            var bosniaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time"); // Bosnian Time Zone
+            var bosniaDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, bosniaTimeZone);
             var demoMeeting = new DemoMeetingRequest
             {
                 FirstName = req.FirstName,
@@ -285,7 +331,7 @@ namespace API.Controllers
                 Email = req.Email,
                 Message = req.Message,
                 Company = req.Company,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = bosniaDateTime
             };
 
             try
@@ -783,9 +829,15 @@ namespace API.Controllers
             var encodedToken = Uri.EscapeDataString(token);
             var encodedEmail = Uri.EscapeDataString(user.Email);
             var resetLink = $"http://localhost:4200/reset-password?email={encodedEmail}&token={encodedToken}";
-            var emailBody = $"<p>Za promjenu lozinke molimo vas da otvorite sljedeći link:</p><a href='{resetLink}'>Promjena lozinke</a>";
+            string emailBody = $@"
+            <p style='color: #66023C;'>Za promjenu lozinke, molimo vas da otvorite sljedeći link:</p>
+            <p style='text-align: center;'>
+                <a href='{resetLink}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Promjena lozinke</a>
+            </p>";
+            var subject = "Zahtjev za promjenom lozinke";
 
-            await _emailService.SendEmailAsync(request.Email, "Zahtjev za promjenom lozinke", emailBody);
+            var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate(subject, emailBody, configuration);
+            await _emailService.SendEmailWithTemplateAsync(request.Email, subject, emailTemplate);
 
             return Ok();
         }
