@@ -56,6 +56,6 @@ namespace API.DTOs
         public DateTime? RefreshDateTime { get; set; }
         public int? RefreshIntervalInDays { get; set; }
 
-        public bool? CanCurrentUserApplyOnAd { get; set; }
+        public bool? CanCurrentUserApplyOnAd { get; set; } = true;
     }
 }

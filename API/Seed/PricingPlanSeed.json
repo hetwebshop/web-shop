@@ -3,7 +3,7 @@
     "Id": 1,
     "Name": "Base",
     "AdActiveDays": 7,
-    "PriceInCredits": 10,
+    "PriceInCredits": 5,
     "Description": "Osnovni paket sa minimalnim mogućnostima.",
     "Label": "Bazni",
     "Priority": 9
@@ -12,7 +12,7 @@
     "Id": 2,
     "Name": "Base",
     "AdActiveDays": 15,
-    "PriceInCredits": 18,
+    "PriceInCredits": 8,
     "Description": "Osnovni paket sa minimalnim mogućnostima.",
     "Label": "Bazni",
     "Priority": 8
@@ -21,7 +21,7 @@
     "Id": 3,
     "Name": "Base",
     "AdActiveDays": 30,
-    "PriceInCredits": 30,
+    "PriceInCredits": 10,
     "Description": "Osnovni paket sa minimalnim mogućnostima.",
     "Label": "Bazni",
     "Priority": 7
@@ -30,7 +30,7 @@
     "Id": 4,
     "Name": "Plus",
     "AdActiveDays": 7,
-    "PriceInCredits": 15,
+    "PriceInCredits": 9,
     "Description": "Paket sa dodatnim funkcionalnostima.",
     "Label": "Plus",
     "Priority": 6
@@ -39,7 +39,7 @@
     "Id": 5,
     "Name": "Plus",
     "AdActiveDays": 15,
-    "PriceInCredits": 25,
+    "PriceInCredits": 14,
     "Description": "Paket sa dodatnim funkcionalnostima.",
     "Label": "Plus",
     "Priority": 5
@@ -48,7 +48,7 @@
     "Id": 6,
     "Name": "Plus",
     "AdActiveDays": 30,
-    "PriceInCredits": 40,
+    "PriceInCredits": 17,
     "Description": "Paket sa dodatnim funkcionalnostima.",
     "Label": "Plus",
     "Priority": 4
@@ -57,7 +57,7 @@
     "Id": 7,
     "Name": "Premium",
     "AdActiveDays": 7,
-    "PriceInCredits": 20,
+    "PriceInCredits": 14,
     "Description": "Sveobuhvatan paket sa svim funkcijama.",
     "Label": "Premium",
     "Priority": 3
@@ -66,7 +66,7 @@
     "Id": 8,
     "Name": "Premium",
     "AdActiveDays": 15,
-    "PriceInCredits": 35,
+    "PriceInCredits": 22,
     "Description": "Sveobuhvatan paket sa svim funkcijama.",
     "Label": "Premium",
     "Priority": 2
@@ -75,7 +75,7 @@
     "Id": 9,
     "Name": "Premium",
     "AdActiveDays": 30,
-    "PriceInCredits": 60,
+    "PriceInCredits": 27,
     "Description": "Sveobuhvatan paket sa svim funkcijama.",
     "Label": "Premium",
     "Priority": 1

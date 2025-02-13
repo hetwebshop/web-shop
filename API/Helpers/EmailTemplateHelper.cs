@@ -6,7 +6,7 @@ namespace API.Helpers
     {
         public static string GenerateEmailTemplate(string subject, string htmlMessageBody, IConfiguration configuration)
         {
-            string companyName = "jobify.ai";
+            string companyName = "POSLOVNIOGLASI";
             //string companyLogoUrl = "https://yourcompany.com/logo.png";
             string companyWebsite =  configuration.GetSection("UIBaseUrl").Value;
             string supportEmail = configuration.GetSection("SupportEmail").Value;
