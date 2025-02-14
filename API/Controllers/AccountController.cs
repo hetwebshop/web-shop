@@ -321,8 +321,6 @@ namespace API.Controllers
                 return BadRequest("All required fields must be provided: FirstName, LastName, Email, and Phone.");
             }
 
-            var bosniaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time"); // Bosnian Time Zone
-            var bosniaDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, bosniaTimeZone);
             var demoMeeting = new DemoMeetingRequest
             {
                 FirstName = req.FirstName,
@@ -331,7 +329,7 @@ namespace API.Controllers
                 Email = req.Email,
                 Message = req.Message,
                 Company = req.Company,
-                CreatedAt = bosniaDateTime
+                CreatedAt = DateTime.UtcNow
             };
 
             try

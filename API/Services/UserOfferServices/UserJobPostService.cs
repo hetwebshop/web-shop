@@ -84,12 +84,10 @@ namespace API.Services.UserOfferServices
                 {
                     if(companiesSetting.NotificationType == Entities.Notification.CompanyNotificationType.newInterestingUserAdInApp && companiesSetting.IsEnabled)
                     {
-                        var bosniaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time"); // Bosnian Time Zone
-                        var bosniaDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, bosniaTimeZone);
                         var notification = new Notification()
                         {
                             UserId = companiesSetting.UserId.ToString(),
-                            CreatedAt = bosniaDateTime,
+                            CreatedAt = DateTime.UtcNow,
                             IsRead = false,
                             Link = UIBaseUrl + "ad-details/" + newItem.Id,
                             Message = "Kreiran je novi oglas za posao koji bi vam mogao biti interesantan"
@@ -229,13 +227,10 @@ namespace API.Services.UserOfferServices
                     var inAppSetting = companyNotifPreferences.FirstOrDefault(r => r.NotificationType == CompanyNotificationType.newApplicantInApp);
                     if(inAppSetting != null)
                     {
-
-                        var bosniaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time"); // Bosnian Time Zone
-                        var bosniaDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, bosniaTimeZone);
                         var notification = new Notification()
                         {
                             UserId = companyJobPost.SubmittingUserId.ToString(),
-                            CreatedAt = bosniaDateTime,
+                            CreatedAt = DateTime.UtcNow,
                             IsRead = false,
                             Link = UIBaseUrl + "company-settings/job-candidates/" + newItem.Id,
                             Message = "Kreiran je nova aplikacija za posao na vašem oglasu " + companyJobPost.Position

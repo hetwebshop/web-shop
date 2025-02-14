@@ -51,6 +51,7 @@ namespace API.Controllers
         [HttpPost("adsprivate")]
         public async Task<IActionResult> GetAds([FromBody] AdsPaginationParameters adsParameters)
         {
+            adsParameters.adStatus = JobPostStatus.Active;
             var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
             var pagedResponse = jobPosts.ToPagedResponse();
             var currentUserId = HttpContext.User.GetUserId();
@@ -71,6 +72,7 @@ namespace API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetAdsPublic([FromBody] AdsPaginationParameters adsParameters)
         {
+            adsParameters.adStatus = JobPostStatus.Active;
             var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
             var pagedResponse = jobPosts.ToPagedResponse();
             return Ok(pagedResponse);

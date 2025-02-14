@@ -53,6 +53,7 @@ namespace API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetAds([FromBody] AdsPaginationParameters adsParameters)
         {
+            adsParameters.adStatus = JobPostStatus.Active;
             var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
             var pagedResponse = jobPosts.ToPagedResponse();
             return Ok(pagedResponse);
@@ -64,6 +65,7 @@ namespace API.Controllers
             var userId = HttpContext.User.GetUserId();
             if (userId == null)
                 return Unauthorized("Nemate pravo pristupa!");
+            adsParameters.adStatus = JobPostStatus.Active;
             var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
             var pagedResponse = jobPosts.ToPagedResponse();
             var contactedAdsByCurrentUser = await _dbContext.ContactUserRequests.Where(r => r.FromUserId == userId).ToListAsync();
@@ -501,9 +503,7 @@ namespace API.Controllers
             if (user == null || userApplication == null)
                 return BadRequest(new { message = "Korisnik nije pronadjen!" });
 
-            var bosniaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time"); // Bosnian Time Zone
-            var bosniaDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, bosniaTimeZone);
-
+            var now = DateTime.UtcNow;
             var contactUserRequest = new ContactUserRequest()
             {
                 Email = request.Email,
@@ -512,7 +512,7 @@ namespace API.Controllers
                 Subject = request.Subject,
                 UserJobPostId = userAdId,
                 FromUserId = userId,
-                CreatedAt = bosniaDateTime,
+                CreatedAt = now,
                 CompanyName = user.Company?.CompanyName ?? "Ponuda od drugog korisnika",
                 ToUserId = userApplication.SubmittingUserId
             };
@@ -523,7 +523,7 @@ namespace API.Controllers
             var notification = new Notification()
             {
                 UserId = userApplication.SubmittingUserId.ToString(),
-                CreatedAt = bosniaDateTime,
+                CreatedAt = now,
                 IsRead = false,
                 Link = UIBaseUrl + $"user-settings/job-offers/{contactUserRequest.Id}",
                 Message = "Nova poslovna prilika! Poslodavac Vas želi kontaktirati"

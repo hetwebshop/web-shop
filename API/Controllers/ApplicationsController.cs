@@ -117,16 +117,7 @@ namespace API.Controllers
             if (user.Id != userApplication.CompanyJobPost.SubmittingUserId)
                 return Forbid("Nemate pravo pristupa");
             req.UserApplicationId = applicationId;
-            if (!string.IsNullOrEmpty(req.MeetingDateTime))
-            {
-                // Ensure parsing treats the input as UTC
-                DateTime dateTimeUtc = DateTime.Parse(req.MeetingDateTime, null, System.Globalization.DateTimeStyles.RoundtripKind);
-
-                // Ensure the DateTimeKind is explicitly UTC
-                dateTimeUtc = DateTime.SpecifyKind(dateTimeUtc, DateTimeKind.Utc);
-
-                req.MeetingDateTimeDateType = dateTimeUtc;
-            }
+            req.MeetingDateTimeDateType = req.MeetingDateTime;
             var updatedApplication = await userApplicationsRepository.UpdateUserApplicationStatusAsync(req);
             var userApplicationDto = ConvertToDto(updatedApplication);
             return Ok(userApplicationDto);

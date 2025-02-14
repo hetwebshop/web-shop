@@ -95,13 +95,11 @@ namespace API.Controllers
         [HttpPost]
         public async Task<IActionResult> SendNotification(string userId, string message)
         {
-            var bosniaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Europe Standard Time"); // Bosnian Time Zone
-            var bosniaDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, bosniaTimeZone);
             var notification = new Notification
             {
                 UserId = userId,
                 Message = message,
-                CreatedAt = bosniaDateTime,
+                CreatedAt = DateTime.UtcNow,
                 IsRead = false
             };
 
