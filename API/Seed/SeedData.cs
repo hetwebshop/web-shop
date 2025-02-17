@@ -174,7 +174,7 @@ namespace API.Seed
         {
             if (await _context.JobCategories.AnyAsync()) return;
 
-            var data = await File.ReadAllTextAsync("Seed/JobCategorySeed.json");
+            var data = await File.ReadAllTextAsync("Seed/JobCategorySeed2.json");
             var jobCategories = JsonSerializer.Deserialize<List<JobCategory>>(data);
 
             await _context.JobCategories.AddRangeAsync(jobCategories);

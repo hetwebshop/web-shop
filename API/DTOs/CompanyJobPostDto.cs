@@ -9,7 +9,7 @@ namespace API.DTOs
         public int Id { get; set; }
         public string JobDescription { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public int JobTypeId { get; set; }
+        public int? JobTypeId { get; set; }
         public string JobType { get; set; }
         public int JobCategoryId { get; set; }
         public string JobCategory { get; set; }

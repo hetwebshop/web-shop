@@ -4,6 +4,7 @@ using API.Data.IUserOfferRepository;
 using API.Data.Pagination;
 using API.DTOs;
 using API.Entities;
+using API.Entities.Applications;
 using API.Entities.JobPost;
 using API.Entities.Notification;
 using API.Helpers;
@@ -33,8 +34,9 @@ namespace API.Services.UserOfferServices
         private readonly IEmailService emailService;
         private readonly string UIBaseUrl;
         private readonly IConfiguration _configuration;
+        private readonly ISendNotificationsQueueClient _sendNotificationsQueueClient;
 
-        public UserJobPostService(IUserJobPostRepository userJobPostRepository, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IConfiguration configuration, IBlobStorageService blobStorageService, DataContext dataContext, IEmailService emailService)
+        public UserJobPostService(IUserJobPostRepository userJobPostRepository, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IConfiguration configuration, IBlobStorageService blobStorageService, DataContext dataContext, IEmailService emailService, ISendNotificationsQueueClient sendNotificationsQueueClient)
         {
             this.userJobPostRepository = userJobPostRepository;
             _uow = uow;
@@ -45,6 +47,7 @@ namespace API.Services.UserOfferServices
             this.emailService = emailService;
             UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
             _configuration = configuration;
+            _sendNotificationsQueueClient = sendNotificationsQueueClient;
         }
 
         public async Task<PagedList<UserJobPostDto>> GetJobPostsAsync(AdsPaginationParameters adsParameters)
@@ -77,25 +80,30 @@ namespace API.Services.UserOfferServices
                 var user = await _uow.UserRepository.GetUserByIdAsync(dto.SubmittingUserId);
                 dto.CurrentUserCredits = user.Credits;
 
-                var companiesToNotify = _dbContext.CompanyJobCategoryInterests.Where(r => r.JobCategoryId == newItem.JobCategoryId).Select(r => r.UserId).ToList();
-                var companiesNotifSettings = _dbContext.CompanyNotificationPreferences.Where(r => companiesToNotify.Contains(r.UserId)).ToList();
-                var emailTask = Task.Run(() => SendEmailsAsync(companiesNotifSettings, newItem));
-                foreach (var companiesSetting in companiesNotifSettings)
+                //var companiesToNotify = _dbContext.CompanyJobCategoryInterests.Where(r => r.JobCategoryId == newItem.JobCategoryId).Select(r => r.UserId).ToList();
+                //var companiesNotifSettings = _dbContext.CompanyNotificationPreferences.Where(r => companiesToNotify.Contains(r.UserId)).ToList();
+                //var emailTask = Task.Run(() => SendEmailsAsync(companiesNotifSettings, newItem));
+                //foreach (var companiesSetting in companiesNotifSettings)
+                //{
+                //    if(companiesSetting.NotificationType == Entities.Notification.CompanyNotificationType.newInterestingUserAdInApp && companiesSetting.IsEnabled)
+                //    {
+                //        var notification = new Notification()
+                //        {
+                //            UserId = companiesSetting.UserId.ToString(),
+                //            CreatedAt = DateTime.UtcNow,
+                //            IsRead = false,
+                //            Link = UIBaseUrl + "ad-details/" + newItem.Id,
+                //            Message = "Kreiran je novi oglas za posao koji bi vam mogao biti interesantan"
+                //        };
+                //        _dbContext.Notifications.Add(notification);
+                //    }
+                //}
+                //await _dbContext.SaveChangesAsync();
+                var jobPostNotificationMessage = new JobPostNotificationQueueMessage
                 {
-                    if(companiesSetting.NotificationType == Entities.Notification.CompanyNotificationType.newInterestingUserAdInApp && companiesSetting.IsEnabled)
-                    {
-                        var notification = new Notification()
-                        {
-                            UserId = companiesSetting.UserId.ToString(),
-                            CreatedAt = DateTime.UtcNow,
-                            IsRead = false,
-                            Link = UIBaseUrl + "ad-details/" + newItem.Id,
-                            Message = "Kreiran je novi oglas za posao koji bi vam mogao biti interesantan"
-                        };
-                        _dbContext.Notifications.Add(notification);
-                    }
-                }
-                await _dbContext.SaveChangesAsync();
+                    JobPostId = newItem.Id,
+                };
+                await _sendNotificationsQueueClient.SendMessageToCompanyAsync(jobPostNotificationMessage);
 
                 return dto;
             }
@@ -181,65 +189,99 @@ namespace API.Services.UserOfferServices
                 if (companyJobPost == null)
                     return null;
                 PredictionApiResponse predictionApiResponse = null;
-                if(userApplication.CvFilePath != null)
-                {
-                    using (var client = new HttpClient())
-                    using (var content = new MultipartFormDataContent())
-                    {
-                        content.Add(new StringContent(companyJobPost.Position), "job_description");
 
-                        var file = await blobStorageService.GetFileAsync(userApplication.CvFileName);
-                        var fileContent = new ByteArrayContent(file.FileContent);
-                        fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
-                        content.Add(fileContent, "cv", Path.GetFileName(userApplication.CvFilePath));
-
-                        HttpResponseMessage response = await client.PostAsync(predictionApiUrl, content);
-
-                        if (response.IsSuccessStatusCode)
-                        {
-                            var responseStr = await response.Content.ReadAsStringAsync();
-                            var jsonDataStartIndex = responseStr.IndexOf('{');
-                            if (jsonDataStartIndex >= 0)
-                            {
-                                var validJsonStr = responseStr.Substring(jsonDataStartIndex);
-                                predictionApiResponse = JsonConvert.DeserializeObject<PredictionApiResponse>(validJsonStr);
-                            }
-                        }
-                    }
-                }
-                
                 var entity = userApplication.ToEntity();
-                if(predictionApiResponse != null)
-                {
-                    entity.AIMatchingDescription = predictionApiResponse.Obrazlozenje;
-                    entity.AIMatchingEducationLevel = predictionApiResponse.Opis.PoklapanjeDomeneZnanja;
-                    entity.AIMatchingExperience = predictionApiResponse.Opis.PoklapanjeIskustva;
-                    entity.AIMatchingSkills = predictionApiResponse.Opis.PoklapanjeVjestina;
-                    entity.AIMatchingResult = predictionApiResponse.Rezultat;
-                }
                 var newItem = await userJobPostRepository.CreateUserApplicationAsync(entity);
-
-                var companyNotifPreferences = _dbContext.CompanyNotificationPreferences.Where(r => r.UserId == companyJobPost.SubmittingUserId && r.IsEnabled == true && (r.NotificationType == CompanyNotificationType.newApplicantInApp || r.NotificationType == CompanyNotificationType.newApplicantEmail)).ToList();
-                
-                if (companyNotifPreferences.Any())
+                if (userApplication.CvFilePath != null && companyJobPost.PricingPlan.Name == "Premium")
                 {
-                    var emailTask = Task.Run(() => SendNewApplicantEmailsAsync(companyNotifPreferences, companyJobPost.Position, newItem.Id, companyJobPost.EmailForReceivingApplications, companyJobPost.SubmittingUserId));
-                    var inAppSetting = companyNotifPreferences.FirstOrDefault(r => r.NotificationType == CompanyNotificationType.newApplicantInApp);
-                    if(inAppSetting != null)
+                    //using (var client = new HttpClient())
+                    //using (var content = new MultipartFormDataContent())
+                    //{
+                    //    content.Add(new StringContent(companyJobPost.Position), "job_description");
+
+                   var file = await blobStorageService.GetFileAsync(userApplication.CvFileName);
+                    //    var fileContent = new ByteArrayContent(file.FileContent);
+                    //    fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
+                    //    content.Add(fileContent, "cv", Path.GetFileName(userApplication.CvFilePath));
+
+                    //    HttpResponseMessage response = await client.PostAsync(predictionApiUrl, content);
+
+                    //    if (response.IsSuccessStatusCode)
+                    //    {
+                    //        var responseStr = await response.Content.ReadAsStringAsync();
+                    //        var jsonDataStartIndex = responseStr.IndexOf('{');
+                    //        if (jsonDataStartIndex >= 0)
+                    //        {
+                    //            var validJsonStr = responseStr.Substring(jsonDataStartIndex);
+                    //            predictionApiResponse = JsonConvert.DeserializeObject<PredictionApiResponse>(validJsonStr);
+                    //        }
+                    //    }
+                    //}
+                    var applicantPredictionMessage = new NewApplicantPredictionQueueMessage()
                     {
-                        var notification = new Notification()
+                        CompanyJobPostId = companyJobPost.Id,
+                        UserApplicationId = newItem.Id,
+                        Position = companyJobPost.Position,
+                        CvFileUrl = userApplication.CvFileName,
+                        YearsOfExperience = userApplication.YearsOfExperience,
+                        UserPreviousCompanies = userApplication.PreviousCompanies.Select(r => new UserApplicationPreviousCompanies
                         {
-                            UserId = companyJobPost.SubmittingUserId.ToString(),
-                            CreatedAt = DateTime.UtcNow,
-                            IsRead = false,
-                            Link = UIBaseUrl + "company-settings/job-candidates/" + newItem.Id,
-                            Message = "Kreiran je nova aplikacija za posao na vašem oglasu " + companyJobPost.Position
-                        };
-                        _dbContext.Notifications.Add(notification);
-                        await _dbContext.SaveChangesAsync();
-                    }
+                            CompanyName = r.CompanyName,  
+                            Position = r.Position,     
+                            StartYear = r.StartYear,    
+                            EndYear = r.EndYear       
+                        }).ToList(),
+                        UserEducations = userApplication.Educations.Select(r => new UserApplicationEducation
+                        {
+                            Degree = r.Degree,
+                            EducationEndYear = r.EducationEndYear,
+                            EducationStartYear = r.EducationStartYear,
+                            FieldOfStudy = r.FieldOfStudy,
+                            InstitutionName = r.InstitutionName,
+                            University = r.University,
+                            
+                        }).ToList()
+                    };
+                    await _sendNotificationsQueueClient.SendNewApplicantPredictionMessageAsync(applicantPredictionMessage);
                 }
 
+                //if(predictionApiResponse != null)
+                //{
+                //    entity.AIMatchingDescription = predictionApiResponse.Obrazlozenje;
+                //    entity.AIMatchingEducationLevel = predictionApiResponse.Opis.PoklapanjeDomeneZnanja;
+                //    entity.AIMatchingExperience = predictionApiResponse.Opis.PoklapanjeIskustva;
+                //    entity.AIMatchingSkills = predictionApiResponse.Opis.PoklapanjeVjestina;
+                //    entity.AIMatchingResult = predictionApiResponse.Rezultat;
+                //}
+
+
+                //var companyNotifPreferences = _dbContext.CompanyNotificationPreferences.Where(r => r.UserId == companyJobPost.SubmittingUserId && r.IsEnabled == true && (r.NotificationType == CompanyNotificationType.newApplicantInApp || r.NotificationType == CompanyNotificationType.newApplicantEmail))?.ToList();
+
+                //if (companyNotifPreferences != null && companyNotifPreferences.Any())
+                //{
+                //    var emailTask = Task.Run(() => SendNewApplicantEmailsAsync(companyNotifPreferences, companyJobPost.Position, newItem.Id, companyJobPost.EmailForReceivingApplications, companyJobPost.SubmittingUserId));
+                //    var inAppSetting = companyNotifPreferences.FirstOrDefault(r => r.NotificationType == CompanyNotificationType.newApplicantInApp);
+                //    if(inAppSetting != null)
+                //    {
+                //        var notification = new Notification()
+                //        {
+                //            UserId = companyJobPost.SubmittingUserId.ToString(),
+                //            CreatedAt = DateTime.UtcNow,
+                //            IsRead = false,
+                //            Link = UIBaseUrl + "company-settings/job-candidates/" + newItem.Id,
+                //            Message = "Kreiran je nova aplikacija za posao na vašem oglasu " + companyJobPost.Position
+                //        };
+                //        _dbContext.Notifications.Add(notification);
+                //        await _dbContext.SaveChangesAsync();
+                //    }
+                //}
+
+                var newApplicantMessage = new NewApplicantQueueMessage()
+                {
+                    JobPostId = companyJobPost.Id,
+                    UserApplicationId = newItem.Id
+                };
+                await _sendNotificationsQueueClient.SendNewApplicantMessageToCompanyAsync(newApplicantMessage);
                 var dto = newItem.ToDto();
                 return dto;
             }

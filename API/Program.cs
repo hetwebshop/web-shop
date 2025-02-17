@@ -11,6 +11,7 @@ using System;
 using System.IO;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.Configuration;
 //using API.Services.NotificationsHub;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,10 +29,11 @@ builder.Services.AddSwaggerGen(c =>
 
 
 //middleware
+var allowedOrigins = builder.Configuration.GetSection("AllowedCorsOrigins").Get<string[]>();
 var app = builder.Build();
 app.UseRouting();
 app.UseCors(options =>
-options.AllowAnyHeader().AllowCredentials().AllowAnyMethod().WithOrigins("https://job-point.azurewebsites.net", "http://localhost:4200", "http://localhost:3000", "https://jobshubui.azurewebsites.net", "https://jobifyui.azurewebsites.net"));
+options.AllowAnyHeader().AllowCredentials().AllowAnyMethod().WithOrigins(allowedOrigins));
 
 app.UseAuthentication();
 app.UseAuthorization();

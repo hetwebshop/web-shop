@@ -13,8 +13,8 @@ namespace API.Entities.CompanyJobPost
         public DateTime UpdatedAt { get; set; }
         public int SubmittingUserId { get; set; }
         public User User { get; set; }
-        public int JobTypeId { get; set; }
-        public JobType JobType { get; set; }
+        public int? JobTypeId { get; set; }
+        public JobType? JobType { get; set; }
         public int JobCategoryId { get; set; }
         public JobCategory JobCategory { get; set; }
         public int JobPostStatusId { get; set; }

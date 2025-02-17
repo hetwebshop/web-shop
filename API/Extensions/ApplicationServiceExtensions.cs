@@ -40,6 +40,7 @@ namespace API.Extensions
             services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddTransient<ITokenService, TokenService>();
+            services.AddSingleton<ISendNotificationsQueueClient, SendNotificationsQueueClient>();
             //services.AddScoped<IPhotoService, PhotoService>();
             services.AddScoped<SeedData, SeedData>();
 

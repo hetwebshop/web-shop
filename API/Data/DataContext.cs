@@ -136,7 +136,7 @@ namespace API.Data
                 entity.HasOne(e => e.JobType)
                       .WithMany()
                       .HasForeignKey(e => e.JobTypeId)
-                      .IsRequired()
+                      .IsRequired(false)
                       .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(e => e.JobCategory)

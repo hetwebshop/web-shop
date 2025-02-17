@@ -9,7 +9,9 @@ using API.Helpers;
 using API.Mappers;
 using API.PaginationEntities;
 using AutoMapper;
+using Azure.Storage.Queues;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,14 +26,16 @@ namespace API.Services.CompanyJobPostServices
         private readonly IConfiguration _configuration;
         private readonly IEmailService _emailService;
         private readonly string UIBaseUrl;
+        private readonly ISendNotificationsQueueClient _sendNotificationsQueueClient;
 
-        public CompanyJobPostService(ICompanyJobPostRepository companyJobPostRepository, DataContext dbContext, IConfiguration configuration, IEmailService emailService)
+        public CompanyJobPostService(ICompanyJobPostRepository companyJobPostRepository, DataContext dbContext, IConfiguration configuration, IEmailService emailService, ISendNotificationsQueueClient sendNotificationsQueueClient)
         {
             this.companyJobPostRepository = companyJobPostRepository;
             _dbContext = dbContext;
             _configuration = configuration;
             _emailService = emailService;
             UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
+            _sendNotificationsQueueClient = sendNotificationsQueueClient;
         }
 
         public async Task<PagedList<CompanyJobPostDto>> GetJobPostsAsync(AdsPaginationParameters adsParameters)
@@ -62,30 +66,37 @@ namespace API.Services.CompanyJobPostServices
         {
             var newItem = await companyJobPostRepository.CreateCompanyJobPostAsync(companyJobPostDto.ToEntity());
 
-            var usersWithSimilarInterest = _dbContext.Users.Where(r => r.JobCategoryId == companyJobPostDto.JobCategoryId).ToList();
-            if (usersWithSimilarInterest.Any())
-            {
-                var usersWithSimilarInterestIds = usersWithSimilarInterest.Select(r => r.Id);
-                var usersNotifSettings = _dbContext.UserNotificationSettings.Where(r => usersWithSimilarInterestIds.Contains(r.UserId)).ToList();
-                var emailTask = Task.Run(() => SendEmailsAsync(usersNotifSettings, newItem));
+            //var usersWithSimilarInterest = _dbContext.Users.Where(r => r.JobCategoryId == companyJobPostDto.JobCategoryId).ToList();
+            //if (usersWithSimilarInterest.Any())
+            //{
+            //    var currentlyAddedJobPost = await companyJobPostRepository.GetCompanyJobPostByIdAsync(newItem.Id);
+            //    var usersWithSimilarInterestIds = usersWithSimilarInterest.Select(r => r.Id);
+            //    var usersNotifSettings = _dbContext.UserNotificationSettings.Where(r => usersWithSimilarInterestIds.Contains(r.UserId)).ToList();
+            //    var emailTask = Task.Run(() => SendEmailsAsync(usersNotifSettings, currentlyAddedJobPost));
 
-                foreach (var userNotif in usersNotifSettings)
-                {
-                    if (userNotif.NotificationType == Entities.UserNotificationType.NewInterestingCompanyAdInApp && userNotif.IsEnabled)
-                    {
-                        var notification = new Notification()
-                        {
-                            UserId = userNotif.UserId.ToString(),
-                            CreatedAt = DateTime.UtcNow,
-                            IsRead = false,
-                            Link = UIBaseUrl + "company-ad-details/" + newItem.Id,
-                            Message = "Kreiran je novi oglas za posao koji bi vam mogao biti interesantan"
-                        };
-                        _dbContext.Notifications.Add(notification);
-                    }
-                }
-                await _dbContext.SaveChangesAsync();
-            }
+            //    foreach (var userNotif in usersNotifSettings)
+            //    {
+            //        if (userNotif.NotificationType == Entities.UserNotificationType.NewInterestingCompanyAdInApp && userNotif.IsEnabled)
+            //        {
+            //            var notification = new Notification()
+            //            {
+            //                UserId = userNotif.UserId.ToString(),
+            //                CreatedAt = DateTime.UtcNow,
+            //                IsRead = false,
+            //                Link = UIBaseUrl + "company-ad-details/" + currentlyAddedJobPost.Id,
+            //                Message = "Kreiran je novi oglas za posao koji bi vam mogao biti interesantan"
+            //            };
+            //            _dbContext.Notifications.Add(notification);
+            //        }
+            //    }
+            //    await _dbContext.SaveChangesAsync();
+            //}
+            var jobPostNotificationMessage = new JobPostNotificationQueueMessage
+            {
+                JobPostId = newItem.Id,
+            };
+            await _sendNotificationsQueueClient.SendMessageToUserAsync(jobPostNotificationMessage);
+
             return newItem.ToDto();
         }
 

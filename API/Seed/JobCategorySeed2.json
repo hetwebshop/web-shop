@@ -1,0 +1,178 @@
+﻿[
+  {
+    "Id": 1,
+    "Name": "Administrativne i slične usluge"
+  },
+  {
+    "Id": 2,
+    "Name": "Arhitektonske usluge"
+  },
+  {
+    "Id": 3,
+    "Name": "Bankarstvo"
+  },
+  {
+    "Id": 4,
+    "Name": "Biotehnologija i farmacija"
+  },
+  {
+    "Id": 5,
+    "Name": "Državna služba i uprava"
+  },
+  {
+    "Id": 6,
+    "Name": "Ekologija"
+  },
+  {
+    "Id": 7,
+    "Name": "Ekonomija, finansije i računovodstvo"
+  },
+  {
+    "Id": 8,
+    "Name": "Elektrotehnika - Mašinstvo"
+  },
+  {
+    "Id": 9,
+    "Name": "Energetika"
+  },
+  {
+    "Id": 10,
+    "Name": "Grafička industrija"
+  },
+  {
+    "Id": 11,
+    "Name": "Grafički dizajn"
+  },
+  {
+    "Id": 12,
+    "Name": "Građevinarstvo"
+  },
+  {
+    "Id": 13,
+    "Name": "IT"
+  },
+  {
+    "Id": 14,
+    "Name": "Komercijala - Prodaja"
+  },
+  {
+    "Id": 15,
+    "Name": "Konsalting"
+  },
+  {
+    "Id": 16,
+    "Name": "Ljepota i zdravlje"
+  },
+  {
+    "Id": 17,
+    "Name": "Ljudski resursi"
+  },
+  {
+    "Id": 18,
+    "Name": "Mali oglasi"
+  },
+  {
+    "Id": 19,
+    "Name": "Marketing-PR"
+  },
+  {
+    "Id": 20,
+    "Name": "Mediji"
+  },
+  {
+    "Id": 21,
+    "Name": "Menadžment i upravljanje"
+  },
+  {
+    "Id": 22,
+    "Name": "Nauka - Istraživački rad"
+  },
+  {
+    "Id": 23,
+    "Name": "Nekretnine"
+  },
+  {
+    "Id": 24,
+    "Name": "Obrazovanje"
+  },
+  {
+    "Id": 25,
+    "Name": "Oglasi ZZZRS"
+  },
+  {
+    "Id": 26,
+    "Name": "Osiguranje"
+  },
+  {
+    "Id": 27,
+    "Name": "Ostalo"
+  },
+  {
+    "Id": 28,
+    "Name": "Policija - Zaštitarske usluge"
+  },
+  {
+    "Id": 29,
+    "Name": "Poljoprivreda - Ribarstvo - Šumarstvo"
+  },
+  {
+    "Id": 30,
+    "Name": "Pravo"
+  },
+  {
+    "Id": 31,
+    "Name": "Prehrambena Industrija"
+  },
+  {
+    "Id": 32,
+    "Name": "Prevoditeljske usluge"
+  },
+  {
+    "Id": 33,
+    "Name": "Proizvodnja"
+  },
+  {
+    "Id": 34,
+    "Name": "Rudarstvo"
+  },
+  {
+    "Id": 35,
+    "Name": "Saobraćaj i komunikacije"
+  },
+  {
+    "Id": 36,
+    "Name": "Socijalne usluge - Neprofitne organizacije"
+  },
+  {
+    "Id": 37,
+    "Name": "Telekomunikacije"
+  },
+  {
+    "Id": 38,
+    "Name": "Transport - Skladištenje i logistika"
+  },
+  {
+    "Id": 39,
+    "Name": "Ugostiteljstvo i turizam"
+  },
+  {
+    "Id": 40,
+    "Name": "Umjetnost i dizajn"
+  },
+  {
+    "Id": 41,
+    "Name": "Veterina"
+  },
+  {
+    "Id": 42,
+    "Name": "Zabava"
+  },
+  {
+    "Id": 43,
+    "Name": "Zanatske usluge"
+  },
+  {
+    "Id": 44,
+    "Name": "Zdravstvo"
+  }
+]

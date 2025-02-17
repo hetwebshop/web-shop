@@ -35,6 +35,7 @@ namespace API.Controllers
         private readonly string verificationEmailBaseAddress;
         private readonly IBlobStorageService _blobStorageService;
         private readonly DataContext _dbContext;
+        private readonly string UIBaseUrl;
 
         public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration,
             IUnitOfWork uow, IMapper mapper, ITokenService tokenService, IEmailService emailService, IBlobStorageService blobStorageService, DataContext dbContext)
@@ -49,6 +50,7 @@ namespace API.Controllers
             verificationEmailBaseAddress = configuration.GetSection("VerificationEmailBaseAddress").Value;
             _blobStorageService = blobStorageService;
             _dbContext = dbContext;
+            UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
         }
 
         [HttpPost("register")]
@@ -57,9 +59,9 @@ namespace API.Controllers
         {
             registerDto.UserName = registerDto.Email;
             if (await UserNameExist(registerDto.UserName))
-                return BadRequest("Podaci za registraciju nisu važeći.");
+                return BadRequest("Ovaj email je već povezan s postojećim korisničkim nalogom.");
             if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
-                return BadRequest("Podaci za registraciju nisu važeći.");
+                return BadRequest("Ovaj email je već povezan s postojećim korisničkim nalogom.");
 
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
@@ -173,9 +175,9 @@ namespace API.Controllers
         {
             registerDto.UserName = registerDto.Email;
             if (await UserNameExist(registerDto.UserName))
-                return BadRequest("Podaci za registraciju nisu važeći.");
+                return BadRequest("Ovaj email je već povezan s postojećim korisničkim nalogom.");
             if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
-                return BadRequest("Podaci za registraciju nisu važeći.");
+                return BadRequest("Ovaj email je već povezan s postojećim korisničkim nalogom.");
 
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
@@ -266,7 +268,7 @@ namespace API.Controllers
         {
             var user = await FetchUserWithIncludesAsync(null, loginDto.UserNameOrEmail);
 
-            if (user == null) return BadRequest("Pogrešan korisnik");
+            if (user == null) return BadRequest("Korisnik sa unešenom email adresom ne postoji.");
 
             if (!user.IsApproved)
             {
@@ -826,7 +828,8 @@ namespace API.Controllers
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var encodedToken = Uri.EscapeDataString(token);
             var encodedEmail = Uri.EscapeDataString(user.Email);
-            var resetLink = $"http://localhost:4200/reset-password?email={encodedEmail}&token={encodedToken}";
+            var resetLink = $"{UIBaseUrl}reset-password?email={HttpUtility.UrlEncode(encodedEmail)}&token={HttpUtility.UrlEncode(encodedToken)}";
+
             string emailBody = $@"
             <p style='color: #66023C;'>Za promjenu lozinke, molimo vas da otvorite sljedeći link:</p>
             <p style='text-align: center;'>
@@ -844,13 +847,13 @@ namespace API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto model)
         {
-            var user = await _userManager.FindByEmailAsync(model.Email);
+            var decodedToken = HttpUtility.UrlDecode(model.Token);
+            var decodedEmail = HttpUtility.UrlDecode(model.Email);
+            var user = await _userManager.FindByEmailAsync(decodedEmail);
             if (user == null)
             {
                 return BadRequest("Zahtjev za promjenom lozinke nije ispravan.");
             }
-
-            var decodedToken = HttpUtility.UrlDecode(model.Token);
 
             var resetResult = await _userManager.ResetPasswordAsync(user, decodedToken, model.Password);
             if (!resetResult.Succeeded)

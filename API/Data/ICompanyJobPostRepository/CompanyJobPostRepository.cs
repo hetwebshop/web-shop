@@ -26,7 +26,6 @@ namespace API.Data.ICompanyJobPostRepository
             return DataContext.CompanyJobPosts.
                 Include(r => r.JobCategory).
                 Include(r => r.JobPostStatus).
-                Include(r => r.JobType).
                 Include(r => r.User).
                 ThenInclude(r => r.Company).
                 Include(r => r.PricingPlan).
@@ -34,7 +33,8 @@ namespace API.Data.ICompanyJobPostRepository
                 Include(r => r.UserApplications).
                 Include(r => r.EducationLevel).
                 Include(r => r.City).
-                ThenInclude(r => r.Country);
+                ThenInclude(r => r.Country).
+                Include(r => r.JobType);
         }
 
         public async Task<PagedList<CompanyJobPost>> GetJobPostsAsync(AdsPaginationParameters adsParameters)
@@ -158,28 +158,35 @@ namespace API.Data.ICompanyJobPostRepository
 
         public async Task<CompanyJobPost> UpdateCompanyJobPostAsync(CompanyJobPost updatedCompanyJobPost)
         {
-            var existingCompanyJobPost = await DataContext.CompanyJobPosts.FindAsync(updatedCompanyJobPost.Id);
-
-            if (existingCompanyJobPost != null)
+            try
             {
-                existingCompanyJobPost.JobDescription = updatedCompanyJobPost.JobDescription;
-                //existingCompanyJobPost.CreatedAt = updatedCompanyJobPost.CreatedAt;
-                existingCompanyJobPost.UpdatedAt = updatedCompanyJobPost.UpdatedAt;
-                existingCompanyJobPost.JobTypeId = updatedCompanyJobPost.JobTypeId;
-                existingCompanyJobPost.JobCategoryId = updatedCompanyJobPost.JobCategoryId;
-                //existingCompanyJobPost.JobPostStatusId = updatedCompanyJobPost.JobPostStatusId;
-                existingCompanyJobPost.CityId = updatedCompanyJobPost.CityId;
-                existingCompanyJobPost.Position = updatedCompanyJobPost.Position;
-                existingCompanyJobPost.AdName = updatedCompanyJobPost.AdName;
-                existingCompanyJobPost.EmailForReceivingApplications = updatedCompanyJobPost.EmailForReceivingApplications;
-                existingCompanyJobPost.CompanyName = updatedCompanyJobPost.CompanyName;
+                var existingCompanyJobPost = await DataContext.CompanyJobPosts.FindAsync(updatedCompanyJobPost.Id);
 
-                await DataContext.SaveChangesAsync();
+                if (existingCompanyJobPost != null)
+                {
+                    existingCompanyJobPost.JobDescription = updatedCompanyJobPost.JobDescription;
+                    //existingCompanyJobPost.CreatedAt = updatedCompanyJobPost.CreatedAt;
+                    existingCompanyJobPost.UpdatedAt = updatedCompanyJobPost.UpdatedAt;
+                    existingCompanyJobPost.JobTypeId = updatedCompanyJobPost.JobTypeId;
+                    existingCompanyJobPost.JobCategoryId = updatedCompanyJobPost.JobCategoryId;
+                    //existingCompanyJobPost.JobPostStatusId = updatedCompanyJobPost.JobPostStatusId;
+                    existingCompanyJobPost.CityId = updatedCompanyJobPost.CityId;
+                    existingCompanyJobPost.Position = updatedCompanyJobPost.Position;
+                    existingCompanyJobPost.AdName = updatedCompanyJobPost.AdName;
+                    existingCompanyJobPost.EmailForReceivingApplications = updatedCompanyJobPost.EmailForReceivingApplications;
+                    existingCompanyJobPost.CompanyName = updatedCompanyJobPost.CompanyName;
+
+                    await DataContext.SaveChangesAsync();
+                }
+
+                var updatedItem = await GetCompanyJobPostBaseQuery().Where(r => r.Id == updatedCompanyJobPost.Id).FirstAsync();
+
+                return updatedItem;
             }
-
-            var updatedItem = await GetCompanyJobPostBaseQuery().Where(r => r.Id == updatedCompanyJobPost.Id).FirstAsync();
-
-            return updatedItem;
+            catch(Exception ex)
+            {
+                throw;
+            }
         }
 
         public async Task<CompanyJobPost> UpdateCompensationAndWorkEnvAsync(CompanyJobPost updatedCompanyJobPost)
