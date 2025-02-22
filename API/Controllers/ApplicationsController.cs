@@ -1,14 +1,19 @@
 ﻿using API.Data;
 using API.DTOs;
+using API.Entities;
 using API.Entities.Applications;
 using API.Extensions;
+using API.Helpers;
+using API.Migrations;
 using API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 
 namespace API.Controllers
@@ -19,12 +24,20 @@ namespace API.Controllers
         private IUserApplicationsRepository userApplicationsRepository;
         private readonly IUnitOfWork _uow;
         private readonly IBlobStorageService _blobStorageService;
+        private readonly string UIBaseUrl;
+        private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
+        private readonly ISendNotificationsQueueClient _sendNotificationsQueueClient;
 
-        public ApplicationsController(IUserApplicationsRepository userApplicationsRepository, IUnitOfWork uow, IBlobStorageService blobStorageService)
+        public ApplicationsController(IUserApplicationsRepository userApplicationsRepository, IUnitOfWork uow, IBlobStorageService blobStorageService, IConfiguration configuration, IEmailService emailService, ISendNotificationsQueueClient sendNotificationsQueueClient)
         {
             this.userApplicationsRepository = userApplicationsRepository;
             _uow = uow;
-            _blobStorageService = blobStorageService;   
+            _blobStorageService = blobStorageService;
+            _configuration = configuration;
+            UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
+            _emailService = emailService;
+            _sendNotificationsQueueClient = sendNotificationsQueueClient;
         }
 
         [HttpGet("userapplications")]
@@ -44,6 +57,9 @@ namespace API.Controllers
                     CompanyJobPostId = application.CompanyJobPostId,
                     ApplicationStatusId = application.ApplicationStatusId,
                     Email = application.Email,
+                    Feedback = application.Feedback,
+                    MeetingDateTime = application.MeetingDateTime,
+                    Id = application.Id
                 };
                 userApplicationsTableData.Add(tableData);
             }
@@ -119,6 +135,12 @@ namespace API.Controllers
             req.UserApplicationId = applicationId;
             req.MeetingDateTimeDateType = req.MeetingDateTime;
             var updatedApplication = await userApplicationsRepository.UpdateUserApplicationStatusAsync(req);
+            var jobPostNotificationMessage = new ApplicantStatusUpdated
+            {
+                UserApplicationIds = new List<int> { userApplication.Id }
+            };
+            await _sendNotificationsQueueClient.SendMessageToUserOnUpdateApplicationStatusAsync(jobPostNotificationMessage);
+
             var userApplicationDto = ConvertToDto(updatedApplication);
             return Ok(userApplicationDto);
         }
@@ -146,6 +168,11 @@ namespace API.Controllers
             }
 
             var areApplicationsRejected = await userApplicationsRepository.RejectSelectedCandidatesAsync(req);
+            var jobPostNotificationMessage = new ApplicantStatusUpdated
+            {
+                UserApplicationIds = req.Candidates
+            };
+            await _sendNotificationsQueueClient.SendMessageToUserOnUpdateApplicationStatusAsync(jobPostNotificationMessage);
             return Ok(areApplicationsRejected);
         }
 

@@ -15,6 +15,7 @@ namespace API.Services
         private readonly string _companyQueueName;
         private readonly string _newApplicantCompanyQueueName;
         private readonly string _newApplicantPredictionQueueName;
+        private readonly string _updatedApplicationStatusQueueName;
 
         public SendNotificationsQueueClient(IConfiguration configuration)
         {
@@ -23,6 +24,7 @@ namespace API.Services
             _companyQueueName = configuration.GetSection("CompanyNotificationsQueueName").Value;
             _newApplicantCompanyQueueName = configuration.GetSection("CompanyNewApplicantNotificationsQueueName").Value;
             _newApplicantPredictionQueueName = configuration.GetSection("CompanyNewApplicantPredictionQueueName").Value;
+            _updatedApplicationStatusQueueName = configuration.GetSection("UpdatedApplicationStatusQueueName").Value;
         }
 
         public async Task SendMessageToUserAsync(JobPostNotificationQueueMessage jobPostNotificationMessage)
@@ -107,6 +109,13 @@ namespace API.Services
         }
 
         public async Task SendNewApplicantPredictionMessageAsync(NewApplicantPredictionQueueMessage message)
+        {
+            // Create a QueueClient
+            QueueClient queueClient = new QueueClient(_connectionString, _newApplicantPredictionQueueName);
+            await SendMessage(queueClient, message);
+        }
+
+        public async Task SendMessageToUserOnUpdateApplicationStatusAsync(ApplicantStatusUpdated message)
         {
             // Create a QueueClient
             QueueClient queueClient = new QueueClient(_connectionString, _newApplicantPredictionQueueName);

@@ -108,8 +108,7 @@ namespace API.Data.IUserOfferRepository
             .Include(u => u.EmploymentType)
             .Include(u => u.EmploymentStatus)
             .Include(u => u.ApplicantPreviousCompanies)
-                .OrderBy(u => u.PricingPlan.Priority)
-                .ThenByDescending(u => u.RefreshDateTime);
+                .OrderByDescending(u => u.AdStartDate);
             return await PagedList<UserJobPost>.ToPagedListAsync(userJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }
 
@@ -317,14 +316,26 @@ namespace API.Data.IUserOfferRepository
                 existingUserJobPost.EducationLevelId = updateAdInfo.EducationLevelId;
                 //existingUserJobPost.Price = updateAdInfo.Pr
                 await DataContext.SaveChangesAsync();
-                await DataContext.Entry(existingUserJobPost)
-                .Reference(ujp => ujp.JobCategory)
-                .LoadAsync();
+                //await DataContext.Entry(existingUserJobPost)
+                //.Reference(ujp => ujp.JobCategory)
+                //.LoadAsync();
 
-                await DataContext.Entry(existingUserJobPost)
-                    .Reference(ujp => ujp.JobType)
-                    .LoadAsync();
-                return existingUserJobPost;
+                //await DataContext.Entry(existingUserJobPost)
+                //    .Reference(ujp => ujp.JobType)
+                //    .LoadAsync();
+
+                //await DataContext.Entry(existingUserJobPost)
+                //.Reference(ujp => ujp.EmploymentStatus)
+                //.LoadAsync();
+
+                // await DataContext.Entry(existingUserJobPost)
+                //.Reference(ujp => ujp.EducationLevel)
+                //.LoadAsync();
+                //await DataContext.Entry(existingUserJobPost)
+                //.Reference(ujp => ujp.EmploymentType)
+                //.LoadAsync();
+                var updatedItem = await GetUserJobPostByIdAsync(existingUserJobPost.Id);
+                return updatedItem;
             }
             return null;
         }

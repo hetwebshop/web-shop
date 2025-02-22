@@ -107,8 +107,7 @@ namespace API.Data.ICompanyJobPostRepository
                 Include(r => r.UserApplications).
                 Include(r => r.City).
                 ThenInclude(r => r.Country)
-                    .OrderBy(u => u.PricingPlan.Priority)
-                    .ThenByDescending(u => u.RefreshDateTime);
+                    .OrderByDescending(u => u.AdStartDate);
             return await PagedList<CompanyJobPost>.ToPagedListAsync(companyJobPosts, adsParameters.PageNumber, adsParameters.PageSize);
         }
 

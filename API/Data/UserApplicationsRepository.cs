@@ -50,6 +50,7 @@ namespace API.Data
             .Include(r => r.Educations)
             .Include(r => r.CompanyJobPost)
             .ThenInclude(r => r.User)
+            .ThenInclude(r => r.Company)
             .Include(r => r.City)
             .FirstOrDefaultAsync(r => r.Id == id);
             return query;

@@ -49,6 +49,8 @@ namespace API.DTOs
         public int? EmploymentStatusId { get; set; }
         public string EmploymentStatus { get; set; }
         public List<UserPreviousCompaniesDto> UserPreviousCompanies { get; set; }
+
+        public string Coverletter { get; set; }
     }
 
     public class UserInfoDto

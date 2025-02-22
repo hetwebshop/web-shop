@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -309,6 +310,33 @@ namespace API.Controllers
         {
             return await _uow.UserRepository.UserExist(userName);
         }
+
+        [HttpPost("coverletter")]
+        public async Task<ActionResult<UserDto>> UpdateUserCoverLetter([FromBody] UpdateUserCoverLetterRequest req)
+        {
+            try
+            {
+                var id = HttpContext.User.GetUserId();
+                var user = await FetchUserWithIncludesAsync(id);
+
+                if (user == null)
+                {
+                    return NotFound(new { message = "User not found" });
+                }
+
+                user.Coverletter = req.Coverletter;
+
+                await _dbContext.SaveChangesAsync();
+
+                var dto = ConvertUserToUserDto(user);
+                return Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while updating the cover letter", error = ex.Message });
+            }
+        }
+
 
         [HttpPost("demo-request")]
         [AllowAnonymous]
@@ -921,6 +949,7 @@ namespace API.Controllers
                 EducationLevel = user.EducationLevel?.Name,
                 EducationLevelId = user.EducationLevel?.Id,
                 RefreshToken = user.RefreshToken,
+                Coverletter = user.Coverletter,
                 UserPreviousCompanies = user.UserPreviousCompanies?.Select(userPreviousCompany => new UserPreviousCompaniesDto()
                 {
                     CompanyName = userPreviousCompany.CompanyName,

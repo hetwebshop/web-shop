@@ -68,11 +68,12 @@ namespace API.Controllers
             adsParameters.adStatus = JobPostStatus.Active;
             var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
             var pagedResponse = jobPosts.ToPagedResponse();
-            var contactedAdsByCurrentUser = await _dbContext.ContactUserRequests.Where(r => r.FromUserId == userId).ToListAsync();
+            var contactedAdsByCurrentUser = await _dbContext.Chat.Where(r => r.FromUserId == userId).ToListAsync();
             var contactedAdsByCurrentUserIds = contactedAdsByCurrentUser.Select(r => r.Id);
+            var currentUser = await _uow.UserRepository.GetUserByIdAsync(userId);
             foreach(var item in pagedResponse.Items)
             {
-                if (contactedAdsByCurrentUserIds.Contains(item.Id) || item.SubmittingUserId == userId)
+                if (contactedAdsByCurrentUserIds.Contains(item.Id) || item.SubmittingUserId == userId || !currentUser.IsCompany)
                     item.CanCurrentUserApplyOnAd = false;
             }
             return Ok(pagedResponse);
@@ -107,8 +108,9 @@ namespace API.Controllers
             var userJob = await _jobPostService.GetUserJobPostByIdAsync(id);
             if (userJob.IsDeleted || userJob.JobPostStatusId != (int)JobPostStatus.Active || userJob.AdEndDate < DateTime.Now)
                 return NotFound("Oglas je obrisan, zatvoren, ili je istekao.");
-            var contactedAdsByCurrentUserIds = await _dbContext.ContactUserRequests.Where(r => r.FromUserId == userId).Select(r => r.FromUserId).ToListAsync();
-            if (contactedAdsByCurrentUserIds.Contains(userJob.Id) || userJob.SubmittingUserId == userId)
+            var contactedAdsByCurrentUserIds = await _dbContext.Chat.Where(r => r.FromUserId == userId).Select(r => r.FromUserId).ToListAsync();
+            var currentUser = await _uow.UserRepository.GetUserByIdAsync(userId);
+            if (contactedAdsByCurrentUserIds.Contains(userJob.Id) || userJob.SubmittingUserId == userId || !currentUser.IsCompany)
                 userJob.CanCurrentUserApplyOnAd = false;
             return Ok(userJob);
         }
@@ -307,11 +309,11 @@ namespace API.Controllers
                 return Forbid("Nemate pravo pristupa.");
             }
             var user = await _uow.UserRepository.GetUserByIdAsync(userId);
-            if (user == null || !user.IsCompany)
+            var userAd = await _jobPostService.GetUserJobPostByIdAsync(userAdId);
+            if (user == null || (!user.IsCompany && user.Id != userAd.SubmittingUserId))
             {
                 return Forbid("Nemate pravo pristupa.");
             }
-            var userAd = await _jobPostService.GetUserJobPostByIdAsync(userAdId);
             if (userAd == null)
                 return NotFound("Oglas ne postoji!");
             var fileName = Path.GetFileName(userAd.CvFilePath);
@@ -498,31 +500,31 @@ namespace API.Controllers
                 return BadRequest(new { message = "Email i poruka su obavezni!" });
             }
 
-            var userApplication = await _jobPostService.GetUserJobPostByIdAsync(userAdId);
+            var userJobPost = await _jobPostService.GetUserJobPostByIdAsync(userAdId);
             var user = await _uow.UserRepository.GetUserByIdAsync(userId);
-            if (user == null || userApplication == null)
-                return BadRequest(new { message = "Korisnik nije pronadjen!" });
+            if (user == null || userJobPost == null)
+                return BadRequest(new { message = "Korisnik ili oglas nije pronadjen!" });
 
             var now = DateTime.UtcNow;
-            var contactUserRequest = new ContactUserRequest()
+            var contactUserRequest = new Chat()
             {
-                Email = request.Email,
+                CompanyContactEmail = request.Email,
                 Message = request.Message,
-                Phone = request.Phone,
+                CompanyContactPhone = request.Phone,
                 Subject = request.Subject,
                 UserJobPostId = userAdId,
                 FromUserId = userId,
                 CreatedAt = now,
-                CompanyName = user.Company?.CompanyName ?? "Ponuda od drugog korisnika",
-                ToUserId = userApplication.SubmittingUserId
+                CompanyName = user.Company?.CompanyName,
+                ToUserId = userJobPost.SubmittingUserId
             };
 
-            await _dbContext.ContactUserRequests.AddAsync(contactUserRequest);
+            await _dbContext.Chat.AddAsync(contactUserRequest);
             await _dbContext.SaveChangesAsync();
 
             var notification = new Notification()
             {
-                UserId = userApplication.SubmittingUserId.ToString(),
+                UserId = userJobPost.SubmittingUserId.ToString(),
                 CreatedAt = now,
                 IsRead = false,
                 Link = UIBaseUrl + $"user-settings/job-offers/{contactUserRequest.Id}",
@@ -532,7 +534,7 @@ namespace API.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            await SendNewContactUserEmailAsync(userApplication, contactUserRequest.Id, request.Message, request.Subject, request.Phone, request.Email);
+            await SendNewContactUserEmailAsync(userJobPost, contactUserRequest.Id, request.Message, request.Subject, request.Phone, request.Email);
 
             return Ok(new { message = "Poruka je uspešno poslana!" });
         }
@@ -543,7 +545,7 @@ namespace API.Controllers
             var currentUserId = HttpContext.User.GetUserId();
             if (currentUserId == null)
                 return Unauthorized("Nemate pravo pristupa");
-            var userJobOffers = await _dbContext.ContactUserRequests.Where(r => r.ToUserId == currentUserId).Include(r => r.UserJobPost).OrderByDescending(r => r.CreatedAt).ToListAsync();
+            var userJobOffers = await _dbContext.Chat.Where(r => r.ToUserId == currentUserId).Include(r => r.UserJobPost).OrderByDescending(r => r.CreatedAt).ToListAsync();
             var userJobOffersTableData = new List<UserJobOffersTableData>();
             foreach (var jobOffer in userJobOffers)
             {
@@ -552,9 +554,9 @@ namespace API.Controllers
                     JobPosition = jobOffer.UserJobPost.Position,
                     CreatedAt = jobOffer.CreatedAt,
                     CompanyName = jobOffer.CompanyName,
-                    UserJobPostId = jobOffer.UserJobPostId,
-                    Phone = jobOffer.Phone,
-                    Email = jobOffer.Email,
+                    UserJobPostId = (int)jobOffer.UserJobPostId,
+                    Phone = jobOffer.CompanyContactPhone,
+                    Email = jobOffer.CompanyContactEmail,
                     Message = jobOffer.Message,
                     Subject = jobOffer.Subject,
                     Id = jobOffer.Id
@@ -579,7 +581,7 @@ namespace API.Controllers
                 <a href='{applicationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Pogledajte oglas</a>
             </p>";
 
-                var subject = "Poslovni oglasi - Nova poslovna prilika! Poslodavac Vas želi kontaktirati";
+                var subject = "POSLOVNIOGLASI - Nova poslovna prilika! Poslodavac Vas želi kontaktirati";
                 var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, _configuration);
 
                 try

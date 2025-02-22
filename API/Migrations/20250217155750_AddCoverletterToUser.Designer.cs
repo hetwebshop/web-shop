@@ -4,6 +4,7 @@ using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250217155750_AddCoverletterToUser")]
+    partial class AddCoverletterToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -604,7 +606,7 @@ namespace API.Migrations
                     b.ToTable("ApplicantEducations");
                 });
 
-            modelBuilder.Entity("API.Entities.JobPost.Chat", b =>
+            modelBuilder.Entity("API.Entities.JobPost.ContactUserRequest", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -612,25 +614,22 @@ namespace API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("CompanyContactEmail")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CompanyContactPhone")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("CompanyJobPostId")
-                        .HasColumnType("int");
-
                     b.Property<string>("CompanyName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("FromUserId")
                         .HasColumnType("int");
 
                     b.Property<string>("Message")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Subject")
@@ -639,18 +638,16 @@ namespace API.Migrations
                     b.Property<int>("ToUserId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("UserJobPostId")
+                    b.Property<int>("UserJobPostId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CompanyJobPostId");
 
                     b.HasIndex("FromUserId");
 
                     b.HasIndex("UserJobPostId");
 
-                    b.ToTable("Chat");
+                    b.ToTable("ContactUserRequests");
                 });
 
             modelBuilder.Entity("API.Entities.JobPost.EmploymentType", b =>
@@ -1509,12 +1506,8 @@ namespace API.Migrations
                     b.Navigation("UserJobPost");
                 });
 
-            modelBuilder.Entity("API.Entities.JobPost.Chat", b =>
+            modelBuilder.Entity("API.Entities.JobPost.ContactUserRequest", b =>
                 {
-                    b.HasOne("API.Entities.CompanyJobPost.CompanyJobPost", "CompanyJobPost")
-                        .WithMany()
-                        .HasForeignKey("CompanyJobPostId");
-
                     b.HasOne("API.Entities.User", "FromUser")
                         .WithMany()
                         .HasForeignKey("FromUserId")
@@ -1523,9 +1516,9 @@ namespace API.Migrations
 
                     b.HasOne("API.Entities.JobPost.UserJobPost", "UserJobPost")
                         .WithMany()
-                        .HasForeignKey("UserJobPostId");
-
-                    b.Navigation("CompanyJobPost");
+                        .HasForeignKey("UserJobPostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("FromUser");
 

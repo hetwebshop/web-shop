@@ -161,7 +161,12 @@ namespace API.Controllers
             
             
             var companyJobs = await _jobPostRepository.GetCompanyActiveAdsAsync((int)user.CompanyId);
-            return Ok(companyJobs);
+            var dtos = companyJobs.ToDto();
+            foreach(var item in dtos)
+            {
+                item.PricingPlanName = companyJobs.First(r => r.Id == item.Id).PricingPlan.Name;
+            }
+            return Ok(dtos);
         }
 
         [HttpGet("company-job-candidates/{jobId}")]

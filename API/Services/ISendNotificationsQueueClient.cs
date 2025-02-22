@@ -13,16 +13,20 @@ namespace API.Services
         public int JobPostId { get; set; }
         public int UserApplicationId { get; set; }
     }
+    public class ApplicantStatusUpdated
+    {
+        public List<int> UserApplicationIds { get; set; }
+    }
     public class NewApplicantPredictionQueueMessage
     {
         public int CompanyJobPostId { get; set; }
         public int UserApplicationId { get; set; }
-        public int? YearsOfExperience { get; set; }
-        public string Position { get; set; }
-        public string CvFileUrl { get; set; }
-        public List<UserApplicationPreviousCompanies> UserPreviousCompanies { get; set; }
-        public List<UserApplicationEducation> UserEducations { get; set; }
-        public string MotivationLetter { get; set; }
+        //public int? YearsOfExperience { get; set; }
+        //public string Position { get; set; }
+        //public string CvFileUrl { get; set; }
+        //public List<UserApplicationPreviousCompanies> UserPreviousCompanies { get; set; }
+        //public List<UserApplicationEducation> UserEducations { get; set; }
+        //public string MotivationLetter { get; set; }
     }
     public interface ISendNotificationsQueueClient
     {
@@ -30,5 +34,6 @@ namespace API.Services
         Task SendMessageToCompanyAsync(JobPostNotificationQueueMessage jobPostNotificationMessage);
         Task SendNewApplicantMessageToCompanyAsync(NewApplicantQueueMessage message);
         Task SendNewApplicantPredictionMessageAsync(NewApplicantPredictionQueueMessage message);
+        Task SendMessageToUserOnUpdateApplicationStatusAsync(ApplicantStatusUpdated message);
     }
 }

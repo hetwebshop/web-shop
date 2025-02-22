@@ -48,6 +48,7 @@ namespace API.DTOs
     {
         WaitingForResponse,
         Accepted,
-        Rejected
+        Rejected,
+        MeetingScheduled
     }
 }

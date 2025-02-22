@@ -15,5 +15,8 @@ namespace API.DTOs
         public ApplicationStatus ApplicationStatusId { get; set; }
         public string JobPosition { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string Feedback { get; set; }
+        public DateTime? MeetingDateTime { get; set; }
+        public int Id { get; set; }
     }
 }
