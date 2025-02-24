@@ -1,6 +1,8 @@
 ﻿using API.Data;
 using API.Data.IUserOfferRepository;
 using API.DTOs;
+using API.Entities;
+using API.Entities.Chat;
 using API.Entities.JobPost;
 using API.Entities.Notification;
 using API.Extensions;
@@ -68,7 +70,7 @@ namespace API.Controllers
             adsParameters.adStatus = JobPostStatus.Active;
             var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
             var pagedResponse = jobPosts.ToPagedResponse();
-            var contactedAdsByCurrentUser = await _dbContext.Chat.Where(r => r.FromUserId == userId).ToListAsync();
+            var contactedAdsByCurrentUser = await _dbContext.Conversations.Where(r => r.FromUserId == userId).ToListAsync();
             var contactedAdsByCurrentUserIds = contactedAdsByCurrentUser.Select(r => r.Id);
             var currentUser = await _uow.UserRepository.GetUserByIdAsync(userId);
             foreach(var item in pagedResponse.Items)
@@ -108,7 +110,7 @@ namespace API.Controllers
             var userJob = await _jobPostService.GetUserJobPostByIdAsync(id);
             if (userJob.IsDeleted || userJob.JobPostStatusId != (int)JobPostStatus.Active || userJob.AdEndDate < DateTime.Now)
                 return NotFound("Oglas je obrisan, zatvoren, ili je istekao.");
-            var contactedAdsByCurrentUserIds = await _dbContext.Chat.Where(r => r.FromUserId == userId).Select(r => r.FromUserId).ToListAsync();
+            var contactedAdsByCurrentUserIds = await _dbContext.Conversations.Where(r => r.FromUserId == userId).Select(r => r.FromUserId).ToListAsync();
             var currentUser = await _uow.UserRepository.GetUserByIdAsync(userId);
             if (contactedAdsByCurrentUserIds.Contains(userJob.Id) || userJob.SubmittingUserId == userId || !currentUser.IsCompany)
                 userJob.CanCurrentUserApplyOnAd = false;
@@ -487,112 +489,6 @@ namespace API.Controllers
             var result = await _userJobPostRepository.DeleteUserAdFileAsync(userAdId);
             //IMPLEMENTE DELETE FILE FROM BLOB
             return result.ToDto();
-        }
-
-        [HttpPost("contactuser/{userAdId}")]
-        public async Task<IActionResult> SendContactMessage(int userAdId, [FromBody] ContactUserRequestDto request)
-        {
-            var userId = HttpContext.User.GetUserId();
-            if(userId == null)
-                return BadRequest(new { message = "Korisnik je obavezan!" });
-            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Message))
-            {
-                return BadRequest(new { message = "Email i poruka su obavezni!" });
-            }
-
-            var userJobPost = await _jobPostService.GetUserJobPostByIdAsync(userAdId);
-            var user = await _uow.UserRepository.GetUserByIdAsync(userId);
-            if (user == null || userJobPost == null)
-                return BadRequest(new { message = "Korisnik ili oglas nije pronadjen!" });
-
-            var now = DateTime.UtcNow;
-            var contactUserRequest = new Chat()
-            {
-                CompanyContactEmail = request.Email,
-                Message = request.Message,
-                CompanyContactPhone = request.Phone,
-                Subject = request.Subject,
-                UserJobPostId = userAdId,
-                FromUserId = userId,
-                CreatedAt = now,
-                CompanyName = user.Company?.CompanyName,
-                ToUserId = userJobPost.SubmittingUserId
-            };
-
-            await _dbContext.Chat.AddAsync(contactUserRequest);
-            await _dbContext.SaveChangesAsync();
-
-            var notification = new Notification()
-            {
-                UserId = userJobPost.SubmittingUserId.ToString(),
-                CreatedAt = now,
-                IsRead = false,
-                Link = UIBaseUrl + $"user-settings/job-offers/{contactUserRequest.Id}",
-                Message = "Nova poslovna prilika! Poslodavac Vas želi kontaktirati"
-            };
-            _dbContext.Notifications.Add(notification);
-
-            await _dbContext.SaveChangesAsync();
-
-            await SendNewContactUserEmailAsync(userJobPost, contactUserRequest.Id, request.Message, request.Subject, request.Phone, request.Email);
-
-            return Ok(new { message = "Poruka je uspešno poslana!" });
-        }
-
-        [HttpGet("userjoboffers")]
-        public async Task<IActionResult> GetAllUserJobOffers()
-        {
-            var currentUserId = HttpContext.User.GetUserId();
-            if (currentUserId == null)
-                return Unauthorized("Nemate pravo pristupa");
-            var userJobOffers = await _dbContext.Chat.Where(r => r.ToUserId == currentUserId).Include(r => r.UserJobPost).OrderByDescending(r => r.CreatedAt).ToListAsync();
-            var userJobOffersTableData = new List<UserJobOffersTableData>();
-            foreach (var jobOffer in userJobOffers)
-            {
-                var tableData = new UserJobOffersTableData()
-                {
-                    JobPosition = jobOffer.UserJobPost.Position,
-                    CreatedAt = jobOffer.CreatedAt,
-                    CompanyName = jobOffer.CompanyName,
-                    UserJobPostId = (int)jobOffer.UserJobPostId,
-                    Phone = jobOffer.CompanyContactPhone,
-                    Email = jobOffer.CompanyContactEmail,
-                    Message = jobOffer.Message,
-                    Subject = jobOffer.Subject,
-                    Id = jobOffer.Id
-                };
-                userJobOffersTableData.Add(tableData);
-            }
-            return Ok(userJobOffersTableData);
-        }
-
-        private async Task SendNewContactUserEmailAsync(UserJobPostDto userAd, int contactUserId, string message, string requestSubject, string phone, string email)
-        {
-            if (userAd != null)
-            {
-                var applicationUrl = UIBaseUrl + $"user-settings/job-offers/{contactUserId}";
-
-                string messageBody = $@"
-            <h4 style='color: black;'>Naslov: {requestSubject}</h4>
-            <p style='color: #66023C;'>Poruka: {message}</p>
-            <p style='color: #66023C;'>Email poslodavca: {email}</p>
-            <p style='color: #66023C;'>Broj telefona poslodavca: {phone}</p>
-            <p style='text-align: center;'>
-                <a href='{applicationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Pogledajte oglas</a>
-            </p>";
-
-                var subject = "POSLOVNIOGLASI - Nova poslovna prilika! Poslodavac Vas želi kontaktirati";
-                var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, _configuration);
-
-                try
-                {
-                    await emailService.SendEmailWithTemplateAsync(userAd.ApplicantEmail, subject, emailTemplate);
-                }
-                catch (Exception ex)
-                {
-                    throw;
-                }
-            }
         }
 
         private UserJobPostDto ConvertUserAdToUserAdDto(UserJobPost userJobPost)

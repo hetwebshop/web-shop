@@ -187,6 +187,7 @@ namespace API.Controllers
             //    return BadRequest("Oglas je istekao");
 
             var userApplicationsForJobPost = await _userApplicationsRepository.GetApplicationsForSpecificCompanyJobPost(jobId);
+            var conversations = await _dbContext.Conversations.Where(r => r.CompanyJobPostId == jobId).ToListAsync();
             var candidatesTableData = new List<JobCandidatesTableDataDto>();
             foreach (var application in userApplicationsForJobPost)
             {
@@ -209,7 +210,8 @@ namespace API.Controllers
                     AIMatchingSkills = application.AIMatchingSkills,
                     AIMatchingDescription = application.AIMatchingDescription,
                     AIMatchingEducationLevel = application.AIMatchingEducationLevel,
-                    AIMatchingExperience = application.AIMatchingExperience
+                    AIMatchingExperience = application.AIMatchingExperience,
+                    ConversationId = conversations.FirstOrDefault(r => r.ToUserId == application.SubmittingUserId)?.Id
                 };
                 candidatesTableData.Add(tableData);
             }

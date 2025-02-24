@@ -1,11 +1,13 @@
 ﻿using API.Entities;
 using API.Entities.Applications;
+using API.Entities.Chat;
 using API.Entities.CompanyJobPost;
 using API.Entities.JobPost;
 using API.Entities.Notification;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace API.Data
 {
@@ -43,7 +45,8 @@ namespace API.Data
         public DbSet<CompanyJobCategoryInterests> CompanyJobCategoryInterests { get; set; }
         public DbSet<CompanyNotificationPreferences> CompanyNotificationPreferences { get; set; }
         public DbSet<DemoMeetingRequest> DemoMeetingRequests { get; set; }
-        public DbSet<Chat> Chat { get; set; }
+        public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
 
         public DbSet<Notification> Notifications { get; set; }
 
@@ -56,6 +59,22 @@ namespace API.Data
             RegisterJobPostTables(builder);
             RegisterCompanyJobPostTables(builder);
             RegisterUserApplicationTables(builder);
+            RegisterChatTables(builder);
+        }
+
+        private void RegisterChatTables(ModelBuilder builder)
+        {
+            builder.Entity<Conversation>()
+            .HasOne(c => c.FromUser)
+            .WithMany()
+            .HasForeignKey(c => c.FromUserId)
+            .OnDelete(DeleteBehavior.Restrict);  // ✅ Prevents cascade delete
+
+            builder.Entity<Conversation>()
+                .HasOne(c => c.ToUser)
+                .WithMany()
+                .HasForeignKey(c => c.ToUserId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
         private void RegisterUserApplicationTables(ModelBuilder builder)

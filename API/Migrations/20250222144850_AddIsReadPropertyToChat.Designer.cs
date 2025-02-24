@@ -4,6 +4,7 @@ using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250222144850_AddIsReadPropertyToChat")]
+    partial class AddIsReadPropertyToChat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -227,74 +229,6 @@ namespace API.Migrations
                     b.HasIndex("UserApplicationId");
 
                     b.ToTable("UserApplicationPreviousCompanies");
-                });
-
-            modelBuilder.Entity("API.Entities.Chat.ChatMessage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("ConversationId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("FromUserId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Message")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ConversationId");
-
-                    b.HasIndex("FromUserId");
-
-                    b.ToTable("ChatMessages");
-                });
-
-            modelBuilder.Entity("API.Entities.Chat.Conversation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int?>("CompanyJobPostId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("FromUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ToUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("UserJobPostId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CompanyJobPostId");
-
-                    b.HasIndex("FromUserId");
-
-                    b.HasIndex("ToUserId");
-
-                    b.HasIndex("UserJobPostId");
-
-                    b.ToTable("Conversations");
                 });
 
             modelBuilder.Entity("API.Entities.City", b =>
@@ -670,6 +604,58 @@ namespace API.Migrations
                     b.HasIndex("UserJobPostId");
 
                     b.ToTable("ApplicantEducations");
+                });
+
+            modelBuilder.Entity("API.Entities.JobPost.Chat", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("CompanyContactEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CompanyContactPhone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CompanyJobPostId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CompanyName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FromUserId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Subject")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ToUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UserJobPostId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyJobPostId");
+
+                    b.HasIndex("FromUserId");
+
+                    b.HasIndex("UserJobPostId");
+
+                    b.ToTable("Chat");
                 });
 
             modelBuilder.Entity("API.Entities.JobPost.EmploymentType", b =>
@@ -1402,56 +1388,6 @@ namespace API.Migrations
                     b.Navigation("UserApplication");
                 });
 
-            modelBuilder.Entity("API.Entities.Chat.ChatMessage", b =>
-                {
-                    b.HasOne("API.Entities.Chat.Conversation", "Conversation")
-                        .WithMany("Messages")
-                        .HasForeignKey("ConversationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("API.Entities.User", "FromUser")
-                        .WithMany()
-                        .HasForeignKey("FromUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Conversation");
-
-                    b.Navigation("FromUser");
-                });
-
-            modelBuilder.Entity("API.Entities.Chat.Conversation", b =>
-                {
-                    b.HasOne("API.Entities.CompanyJobPost.CompanyJobPost", "CompanyJobPost")
-                        .WithMany()
-                        .HasForeignKey("CompanyJobPostId");
-
-                    b.HasOne("API.Entities.User", "FromUser")
-                        .WithMany()
-                        .HasForeignKey("FromUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("API.Entities.User", "ToUser")
-                        .WithMany()
-                        .HasForeignKey("ToUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("API.Entities.JobPost.UserJobPost", "UserJobPost")
-                        .WithMany()
-                        .HasForeignKey("UserJobPostId");
-
-                    b.Navigation("CompanyJobPost");
-
-                    b.Navigation("FromUser");
-
-                    b.Navigation("ToUser");
-
-                    b.Navigation("UserJobPost");
-                });
-
             modelBuilder.Entity("API.Entities.City", b =>
                 {
                     b.HasOne("API.Entities.Country", "Country")
@@ -1574,6 +1510,29 @@ namespace API.Migrations
                         .WithMany("ApplicantEducations")
                         .HasForeignKey("UserJobPostId")
                         .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("UserJobPost");
+                });
+
+            modelBuilder.Entity("API.Entities.JobPost.Chat", b =>
+                {
+                    b.HasOne("API.Entities.CompanyJobPost.CompanyJobPost", "CompanyJobPost")
+                        .WithMany()
+                        .HasForeignKey("CompanyJobPostId");
+
+                    b.HasOne("API.Entities.User", "FromUser")
+                        .WithMany()
+                        .HasForeignKey("FromUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("API.Entities.JobPost.UserJobPost", "UserJobPost")
+                        .WithMany()
+                        .HasForeignKey("UserJobPostId");
+
+                    b.Navigation("CompanyJobPost");
+
+                    b.Navigation("FromUser");
 
                     b.Navigation("UserJobPost");
                 });
@@ -1796,11 +1755,6 @@ namespace API.Migrations
                     b.Navigation("Educations");
 
                     b.Navigation("PreviousCompanies");
-                });
-
-            modelBuilder.Entity("API.Entities.Chat.Conversation", b =>
-                {
-                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("API.Entities.CompanyJobPost.CompanyJobPost", b =>

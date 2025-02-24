@@ -23,5 +23,6 @@ namespace API.DTOs
         public int? AIMatchingSkills { get; set; }
         public int? AIMatchingEducationLevel { get; set; }
         public string AIMatchingDescription { get; set; }
+        public int? ConversationId { get; set; }
     }
 }
