@@ -139,6 +139,12 @@ namespace API.Data.ICompanyJobPostRepository
                     return null;
                 var now = DateTime.UtcNow;
                 newCompanyJobPost.PricingPlan = pricingPlan;
+                if (pricingPlan.Name == "Premium")
+                {
+                    newCompanyJobPost.IsAiAnalysisIncluded = true;
+                    newCompanyJobPost.AiAnalysisProgress = 100.00;
+                }
+                    
                 newCompanyJobPost.AdStartDate = now;
                 newCompanyJobPost.AdEndDate = now.AddDays(pricingPlan.AdActiveDays);
                 newCompanyJobPost.RefreshDateTime = now;

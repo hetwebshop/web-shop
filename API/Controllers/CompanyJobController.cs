@@ -1,6 +1,7 @@
 ﻿using API.Data;
 using API.Data.ICompanyJobPostRepository;
 using API.DTOs;
+using API.Entities.Applications;
 using API.Extensions;
 using API.Helpers;
 using API.Mappers;
@@ -27,8 +28,9 @@ namespace API.Controllers
         private readonly IUserApplicationsRepository _userApplicationsRepository;
         private readonly DataContext _dbContext;
         private readonly IBlobStorageService _blobStorageService;
+        private readonly ISendNotificationsQueueClient _sendNotificationsQueueClient;
 
-        public CompanyJobController(ICompanyJobPostService jobPostService, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IUserApplicationsRepository userApplicationsRepository, DataContext dbContext, IBlobStorageService blobStorageService)
+        public CompanyJobController(ICompanyJobPostService jobPostService, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IUserApplicationsRepository userApplicationsRepository, DataContext dbContext, IBlobStorageService blobStorageService, ISendNotificationsQueueClient sendNotificationsQueueClient)
         {
             _jobPostService = jobPostService;
             _uow = uow;
@@ -36,6 +38,7 @@ namespace API.Controllers
             _userApplicationsRepository = userApplicationsRepository;
             _dbContext = dbContext;
             _blobStorageService = blobStorageService;
+            _sendNotificationsQueueClient = sendNotificationsQueueClient;
         }
 
 
@@ -168,6 +171,80 @@ namespace API.Controllers
             }
             return Ok(dtos);
         }
+
+        [HttpPost("runaiforallcandidates/{jobId}")]
+        public async Task<IActionResult> RunAIForAllCandidatesOfCompanyJobPost(int jobId)
+        {
+            try
+            {
+                var userId = HttpContext.User.GetUserId();
+                var user = await _uow.UserRepository.GetUserByIdAsync(userId);
+                if (user == null || user.CompanyId == null)
+                    return Unauthorized("You do not belong to the current company.");
+
+                var companyId = user.CompanyId;
+                var companyJobPost = await _jobPostRepository.GetCompanyJobPostByIdAsync(jobId);
+                if (companyJobPost == null)
+                    return NotFound();
+                if (companyJobPost.User.CompanyId != companyId)
+                    return Unauthorized("Not belong to current company");
+
+                var userApplicationsForJobPost = await _userApplicationsRepository.GetApplicationsForSpecificCompanyJobPost(jobId);
+                var applicationsThatAreNotProcessedByAi = userApplicationsForJobPost.Where(r => r.AIMatchingResult == null).Select(r => r.Id).ToList();
+
+                companyJobPost.IsAiAnalysisIncluded = true;
+                await _dbContext.SaveChangesAsync();
+
+                if (applicationsThatAreNotProcessedByAi != null && applicationsThatAreNotProcessedByAi.Any())
+                {
+                    var applicantPredictionMessage = new NewApplicantPredictionQueueMessage()
+                    {
+                        CompanyJobPostId = companyJobPost.Id,
+                        UserApplicationIds = applicationsThatAreNotProcessedByAi,
+                    };
+
+                    await _sendNotificationsQueueClient.SendNewApplicantPredictionMessageAsync(applicantPredictionMessage);
+
+                    companyJobPost.AiAnalysisProgress = 0.00;
+                    companyJobPost.AiAnalysisStartedOn = DateTime.UtcNow;
+                    await _dbContext.SaveChangesAsync();
+
+                    return Ok(true);
+                }
+                return NotFound(false);
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, false);
+            }
+        }
+
+        [HttpGet("aianalysisstatuspolling/{jobId}")]
+        public async Task<IActionResult> AIAnalysisForAllCandidatesStatusPolling(int jobId)
+        {
+            try
+            {
+                var userId = HttpContext.User.GetUserId();
+                if (userId == null)
+                    return Unauthorized("You do not belong to the current company.");
+                var companyJobPost = await _jobPostRepository.GetCompanyJobPostByIdAsync(jobId);
+                if (companyJobPost == null)
+                    return NotFound();
+
+                var res = new AIAnalysisPollingResponse()
+                {
+                    Error = companyJobPost.AiAnalysisError,
+                    HasError = companyJobPost.AiAnalysisHasError ?? false,
+                    Progress = companyJobPost.AiAnalysisProgress
+                };
+                return Ok(res); 
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while fetching AI analysis status.");
+            }
+        }
+
 
         [HttpGet("company-job-candidates/{jobId}")]
         public async Task<IActionResult> GetCompanyJobCandidates(int jobId)

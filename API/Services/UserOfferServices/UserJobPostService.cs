@@ -194,90 +194,13 @@ namespace API.Services.UserOfferServices
                 var newItem = await userJobPostRepository.CreateUserApplicationAsync(entity);
                 if (companyJobPost.PricingPlan.Name == "Premium")
                 {
-                    //using (var client = new HttpClient())
-                    //using (var content = new MultipartFormDataContent())
-                    //{
-                    //    content.Add(new StringContent(companyJobPost.Position), "job_description");
-
-                   var file = await blobStorageService.GetFileAsync(userApplication.CvFileName);
-                    //    var fileContent = new ByteArrayContent(file.FileContent);
-                    //    fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
-                    //    content.Add(fileContent, "cv", Path.GetFileName(userApplication.CvFilePath));
-
-                    //    HttpResponseMessage response = await client.PostAsync(predictionApiUrl, content);
-
-                    //    if (response.IsSuccessStatusCode)
-                    //    {
-                    //        var responseStr = await response.Content.ReadAsStringAsync();
-                    //        var jsonDataStartIndex = responseStr.IndexOf('{');
-                    //        if (jsonDataStartIndex >= 0)
-                    //        {
-                    //            var validJsonStr = responseStr.Substring(jsonDataStartIndex);
-                    //            predictionApiResponse = JsonConvert.DeserializeObject<PredictionApiResponse>(validJsonStr);
-                    //        }
-                    //    }
-                    //}
                     var applicantPredictionMessage = new NewApplicantPredictionQueueMessage()
                     {
                         CompanyJobPostId = companyJobPost.Id,
-                        UserApplicationId = newItem.Id,
-                        //Position = companyJobPost.Position,
-                        //MotivationLetter = userApplication.CoverLetter,
-                        //CvFileUrl = userApplication.CvFileName,
-                        //YearsOfExperience = userApplication.YearsOfExperience,
-                        //UserPreviousCompanies = userApplication.PreviousCompanies.Select(r => new UserApplicationPreviousCompanies
-                        //{
-                        //    CompanyName = r.CompanyName,  
-                        //    Position = r.Position,     
-                        //    StartYear = r.StartYear,    
-                        //    EndYear = r.EndYear,
-                        //    Description = r.Description
-                        //}).ToList(),
-                        //UserEducations = userApplication.Educations.Select(r => new UserApplicationEducation
-                        //{
-                        //    Degree = r.Degree,
-                        //    EducationEndYear = r.EducationEndYear,
-                        //    EducationStartYear = r.EducationStartYear,
-                        //    FieldOfStudy = r.FieldOfStudy,
-                        //    InstitutionName = r.InstitutionName,
-                        //    University = r.University,
-                            
-                        //}).ToList()
+                        UserApplicationIds = new List<int> { newItem.Id },
                     };
                     await _sendNotificationsQueueClient.SendNewApplicantPredictionMessageAsync(applicantPredictionMessage);
                 }
-
-                //if(predictionApiResponse != null)
-                //{
-                //    entity.AIMatchingDescription = predictionApiResponse.Obrazlozenje;
-                //    entity.AIMatchingEducationLevel = predictionApiResponse.Opis.PoklapanjeDomeneZnanja;
-                //    entity.AIMatchingExperience = predictionApiResponse.Opis.PoklapanjeIskustva;
-                //    entity.AIMatchingSkills = predictionApiResponse.Opis.PoklapanjeVjestina;
-                //    entity.AIMatchingResult = predictionApiResponse.Rezultat;
-                //}
-
-
-                //var companyNotifPreferences = _dbContext.CompanyNotificationPreferences.Where(r => r.UserId == companyJobPost.SubmittingUserId && r.IsEnabled == true && (r.NotificationType == CompanyNotificationType.newApplicantInApp || r.NotificationType == CompanyNotificationType.newApplicantEmail))?.ToList();
-
-                //if (companyNotifPreferences != null && companyNotifPreferences.Any())
-                //{
-                //    var emailTask = Task.Run(() => SendNewApplicantEmailsAsync(companyNotifPreferences, companyJobPost.Position, newItem.Id, companyJobPost.EmailForReceivingApplications, companyJobPost.SubmittingUserId));
-                //    var inAppSetting = companyNotifPreferences.FirstOrDefault(r => r.NotificationType == CompanyNotificationType.newApplicantInApp);
-                //    if(inAppSetting != null)
-                //    {
-                //        var notification = new Notification()
-                //        {
-                //            UserId = companyJobPost.SubmittingUserId.ToString(),
-                //            CreatedAt = DateTime.UtcNow,
-                //            IsRead = false,
-                //            Link = UIBaseUrl + "company-settings/job-candidates/" + newItem.Id,
-                //            Message = "Kreiran je nova aplikacija za posao na vašem oglasu " + companyJobPost.Position
-                //        };
-                //        _dbContext.Notifications.Add(notification);
-                //        await _dbContext.SaveChangesAsync();
-                //    }
-                //}
-
                 var newApplicantMessage = new NewApplicantQueueMessage()
                 {
                     JobPostId = companyJobPost.Id,

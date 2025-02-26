@@ -48,6 +48,11 @@ namespace API.Entities.CompanyJobPost
         public DateTime RefreshDateTime { get; set; }
         public int? RefreshIntervalInDays { get; set; }
         public string PhotoUrl { get; set; }
+        public bool IsAiAnalysisIncluded { get; set; }
+        public double? AiAnalysisProgress { get; set; }
+        public DateTime? AiAnalysisStartedOn { get; set; } //if we have base ad, and user triggered analysis for all candidates, we need this to track if there is an issue
+        public bool? AiAnalysisHasError { get; set; }
+        public string AiAnalysisError { get; set; }
 
         public ICollection<UserApplication> UserApplications { get; set; }
     }

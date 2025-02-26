@@ -20,7 +20,7 @@ namespace API.Services
     public class NewApplicantPredictionQueueMessage
     {
         public int CompanyJobPostId { get; set; }
-        public int UserApplicationId { get; set; }
+        public List<int> UserApplicationIds { get; set; }
         //public int? YearsOfExperience { get; set; }
         //public string Position { get; set; }
         //public string CvFileUrl { get; set; }
