@@ -2,6 +2,7 @@
 using API.Data.ICompanyJobPostRepository;
 using API.DTOs;
 using API.Entities.Applications;
+using API.Entities.CompanyJobPost;
 using API.Extensions;
 using API.Helpers;
 using API.Mappers;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,8 +31,9 @@ namespace API.Controllers
         private readonly DataContext _dbContext;
         private readonly IBlobStorageService _blobStorageService;
         private readonly ISendNotificationsQueueClient _sendNotificationsQueueClient;
+        private readonly ILogger<CompanyJobController> _logger;
 
-        public CompanyJobController(ICompanyJobPostService jobPostService, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IUserApplicationsRepository userApplicationsRepository, DataContext dbContext, IBlobStorageService blobStorageService, ISendNotificationsQueueClient sendNotificationsQueueClient)
+        public CompanyJobController(ICompanyJobPostService jobPostService, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IUserApplicationsRepository userApplicationsRepository, DataContext dbContext, IBlobStorageService blobStorageService, ISendNotificationsQueueClient sendNotificationsQueueClient, ILogger<CompanyJobController> logger)
         {
             _jobPostService = jobPostService;
             _uow = uow;
@@ -39,6 +42,7 @@ namespace API.Controllers
             _dbContext = dbContext;
             _blobStorageService = blobStorageService;
             _sendNotificationsQueueClient = sendNotificationsQueueClient;
+            _logger = logger;
         }
 
 
@@ -189,24 +193,38 @@ namespace API.Controllers
                 if (companyJobPost.User.CompanyId != companyId)
                     return Unauthorized("Not belong to current company");
 
+                //if (companyJobPost.AiAnalysisHasError == true || (companyJobPost.AiAnalysisHasError == false || companyJobPost.AiAnalysisHasError) && companyJobPost.AiAnalysisProgress > 0 && companyJobPost.AiAnalysisProgress < 100)
+                //    return BadRequest("Analysis is running or has error");
+
                 var userApplicationsForJobPost = await _userApplicationsRepository.GetApplicationsForSpecificCompanyJobPost(jobId);
                 var applicationsThatAreNotProcessedByAi = userApplicationsForJobPost.Where(r => r.AIMatchingResult == null).Select(r => r.Id).ToList();
-
-                companyJobPost.IsAiAnalysisIncluded = true;
-                await _dbContext.SaveChangesAsync();
+                
 
                 if (applicationsThatAreNotProcessedByAi != null && applicationsThatAreNotProcessedByAi.Any())
                 {
+                    var totalAIAnalysisPrice = Math.Round(applicationsThatAreNotProcessedByAi.Count() * 0.1, 1);
+                    var userCredits = user.Credits;
+                    if (userCredits < totalAIAnalysisPrice)
+                        return BadRequest("Nemate dovoljno kredita za izvršavanje AI analize. Molimo Vas da dopunite kredite, te nakon toga pokrenete AI analizu.");
+
+                    //companyJobPost.IsAiAnalysisIncluded = true;
+                    companyJobPost.AiAnalysisReservedCredits = totalAIAnalysisPrice;
+                    await _dbContext.SaveChangesAsync();
+
                     var applicantPredictionMessage = new NewApplicantPredictionQueueMessage()
                     {
                         CompanyJobPostId = companyJobPost.Id,
                         UserApplicationIds = applicationsThatAreNotProcessedByAi,
+                        UserId = user.Id,
+                        ReservedCredits = totalAIAnalysisPrice
                     };
 
                     await _sendNotificationsQueueClient.SendNewApplicantPredictionMessageAsync(applicantPredictionMessage);
 
-                    companyJobPost.AiAnalysisProgress = 0.00;
+                    user.Credits -= totalAIAnalysisPrice;
+                    //companyJobPost.AiAnalysisProgress = 0.1;
                     companyJobPost.AiAnalysisStartedOn = DateTime.UtcNow;
+                    companyJobPost.AiAnalysisStatus = Entities.CompanyJobPost.AiAnalysisStatus.Running;
                     await _dbContext.SaveChangesAsync();
 
                     return Ok(true);
@@ -225,19 +243,60 @@ namespace API.Controllers
             try
             {
                 var userId = HttpContext.User.GetUserId();
-                if (userId == null)
+                var user = await _uow.UserRepository.GetUserByIdAsync(userId);
+                if (user == null || user.CompanyId == null)
                     return Unauthorized("You do not belong to the current company.");
+
                 var companyJobPost = await _jobPostRepository.GetCompanyJobPostByIdAsync(jobId);
                 if (companyJobPost == null)
                     return NotFound();
+
+                var companyId = user.CompanyId;
+                if (companyJobPost.User == null || companyJobPost.User.CompanyId != companyId)
+                    return Unauthorized("Not belong to current company");
+
+                var aiAnalysisStartedOn = companyJobPost.AiAnalysisStartedOn;
+                var now = DateTime.UtcNow;
+
+                if (aiAnalysisStartedOn.HasValue && aiAnalysisStartedOn.Value.AddMinutes(15) < now
+                    && companyJobPost.AiAnalysisStatus == Entities.CompanyJobPost.AiAnalysisStatus.Running)
+                {
+                    //Use transaction with isolation here to ensure that there is no race condition(2 users from different machines pings this endpoint)
+                    using (var transaction = await _dbContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
+                    {
+                        try
+                        {
+                            companyJobPost.AiAnalysisError = "Desila se greška prilikom izvršavanja AI analize. Unutar 15 minuta analiza se nije uspješno izvršila.";
+                            companyJobPost.AiAnalysisHasError = true;
+                            companyJobPost.AiAnalysisEndedOn = DateTime.UtcNow;
+                            companyJobPost.AiAnalysisStatus = Entities.CompanyJobPost.AiAnalysisStatus.Completed;
+
+                            //Ensure credits are only refunded once
+                            if (companyJobPost.AiAnalysisReservedCredits.HasValue)
+                            {
+                                user.Credits += companyJobPost.AiAnalysisReservedCredits.Value;
+                                companyJobPost.AiAnalysisReservedCredits = null;
+                            }
+
+                            await _dbContext.SaveChangesAsync();
+                            await transaction.CommitAsync(); //Commit transaction only after all operations succeed
+                        }
+                        catch (Exception ex)
+                        {
+                            await transaction.RollbackAsync(); //Rollback transaction if anything fails
+                            return StatusCode(500, "An error occurred while processing AI analysis status.");
+                        }
+                    }
+                }
 
                 var res = new AIAnalysisPollingResponse()
                 {
                     Error = companyJobPost.AiAnalysisError,
                     HasError = companyJobPost.AiAnalysisHasError ?? false,
-                    Progress = companyJobPost.AiAnalysisProgress
+                    Status = companyJobPost.AiAnalysisStatus.HasValue ? companyJobPost.AiAnalysisStatus.Value : AiAnalysisStatus.Completed,
+                    UserCredits = user.Credits
                 };
-                return Ok(res); 
+                return Ok(res);
             }
             catch (Exception ex)
             {
@@ -301,20 +360,49 @@ namespace API.Controllers
             var userId = HttpContext.User.GetUserId();
             if (userId == null)
                 return Forbid("Niste autorizovani za ovu funkcionalnost.");
-            companyJobPostDto.SubmittingUserId = userId;
-            if(companyJobPostDto.Logo != null)
+            if (companyJobPostDto.Logo != null && !FileHelper.IsValidImage(companyJobPostDto.Logo))
             {
-                var fileUrl = await _blobStorageService.UploadFileAsync(companyJobPostDto.Logo);
-                var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
-                companyJobPostDto.PhotoUrl = decodedFileUrl;
+                return BadRequest("Nevažeći format slike. Dozvoljeni formati: JPG, PNG, GIF, BMP, WEBP.");
             }
-            var newItem = await _jobPostService.CreateCompanyJobPostAsync(companyJobPostDto);
-            return Ok(newItem);
+            var user = await _uow.UserRepository.GetUserByIdAsync(userId);
+            var pricingPlan = await _dbContext.PricingPlanCompanies.FirstOrDefaultAsync(r => r.Name.Equals(companyJobPostDto.PricingPlanName) && r.AdActiveDays == companyJobPostDto.AdDuration);
+            if (pricingPlan == null)
+            {
+                _logger.LogWarning($"UserId: {userId} selected an invalid pricing plan.");
+                return BadRequest("Niste odabrali ispravan plan paketa oglasa.");
+            }
+               
+            if (user.Credits < pricingPlan.PriceInCredits)
+            {
+                _logger.LogWarning($"UserId: {userId} does not have enough credits to create a job post.");
+                return BadRequest("Nemate dovoljno kredita za objavu odabranog tipa oglasa. Molimo Vas da dopunite kredite ili odaberete neki drugi paket oglasa");
+            }
+            companyJobPostDto.SubmittingUserId = userId;
+            companyJobPostDto.PricingPlanId = pricingPlan.Id;
+            try
+            {
+                var newItem = await _jobPostService.CreateCompanyJobPostAsync(companyJobPostDto);
+                newItem.CurrentUserCredits = user.Credits;
+                return Ok(newItem);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to create job post for UserId: {userId}. Error: {ex.Message}");
+                return StatusCode(500, "Došlo je do greške prilikom kreiranja oglasa. Pokušajte ponovo kasnije.");
+            }
         }
 
         [HttpPost("uploadLogo/{id}")]
         public async Task<IActionResult> UploadAdLogo(int id, IFormFile photo)
         {
+            if(photo == null)
+            {
+                return BadRequest("Logo nije priložen.");
+            }
+            if (!FileHelper.IsValidImage(photo))
+            {
+                return BadRequest("Nevažeći format slike. Dozvoljeni formati: JPG, PNG, GIF, BMP, WEBP.");
+            }
             var userId = HttpContext.User.GetUserId();
             var user = await _uow.UserRepository.GetUserByIdAsync(userId);
             if (user == null || user.CompanyId == null)

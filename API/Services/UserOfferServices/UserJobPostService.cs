@@ -12,6 +12,7 @@ using API.Mappers;
 using API.PaginationEntities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -35,8 +36,9 @@ namespace API.Services.UserOfferServices
         private readonly string UIBaseUrl;
         private readonly IConfiguration _configuration;
         private readonly ISendNotificationsQueueClient _sendNotificationsQueueClient;
+        private readonly ILogger<UserJobPostService> _logger;
 
-        public UserJobPostService(IUserJobPostRepository userJobPostRepository, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IConfiguration configuration, IBlobStorageService blobStorageService, DataContext dataContext, IEmailService emailService, ISendNotificationsQueueClient sendNotificationsQueueClient)
+        public UserJobPostService(IUserJobPostRepository userJobPostRepository, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IConfiguration configuration, IBlobStorageService blobStorageService, DataContext dataContext, IEmailService emailService, ISendNotificationsQueueClient sendNotificationsQueueClient, ILogger<UserJobPostService> logger)
         {
             this.userJobPostRepository = userJobPostRepository;
             _uow = uow;
@@ -48,6 +50,7 @@ namespace API.Services.UserOfferServices
             UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
             _configuration = configuration;
             _sendNotificationsQueueClient = sendNotificationsQueueClient;
+            _logger = logger;
         }
 
         public async Task<PagedList<UserJobPostDto>> GetJobPostsAsync(AdsPaginationParameters adsParameters)
@@ -68,130 +71,84 @@ namespace API.Services.UserOfferServices
             return userJobPost.ToDto();
         }
 
-        public async Task<UserJobPostDto> CreateUserJobPostAsync(UserJobPostDto userJobPostDto)
+        public async Task<UserJobPostDto> CreateUserJobPostAsync(UserJobPostDto userJobPostDto, User user)
         {
             try
             {
                 var entity = userJobPostDto.ToEntity();
+                bool isUserProfileCvFileSubmitted = userJobPostDto.IsUserProfileCvFileSubmitted ?? false;
+                if (userJobPostDto.CvFile != null)
+                {
+                    var fileUrl = await blobStorageService.UploadFileAsync(userJobPostDto.CvFile);
+                    var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
+                    userJobPostDto.CvFilePath = decodedFileUrl;
+                    userJobPostDto.CvFileName = userJobPostDto.CvFile.FileName;
+                }
+                else if (isUserProfileCvFileSubmitted == true)
+                {
+                    userJobPostDto.CvFilePath = user.CvFilePath;
+                }
                 var newItem = await userJobPostRepository.CreateUserJobPostAsync(entity);
-                if (newItem == null)
-                    throw new Exception("Pretplata koju ste postavili ne postoji");
                 var dto = newItem.ToDto();
-                var user = await _uow.UserRepository.GetUserByIdAsync(dto.SubmittingUserId);
-                dto.CurrentUserCredits = user.Credits;
-
-                //var companiesToNotify = _dbContext.CompanyJobCategoryInterests.Where(r => r.JobCategoryId == newItem.JobCategoryId).Select(r => r.UserId).ToList();
-                //var companiesNotifSettings = _dbContext.CompanyNotificationPreferences.Where(r => companiesToNotify.Contains(r.UserId)).ToList();
-                //var emailTask = Task.Run(() => SendEmailsAsync(companiesNotifSettings, newItem));
-                //foreach (var companiesSetting in companiesNotifSettings)
-                //{
-                //    if(companiesSetting.NotificationType == Entities.Notification.CompanyNotificationType.newInterestingUserAdInApp && companiesSetting.IsEnabled)
-                //    {
-                //        var notification = new Notification()
-                //        {
-                //            UserId = companiesSetting.UserId.ToString(),
-                //            CreatedAt = DateTime.UtcNow,
-                //            IsRead = false,
-                //            Link = UIBaseUrl + "ad-details/" + newItem.Id,
-                //            Message = "Kreiran je novi oglas za posao koji bi vam mogao biti interesantan"
-                //        };
-                //        _dbContext.Notifications.Add(notification);
-                //    }
-                //}
-                //await _dbContext.SaveChangesAsync();
                 var jobPostNotificationMessage = new JobPostNotificationQueueMessage
                 {
                     JobPostId = newItem.Id,
                 };
-                await _sendNotificationsQueueClient.SendMessageToCompanyAsync(jobPostNotificationMessage);
+                try
+                {
+                    await _sendNotificationsQueueClient.SendMessageToCompanyAsync(jobPostNotificationMessage);
+                }
+                catch (Exception notifEx)
+                {
+                    _logger.LogError($"[ERROR] Failed to send notification for JobPostId: {newItem.Id}. Error: {notifEx.Message}");
+                }
 
                 return dto;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                throw;
-            }
-        }
-        private async Task SendEmailsAsync(List<CompanyNotificationPreferences> companiesNotifSettings, UserJobPost newItem)
-        {
-            var userIdsToNotify = companiesNotifSettings
-                .Where(setting => setting.NotificationType == Entities.Notification.CompanyNotificationType.newInsterestingUserAdEmail && setting.IsEnabled)
-                .Select(setting => setting.UserId)
-                .ToList();
-
-            var usersToNotify = _dbContext.Users.Where(user => userIdsToNotify.Contains(user.Id)).ToList();
-
-            var tasks = usersToNotify.Select(async user =>
-            {
-                if (user != null)
-                {
-                    string adUrl = _configuration.GetSection("UIBaseUrl").Value + $"ad-details/{newItem.Id}";
-                    string messageBody = $@"
-                    <p style='color: #66023C;'>Dragi <strong>{user.Email}</strong>,</p>
-                    <p style='color: #66023C;'>Kreiran je novi oglas za posao u kategoriji: <strong>{newItem.JobCategory?.Name}</strong>.</p>
-                    <p style='color: #66023C;'>Pogledajte detalje i prijavite se za ovu priliku što je prije moguće.</p>
-                    <p style='text-align: center;'>
-                        <a href='{adUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Pogledajte Oglas</a>
-                    </p>";
-                    var subject = "Novi oglas koji bi vas mogao zanimati";
-
-                    var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, _configuration);
-                    await emailService.SendEmailWithTemplateAsync(user.Email, subject, emailTemplate);
-                }
-            }).ToList();
-
-            await Task.WhenAll(tasks);
-        }
-
-        private async Task SendNewApplicantEmailsAsync(List<CompanyNotificationPreferences> companiesNotifSettings, string position, int userApplicationId, string emailForReceivingApplications, int userId)
-        {
-            var userIdsToNotify = companiesNotifSettings
-            .Where(setting => setting.NotificationType == Entities.Notification.CompanyNotificationType.newApplicantEmail && setting.IsEnabled)
-            .Select(setting => setting.UserId)
-            .ToList();
-
-            var user = await _dbContext.Users
-                .Where(r => r.Id == userId)
-                .Include(r => r.Company) 
-                .FirstOrDefaultAsync();   
-
-            if (user != null && user.Company != null && userIdsToNotify.Contains(userId)) 
-            {
-                var applicationUrl = UIBaseUrl + $"company-settings/candidate-details/{userApplicationId}";
-
-                string messageBody = $@"
-            <p style='color: #66023C;'>Dragi <strong>{user.Company.CompanyName}</strong>,</p>
-            <p style='color: #66023C;'>Dobili ste novu prijavu za poziciju: <strong>{position}</strong>.</p>
-            <p style='color: #66023C;'>Pogledajte prijavu i obavite daljnje radnje prema vašim potrebama.</p>
-            <p style='text-align: center;'>
-                <a href='{applicationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Pogledajte Prijavu</a>
-            </p>";
-
-                var subject = "Nova prijava na vaš oglas za posao";
-                var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, _configuration);
-
-                try
-                {
-                    await emailService.SendEmailWithTemplateAsync(emailForReceivingApplications, subject, emailTemplate);
-                }
-                catch (Exception ex)
-                {
-                    throw;
-                }
+                _logger.LogError($"[ERROR] Job post creation failed for UserId: {userJobPostDto.SubmittingUserId}. Reason: {ex.Message}");
+                throw; //Re-throw the exception so the controller can handle it
             }
         }
 
-        public async Task<UserApplicationDto> CreateUserApplicationAsync(UserApplicationDto userApplication)
+        public async Task<UserApplicationDto> CreateUserApplicationAsync(UserApplicationDto userApplication, User submittingUser)
         {
             try
             {
+                _logger.LogInformation($"[START] Creating application for UserId: {submittingUser.Id}, JobPostId: {userApplication.CompanyJobPostId}");
                 var companyJobPost = await companyJobPostRepo.GetCompanyJobPostByIdAsync(userApplication.CompanyJobPostId);
                 if (companyJobPost == null)
-                    return null;
-                PredictionApiResponse predictionApiResponse = null;
+                {
+                    _logger.LogWarning($"[FAILED] JobPostId: {userApplication.CompanyJobPostId} does not exist. UserId: {submittingUser.Id}");
+                    throw new Exception("Oglas za posao ne postoji.");
+                }
+                try
+                {
+                    if (userApplication.CvFile != null)
+                    {
+                        var fileUrl = await blobStorageService.UploadFileAsync(userApplication.CvFile);
+                        userApplication.CvFilePath = Uri.UnescapeDataString(fileUrl);
+                        userApplication.CvFileName = userApplication.CvFile.FileName;
+                    }
+                    else if (userApplication.IsUserProfileCvFileSubmitted == true)
+                    {
+                        userApplication.CvFilePath = submittingUser.CvFilePath;
+                        userApplication.CvFileName = submittingUser.CvFileName;
+                    }
+                }
+                catch (Exception fileEx)
+                {
+                    _logger.LogError($"[ERROR] CV upload failed for UserId: {submittingUser.Id}. Reason: {fileEx.Message}");
+                    throw new Exception("Došlo je do greške prilikom učitavanja CV-a. Molimo pokušajte ponovo.");
+                }
+                _logger.LogInformation($"[SUCCESS] CV uploaded for UserId: {submittingUser.Id}, JobPostId: {userApplication.CompanyJobPostId}");
 
                 var entity = userApplication.ToEntity();
                 var newItem = await userJobPostRepository.CreateUserApplicationAsync(entity);
+                
+                _logger.LogInformation($"[SUCCESS] Application created successfully for UserId: {submittingUser.Id}, JobPostId: {companyJobPost.Id}, ApplicationId: {newItem.Id}");
+
                 if (companyJobPost.PricingPlan.Name == "Premium")
                 {
                     var applicantPredictionMessage = new NewApplicantPredictionQueueMessage()
@@ -199,20 +156,36 @@ namespace API.Services.UserOfferServices
                         CompanyJobPostId = companyJobPost.Id,
                         UserApplicationIds = new List<int> { newItem.Id },
                     };
-                    await _sendNotificationsQueueClient.SendNewApplicantPredictionMessageAsync(applicantPredictionMessage);
+                    try
+                    {
+                        await _sendNotificationsQueueClient.SendNewApplicantPredictionMessageAsync(applicantPredictionMessage);
+                        _logger.LogInformation($"[SUCCESS] AI Prediction Message Sent for JobPostId: {companyJobPost.Id}, ApplicationId: {newItem.Id}");
+                    }
+                    catch (Exception predictionEx)
+                    {
+                        _logger.LogError($"[ERROR] Failed to send AI Prediction message for JobPostId: {companyJobPost.Id}, ApplicationId: {newItem.Id}. Reason: {predictionEx.Message}");
+                    }
                 }
                 var newApplicantMessage = new NewApplicantQueueMessage()
                 {
                     JobPostId = companyJobPost.Id,
                     UserApplicationId = newItem.Id
                 };
-                await _sendNotificationsQueueClient.SendNewApplicantMessageToCompanyAsync(newApplicantMessage);
+                try
+                {
+                    await _sendNotificationsQueueClient.SendNewApplicantMessageToCompanyAsync(newApplicantMessage);
+                }
+                catch (Exception notificationEx)
+                {
+                    _logger.LogError($"[ERROR] Failed to send company notification for JobPostId: {companyJobPost.Id}, ApplicationId: {newItem.Id}. Reason: {notificationEx.Message}");
+                }
                 var dto = newItem.ToDto();
                 return dto;
             }
             catch (Exception ex)
             {
-                throw;
+                _logger.LogError($"[ERROR] Application creation failed for UserId: {submittingUser.Id}, JobPostId: {userApplication.CompanyJobPostId}. Reason: {ex.Message}");
+                throw new Exception("Došlo je do greške prilikom kreiranja prijave. Pokušajte ponovo kasnije.");
             }
         }
 

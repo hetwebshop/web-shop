@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using API.Entities.CompanyJobPost;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 
@@ -20,6 +21,7 @@ namespace API.DTOs
         public int SubmittingUserId { get; set; }
         public int AdDuration { get; set; }
         public string PricingPlanName { get; set; }
+        public int? PricingPlanId { get; set; }
         public DateTime AdStartDate { get; set; }
         public DateTime AdEndDate { get; set; }
         public bool IsDeleted { get; set; } = false;
@@ -45,9 +47,10 @@ namespace API.DTOs
         public string? PhotoUrl { get; set; }
         public string CompanyName { get; set; }
         public IFormFile? Logo { get; set; }
-        public bool IsAiAnalysisIncluded { get; set; }
+        //public bool IsAiAnalysisIncluded { get; set; }
         public double? AiAnalysisProgress { get; set; }
         public DateTime? AiAnalysisStartedOn { get; set; } //if we have base ad, and user triggered analysis for all candidates, we need this to track if there is an issue
-
+        public double CurrentUserCredits { get; set; }
+        public AiAnalysisStatus? AiAnalysisStatus { get; set; }
     }
 }

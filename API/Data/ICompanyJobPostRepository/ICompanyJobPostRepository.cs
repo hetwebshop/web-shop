@@ -3,6 +3,7 @@ using API.Entities;
 using API.Entities.CompanyJobPost;
 using API.Entities.JobPost;
 using API.PaginationEntities;
+using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

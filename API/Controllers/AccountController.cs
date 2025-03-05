@@ -37,6 +37,7 @@ namespace API.Controllers
         private readonly IBlobStorageService _blobStorageService;
         private readonly DataContext _dbContext;
         private readonly string UIBaseUrl;
+        private readonly string SupportEmail;
 
         public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration,
             IUnitOfWork uow, IMapper mapper, ITokenService tokenService, IEmailService emailService, IBlobStorageService blobStorageService, DataContext dbContext)
@@ -52,6 +53,7 @@ namespace API.Controllers
             _blobStorageService = blobStorageService;
             _dbContext = dbContext;
             UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
+            SupportEmail = configuration.GetSection("SupportEmail").Value;
         }
 
         [HttpPost("register")]
@@ -66,7 +68,10 @@ namespace API.Controllers
 
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
-            user.IsApproved = false;
+            //user.IsApproved = false;
+
+            user.IsApproved = true;
+            user.EmailConfirmed = true;
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
@@ -74,43 +79,45 @@ namespace API.Controllers
             result = await _userManager.AddToRoleAsync(user, RoleType.User.ToString());
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
 
-            var emailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var verificationUrl = $"{verificationEmailBaseAddress}confirm-email?userId=" + user.Id + "&token=" + Uri.EscapeDataString(emailToken);
 
 
-            var notificationsSettings = new List<UserNotificationSettings>();
-            if(user != null)
-            {
-                notificationsSettings.Add(new UserNotificationSettings()
-                {
-                    UserId = user.Id,
-                    NotificationType = UserNotificationType.NewInterestingCompanyAdInApp,
-                    IsEnabled = true
-                });
-                notificationsSettings.Add(new UserNotificationSettings()
-                {
-                    UserId = user.Id,
-                    NotificationType = UserNotificationType.NewInterestingCompanyAdEmail,
-                    IsEnabled = true
-                });
-                _dbContext.UserNotificationSettings.AddRange(notificationsSettings);
-                await _dbContext.SaveChangesAsync();
-            }
+            //var emailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            //var verificationUrl = $"{verificationEmailBaseAddress}confirm-email?userId=" + user.Id + "&token=" + Uri.EscapeDataString(emailToken);
 
-            // Slanje verifikacionog emaila (ovdje koristite svoju email uslugu)
-            string messageBody = $@"
-            <p style='color: #66023C;'>Hvala vam što ste se registrirali na našu platformu. Molimo vas da potvrdite vašu email adresu kako biste aktivirali svoj račun.</p>
-            <p style='text-align: center;'>
-                <a href='{verificationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Kliknite ovdje</a>
-            </p>";
-            string subject = "Verifikujte svoju email adresu";
-            string emailHtml = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, configuration);
 
-            await _emailService.SendEmailWithTemplateAsync(
-                user.Email,
-                subject,
-                emailHtml
-            );
+            //var notificationsSettings = new List<UserNotificationSettings>();
+            //if(user != null)
+            //{
+            //    notificationsSettings.Add(new UserNotificationSettings()
+            //    {
+            //        UserId = user.Id,
+            //        NotificationType = UserNotificationType.NewInterestingCompanyAdInApp,
+            //        IsEnabled = true
+            //    });
+            //    notificationsSettings.Add(new UserNotificationSettings()
+            //    {
+            //        UserId = user.Id,
+            //        NotificationType = UserNotificationType.NewInterestingCompanyAdEmail,
+            //        IsEnabled = true
+            //    });
+            //    _dbContext.UserNotificationSettings.AddRange(notificationsSettings);
+            //    await _dbContext.SaveChangesAsync();
+            //}
+
+            //// Slanje verifikacionog emaila (ovdje koristite svoju email uslugu)
+            //string messageBody = $@"
+            //<p style='color: #66023C;'>Hvala vam što ste se registrirali na našu platformu. Molimo vas da potvrdite vašu email adresu kako biste aktivirali svoj račun.</p>
+            //<p style='text-align: center;'>
+            //    <a href='{verificationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Kliknite ovdje</a>
+            //</p>";
+            //string subject = "Verifikujte svoju email adresu";
+            //string emailHtml = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, configuration);
+
+            //await _emailService.SendEmailWithTemplateAsync(
+            //    user.Email,
+            //    subject,
+            //    emailHtml
+            //);
 
             return new UserDto
             {
@@ -137,7 +144,7 @@ namespace API.Controllers
 
             // Send the email
             await _emailService.SendEmailWithTemplateAsync(
-                "ai.jobify@gmail.com",
+                SupportEmail,
                 subject,
                 emailHtml
             );
@@ -184,6 +191,8 @@ namespace API.Controllers
             user.LastActive = DateTime.UtcNow;
             if (registerDto.Photo != null)
             {
+                if (!FileHelper.IsValidImage(registerDto.Photo))
+                    return BadRequest("Nevažeći format slike. Dozvoljeni formati: JPG, PNG, GIF, BMP, WEBP.");
                 var fileUrl = await _blobStorageService.UploadFileAsync(registerDto.Photo);
                 var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
                 user.PhotoUrl = decodedFileUrl;
@@ -381,6 +390,10 @@ namespace API.Controllers
             if (photo == null || photo.Length == 0)
             {
                 return BadRequest("No file uploaded.");
+            }
+            if (!FileHelper.IsValidImage(photo))
+            {
+                return BadRequest("Nevažeći format slike. Dozvoljeni formati: JPG, PNG, GIF, BMP, WEBP.");
             }
             var userId = HttpContext.User.GetUserId();
             if (userId == null)
@@ -717,7 +730,10 @@ namespace API.Controllers
             {
                 return BadRequest("CV nije uploadovan.");
             }
-
+            if (!FileHelper.IsValidPdf(req.CvFile))
+            {
+                return BadRequest("Nevažeći format datoteke. Dozvoljen je samo PDF format.");
+            }
             if (req.CvFile != null)
             {
                 var fileUrl = await _blobStorageService.UploadFileAsync(req.CvFile);
@@ -773,40 +789,6 @@ namespace API.Controllers
             }
 
             return File(fileDto.FileContent, fileDto.MimeType, fileName);
-        }
-
-        [HttpPost("profile")]
-        public async Task<ActionResult<UserProfileDto>> UpdateUserProfile([FromForm]UserProfileDto profileDto)
-        {
-            profileDto.Id = HttpContext.User.GetUserId();
-
-            if (await _userManager.Users.AnyAsync(u => u.Id != profileDto.Id &&
-                                                       u.NormalizedUserName == profileDto.UserName.ToUpper()))
-                return BadRequest("Username is taken.");
-            if (await _userManager.Users.AnyAsync(u => u.Id != profileDto.Id &&
-                                                       u.NormalizedEmail == profileDto.Email.ToUpper()))
-                return BadRequest("Email is already registered.");
-            if (HttpContext.User.GetUserName() == Constants.TestUser && profileDto.UserName.ToLower() != Constants.TestUser)
-                return BadRequest("Test User cannot change username.");
-
-            var user = await _userManager.Users.SingleAsync(u => u.Id == profileDto.Id);
-            if (profileDto.CvFile != null)
-            {
-                var fileUrl = await _blobStorageService.UploadFileAsync(profileDto.CvFile);
-                profileDto.CvFilePath = fileUrl;
-            }
-
-            _mapper.Map(profileDto, user);
-            //user.CvFilePath = filePath;
-
-            bool deleteUserEducations = await _uow.UserRepository.RemoveAllUserEducationsAsync(profileDto.Id);
-
-            var result = await _userManager.UpdateAsync(user);
-
-            if (!result.Succeeded) return BadRequest("Failed to update.");
-
-            _mapper.Map(user, profileDto);
-            return profileDto;
         }
 
         [HttpPost("company-profile")]

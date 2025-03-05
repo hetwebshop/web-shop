@@ -5,6 +5,7 @@ using API.Entities.Applications;
 using API.Entities.JobPost;
 using API.Helpers;
 using API.PaginationEntities;
+using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

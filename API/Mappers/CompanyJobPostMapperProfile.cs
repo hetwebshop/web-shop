@@ -42,8 +42,7 @@ namespace API.Mappers
                 .ForMember(dest => dest.City, opt => opt.Ignore())
                 .ForMember(dest => dest.EmploymentType, opt => opt.Ignore())
                 .ForMember(dest => dest.EducationLevel, opt => opt.Ignore())
-                .ForMember(dest => dest.PricingPlan, opt => opt.Ignore())
-                .ForMember(dest => dest.PricingPlan, src => src.MapFrom(x => new PricingPlanCompanies { AdActiveDays = x.AdDuration, Name = x.PricingPlanName }));
+                .ForMember(dest => dest.PricingPlan, opt => opt.Ignore());
 
 
             CreateMap(typeof(PagedList<>), typeof(PagedList<>)).ConvertUsing(typeof(PagedListConverter<,>));

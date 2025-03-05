@@ -11,6 +11,7 @@ using API.PaginationEntities;
 using AutoMapper;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -27,8 +28,10 @@ namespace API.Services.CompanyJobPostServices
         private readonly IEmailService _emailService;
         private readonly string UIBaseUrl;
         private readonly ISendNotificationsQueueClient _sendNotificationsQueueClient;
+        private readonly IBlobStorageService _blobStorageService;
+        private readonly ILogger<CompanyJobPostService> _logger;
 
-        public CompanyJobPostService(ICompanyJobPostRepository companyJobPostRepository, DataContext dbContext, IConfiguration configuration, IEmailService emailService, ISendNotificationsQueueClient sendNotificationsQueueClient)
+        public CompanyJobPostService(ICompanyJobPostRepository companyJobPostRepository, DataContext dbContext, IConfiguration configuration, IEmailService emailService, ISendNotificationsQueueClient sendNotificationsQueueClient, IBlobStorageService blobStorageService, ILogger<CompanyJobPostService> logger)
         {
             this.companyJobPostRepository = companyJobPostRepository;
             _dbContext = dbContext;
@@ -36,6 +39,8 @@ namespace API.Services.CompanyJobPostServices
             _emailService = emailService;
             UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
             _sendNotificationsQueueClient = sendNotificationsQueueClient;
+            _blobStorageService = blobStorageService;
+            _logger = logger;
         }
 
         public async Task<PagedList<CompanyJobPostDto>> GetJobPostsAsync(AdsPaginationParameters adsParameters)
@@ -64,41 +69,50 @@ namespace API.Services.CompanyJobPostServices
 
         public async Task<CompanyJobPostDto> CreateCompanyJobPostAsync(CompanyJobPostDto companyJobPostDto)
         {
-            var newItem = await companyJobPostRepository.CreateCompanyJobPostAsync(companyJobPostDto.ToEntity());
-
-            //var usersWithSimilarInterest = _dbContext.Users.Where(r => r.JobCategoryId == companyJobPostDto.JobCategoryId).ToList();
-            //if (usersWithSimilarInterest.Any())
-            //{
-            //    var currentlyAddedJobPost = await companyJobPostRepository.GetCompanyJobPostByIdAsync(newItem.Id);
-            //    var usersWithSimilarInterestIds = usersWithSimilarInterest.Select(r => r.Id);
-            //    var usersNotifSettings = _dbContext.UserNotificationSettings.Where(r => usersWithSimilarInterestIds.Contains(r.UserId)).ToList();
-            //    var emailTask = Task.Run(() => SendEmailsAsync(usersNotifSettings, currentlyAddedJobPost));
-
-            //    foreach (var userNotif in usersNotifSettings)
-            //    {
-            //        if (userNotif.NotificationType == Entities.UserNotificationType.NewInterestingCompanyAdInApp && userNotif.IsEnabled)
-            //        {
-            //            var notification = new Notification()
-            //            {
-            //                UserId = userNotif.UserId.ToString(),
-            //                CreatedAt = DateTime.UtcNow,
-            //                IsRead = false,
-            //                Link = UIBaseUrl + "company-ad-details/" + currentlyAddedJobPost.Id,
-            //                Message = "Kreiran je novi oglas za posao koji bi vam mogao biti interesantan"
-            //            };
-            //            _dbContext.Notifications.Add(notification);
-            //        }
-            //    }
-            //    await _dbContext.SaveChangesAsync();
-            //}
-            var jobPostNotificationMessage = new JobPostNotificationQueueMessage
+            try
             {
-                JobPostId = newItem.Id,
-            };
-            await _sendNotificationsQueueClient.SendMessageToUserAsync(jobPostNotificationMessage);
+                if (companyJobPostDto.Logo != null)
+                {
 
-            return newItem.ToDto();
+                    try
+                    {
+                        var fileUrl = await _blobStorageService.UploadFileAsync(companyJobPostDto.Logo);
+                        companyJobPostDto.PhotoUrl = Uri.UnescapeDataString(fileUrl);
+                    }
+                    catch (Exception uploadEx)
+                    {
+                        _logger.LogError($"[ERROR] Logo upload failed for Company position: {companyJobPostDto.Position}. Reason: {uploadEx.Message}");
+                        throw new Exception("Greška pri učitavanju slike. Molimo pokušajte ponovo.");
+                    }
+                }
+                var newItem = await companyJobPostRepository.CreateCompanyJobPostAsync(companyJobPostDto.ToEntity());
+                _logger.LogInformation($"Job post {newItem.Id} successfully created by user {companyJobPostDto.SubmittingUserId}.");
+
+                var jobPostNotificationMessage = new JobPostNotificationQueueMessage
+                {
+                    JobPostId = newItem.Id,
+                };
+
+                try
+                {
+                    await _sendNotificationsQueueClient.SendMessageToUserAsync(jobPostNotificationMessage);
+                    _logger.LogInformation($"Notification sent for JobPost ID {newItem.Id}.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Failed to send notification for JobPost ID {newItem.Id}: {ex.Message}");
+                    //Do not throw here, since the job post was already created.
+                }
+
+                return newItem.ToDto();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error creating job post for user {companyJobPostDto.SubmittingUserId}: {ex.Message}");
+                throw; //Re-throw so the controller can handle it.
+            }
         }
+
 
         private async Task SendEmailsAsync(List<UserNotificationSettings> userNotifSettings, CompanyJobPost newItem)
         {

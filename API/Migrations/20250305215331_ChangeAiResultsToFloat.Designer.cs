@@ -4,6 +4,7 @@ using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250305215331_ChangeAiResultsToFloat")]
+    partial class ChangeAiResultsToFloat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,17 +68,17 @@ namespace API.Migrations
                     b.Property<string>("AIMatchingDescription")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double?>("AIMatchingEducationLevel")
-                        .HasColumnType("float");
+                    b.Property<float?>("AIMatchingEducationLevel")
+                        .HasColumnType("real");
 
-                    b.Property<double?>("AIMatchingExperience")
-                        .HasColumnType("float");
+                    b.Property<float?>("AIMatchingExperience")
+                        .HasColumnType("real");
 
-                    b.Property<double?>("AIMatchingResult")
-                        .HasColumnType("float");
+                    b.Property<float?>("AIMatchingResult")
+                        .HasColumnType("real");
 
-                    b.Property<double?>("AIMatchingSkills")
-                        .HasColumnType("float");
+                    b.Property<float?>("AIMatchingSkills")
+                        .HasColumnType("real");
 
                     b.Property<int>("ApplicationStatusId")
                         .HasColumnType("int");
@@ -409,6 +411,9 @@ namespace API.Migrations
                     b.Property<bool?>("AiAnalysisHasError")
                         .HasColumnType("bit");
 
+                    b.Property<double?>("AiAnalysisProgress")
+                        .HasColumnType("float");
+
                     b.Property<double?>("AiAnalysisReservedCredits")
                         .HasColumnType("float");
 
@@ -454,6 +459,9 @@ namespace API.Migrations
 
                     b.Property<string>("HowToApply")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAiAnalysisIncluded")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");

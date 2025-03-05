@@ -21,6 +21,8 @@ namespace API.Services
     {
         public int CompanyJobPostId { get; set; }
         public List<int> UserApplicationIds { get; set; }
+        public int UserId { get; set; }
+        public double ReservedCredits { get; set; }
         //public int? YearsOfExperience { get; set; }
         //public string Position { get; set; }
         //public string CvFileUrl { get; set; }

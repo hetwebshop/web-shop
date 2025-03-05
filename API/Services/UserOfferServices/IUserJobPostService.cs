@@ -1,5 +1,6 @@
 ﻿using API.Data.Pagination;
 using API.DTOs;
+using API.Entities;
 using API.Entities.JobPost;
 using API.Helpers;
 using API.PaginationEntities;
@@ -13,8 +14,8 @@ namespace API.Services.UserOfferServices
         Task<PagedList<UserJobPostDto>> GetJobPostsAsync(AdsPaginationParameters adsParameters);
         Task<PagedList<UserJobPostDto>> GetUserJobPostsAsync(AdsPaginationParameters adsParameters);
         Task<UserJobPostDto> GetUserJobPostByIdAsync(int id);
-        Task<UserJobPostDto> CreateUserJobPostAsync(UserJobPostDto userJobPost);
-        Task<UserApplicationDto> CreateUserApplicationAsync(UserApplicationDto userApplication);
+        Task<UserJobPostDto> CreateUserJobPostAsync(UserJobPostDto userJobPost, User user);
+        Task<UserApplicationDto> CreateUserApplicationAsync(UserApplicationDto userApplication, User user);
         Task<UserJobPostDto> UpdateUserJobPostAsync(UserJobPostDto userJobPost);
         Task<List<JobCategory>> GetAllJobCategoriesAsync();
         Task<List<JobType>> GetAllJobTypesAsync();

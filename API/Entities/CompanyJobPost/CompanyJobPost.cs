@@ -48,12 +48,19 @@ namespace API.Entities.CompanyJobPost
         public DateTime RefreshDateTime { get; set; }
         public int? RefreshIntervalInDays { get; set; }
         public string PhotoUrl { get; set; }
-        public bool IsAiAnalysisIncluded { get; set; }
-        public double? AiAnalysisProgress { get; set; }
         public DateTime? AiAnalysisStartedOn { get; set; } //if we have base ad, and user triggered analysis for all candidates, we need this to track if there is an issue
+        public DateTime? AiAnalysisEndedOn { get; set; }
         public bool? AiAnalysisHasError { get; set; }
         public string AiAnalysisError { get; set; }
+        public double? AiAnalysisReservedCredits { get; set; } //this field is used if ai analysis went wrong in py, so we can add credits to user(credits that are taken before analysis started)
+        public AiAnalysisStatus? AiAnalysisStatus { get; set; }
 
         public ICollection<UserApplication> UserApplications { get; set; }
+    }
+
+    public enum AiAnalysisStatus
+    {
+        Running,
+        Completed
     }
 }

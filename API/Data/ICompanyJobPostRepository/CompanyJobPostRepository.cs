@@ -3,7 +3,10 @@ using API.Entities;
 using API.Entities.CompanyJobPost;
 using API.Entities.JobPost;
 using API.PaginationEntities;
+using API.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +17,15 @@ namespace API.Data.ICompanyJobPostRepository
     public class CompanyJobPostRepository : RepositoryBase<CompanyJobPost>, ICompanyJobPostRepository
     {
         ISortHelper<CompanyJobPost> _sortHelper;
+        private readonly IBlobStorageService _blobStorageService;
+        private readonly ILogger<CompanyJobPostRepository> _logger;
 
-        public CompanyJobPostRepository(DataContext dataContext, ISortHelper<CompanyJobPost> sortHelper)
+        public CompanyJobPostRepository(DataContext dataContext, ISortHelper<CompanyJobPost> sortHelper, IBlobStorageService blobStorageService, ILogger<CompanyJobPostRepository> logger)
             : base(dataContext)
         {
             _sortHelper = sortHelper;
+            _blobStorageService = blobStorageService;
+            _logger = logger;
         }
 
         private IQueryable<CompanyJobPost> GetCompanyJobPostBaseQuery()
@@ -43,11 +50,11 @@ namespace API.Data.ICompanyJobPostRepository
                 (u.AdEndDate >= DateTime.UtcNow) &&
                 (adsParameters.CompanyId == null || adsParameters.CompanyId == u.User.CompanyId) &&
                 (adsParameters.adStatus == null || (int)adsParameters.adStatus == u.JobPostStatusId) &&
-                (adsParameters.cityIds == null || adsParameters.cityIds.Contains(u.CityId)) &&
-                (adsParameters.jobCategoryIds == null || adsParameters.jobCategoryIds.Contains(u.JobCategoryId)) &&
-                (adsParameters.jobTypeIds == null || adsParameters.jobTypeIds.Contains(u.JobTypeId)) &&
-                (adsParameters.educationLevelIds == null || adsParameters.educationLevelIds.Contains(u.EducationLevelId)) &&
-                (adsParameters.employmentTypeIds == null || adsParameters.employmentTypeIds.Contains(u.EmploymentTypeId)) &&
+                (adsParameters.cityIds == null || !adsParameters.cityIds.Any() || adsParameters.cityIds.Contains(u.CityId)) &&
+                (adsParameters.jobCategoryIds == null || !adsParameters.jobCategoryIds.Any() || adsParameters.jobCategoryIds.Contains(u.JobCategoryId)) &&
+                (adsParameters.jobTypeIds == null || !adsParameters.jobTypeIds.Any() || adsParameters.jobTypeIds.Contains(u.JobTypeId)) &&
+                (adsParameters.educationLevelIds == null || !adsParameters.educationLevelIds.Any() || adsParameters.educationLevelIds.Contains(u.EducationLevelId)) &&
+                (adsParameters.employmentTypeIds == null || !adsParameters.employmentTypeIds.Any() || adsParameters.employmentTypeIds.Contains(u.EmploymentTypeId)) &&
                 (adsParameters.minYearsOfExperience == null || adsParameters.minYearsOfExperience >= u.RequiredExperience || u.RequiredExperience == null) &&
                 u.IsDeleted == false &&
                 (
@@ -120,7 +127,7 @@ namespace API.Data.ICompanyJobPostRepository
         
         public async Task<List<CompanyJobPost>> GetCompanyActiveAdsAsync(int companyId)
         {
-            var userJobPosts = await GetCompanyJobPostBaseQuery().Where(r => r.User.CompanyId == companyId && r.JobPostStatusId == 1 && r.AdEndDate >= DateTime.Now).ToListAsync();
+            var userJobPosts = await GetCompanyJobPostBaseQuery().Where(r => r.User.CompanyId == companyId && r.JobPostStatusId == 1 && r.AdEndDate >= DateTime.Now).OrderByDescending(r => r.CreatedAt).ToListAsync();
             return userJobPosts;
         }
 
@@ -132,32 +139,47 @@ namespace API.Data.ICompanyJobPostRepository
 
         public async Task<CompanyJobPost> CreateCompanyJobPostAsync(CompanyJobPost newCompanyJobPost)
         {
-            try
+            //use transaction with isolation to ensure there is no race condition(2 users create job from 2 laptops with one shared account)
+            using (var transaction = await DataContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
             {
-                var pricingPlan = DataContext.PricingPlanCompanies.FirstOrDefault(r => r.Name.Equals(newCompanyJobPost.PricingPlan.Name) && r.AdActiveDays == newCompanyJobPost.PricingPlan.AdActiveDays);
-                if (pricingPlan == null)
-                    return null;
-                var now = DateTime.UtcNow;
-                newCompanyJobPost.PricingPlan = pricingPlan;
-                if (pricingPlan.Name == "Premium")
+                try
                 {
-                    newCompanyJobPost.IsAiAnalysisIncluded = true;
-                    newCompanyJobPost.AiAnalysisProgress = 100.00;
-                }
+                    var pricingPlan = await DataContext.PricingPlanCompanies.FirstOrDefaultAsync(r => r.Id == newCompanyJobPost.PricingPlanId);
+                    if (pricingPlan == null)
+                        throw new Exception("Odabran neispravan paket oglasa.");
+                    var user = await DataContext.Users.FirstAsync(r => r.Id == newCompanyJobPost.SubmittingUserId);
+                    if (user.Credits < pricingPlan.PriceInCredits)
+                        throw new Exception("Korisnik nema dovoljno kredita za kreiranje odabranog oglasa. Molimo vas da dopunite kredite ili odaberete drugi paket oglasa.");
+
+                    var now = DateTime.UtcNow;
+                    if (pricingPlan.Name == "Premium")
+                    {
+                        //newCompanyJobPost.IsAiAnalysisIncluded = true;
+                        newCompanyJobPost.AiAnalysisStatus = AiAnalysisStatus.Completed;
+                        //newCompanyJobPost.AiAnalysisProgress = 100.00;
+                    }
+                    newCompanyJobPost.PricingPlanId = pricingPlan.Id;
+                    newCompanyJobPost.AdStartDate = now;
+                    newCompanyJobPost.AdEndDate = now.AddDays(pricingPlan.AdActiveDays);
+                    newCompanyJobPost.RefreshDateTime = now;
+                    newCompanyJobPost.RefreshIntervalInDays = pricingPlan.Name == "Premium" ? 3 : pricingPlan.Name == "Plus" ? 7 : null;
+
+                    await DataContext.CompanyJobPosts.AddAsync(newCompanyJobPost);
+
                     
-                newCompanyJobPost.AdStartDate = now;
-                newCompanyJobPost.AdEndDate = now.AddDays(pricingPlan.AdActiveDays);
-                newCompanyJobPost.RefreshDateTime = now;
-                newCompanyJobPost.RefreshIntervalInDays = pricingPlan.Name == "Premium" ? 3 : pricingPlan.Name == "Plus" ? 7 : null; 
-                await DataContext.CompanyJobPosts.AddAsync(newCompanyJobPost);
-                var user = DataContext.Users.First(r => r.Id == newCompanyJobPost.SubmittingUserId);
-                user.Credits -= 1;
-                await DataContext.SaveChangesAsync();
-                return newCompanyJobPost;
-            }
-            catch (Exception ex)
-            {
-                throw;
+                    user.Credits -= pricingPlan.PriceInCredits;
+
+                    await DataContext.SaveChangesAsync(); 
+                    await transaction.CommitAsync();
+
+                    return newCompanyJobPost;
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError($"Database update failed for JobPost: {newCompanyJobPost.Id}, Error: {ex.Message}");
+                    await transaction.RollbackAsync(); 
+                    throw;
+                }
             }
         }
 

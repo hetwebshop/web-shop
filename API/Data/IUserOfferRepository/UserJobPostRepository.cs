@@ -5,7 +5,10 @@ using API.Entities.Applications;
 using API.Entities.JobPost;
 using API.Helpers;
 using API.PaginationEntities;
+using API.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,11 +21,15 @@ namespace API.Data.IUserOfferRepository
     public class UserJobPostRepository : RepositoryBase<UserJobPost>, IUserJobPostRepository
     {
         ISortHelper<UserJobPost> _sortHelper;
+        private readonly IBlobStorageService _blobStorageService;
+        private readonly ILogger<UserJobPostRepository> _logger;
 
-        public UserJobPostRepository(DataContext dataContext, ISortHelper<UserJobPost> sortHelper)
+        public UserJobPostRepository(DataContext dataContext, ISortHelper<UserJobPost> sortHelper, IBlobStorageService blobStorageService, ILogger<UserJobPostRepository> logger)
             : base(dataContext)
         {
             _sortHelper = sortHelper;
+            _blobStorageService = blobStorageService;
+            _logger = logger;
         }
 
         private IQueryable<UserJobPost> GetUserJobPostBaseQuery()
@@ -141,42 +148,81 @@ namespace API.Data.IUserOfferRepository
 
         public async Task<UserJobPost> CreateUserJobPostAsync(UserJobPost newUserJobPost)
         {
-            try
+            using (var transaction = await DataContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
             {
-                var pricingPlan = DataContext.PricingPlans.FirstOrDefault(r => r.Name.Equals(newUserJobPost.PricingPlan.Name) && r.AdActiveDays == newUserJobPost.PricingPlan.AdActiveDays);
-                if (pricingPlan == null)
-                    return null;
-                var now = DateTime.UtcNow;
-                newUserJobPost.PricingPlan = pricingPlan;
-                newUserJobPost.AdStartDate = now;
-                newUserJobPost.AdEndDate = now.AddDays(pricingPlan.AdActiveDays);
-                newUserJobPost.RefreshDateTime = now;
-                newUserJobPost.RefreshIntervalInDays = pricingPlan.Name == "Premium" ? 3 : pricingPlan.Name == "Plus" ? 7 : null;
-                await DataContext.UserJobPosts.AddAsync(newUserJobPost);
-                var user = DataContext.Users.First(r => r.Id == newUserJobPost.SubmittingUserId);
-                user.Credits -= 1;
-                await DataContext.SaveChangesAsync();
-                return newUserJobPost;
-            }
-            catch(Exception ex)
-            {
-                throw;
+                try
+                {
+                    var pricingPlan = await DataContext.PricingPlans.FirstOrDefaultAsync(r => r.Id == newUserJobPost.PricingPlanId);
+                    if (pricingPlan == null)
+                    {
+                        _logger.LogWarning($"[FAILED] Invalid pricing plan selected for UserId: {newUserJobPost.SubmittingUserId}");
+                        throw new Exception("Invalid pricing plan.");
+                    }
+
+                    var user = await DataContext.Users
+                    .FirstAsync(r => r.Id == newUserJobPost.SubmittingUserId);
+                    if (user.Credits < pricingPlan.PriceInCredits)
+                    {
+                        _logger.LogWarning($"[FAILED] UserId: {newUserJobPost.SubmittingUserId} does not have enough credits.");
+                        throw new Exception("Insufficient credits to create the job post.");
+                    }
+
+                    var now = DateTime.UtcNow;
+                    newUserJobPost.PricingPlanId = pricingPlan.Id;
+                    newUserJobPost.AdStartDate = now;
+                    newUserJobPost.AdEndDate = now.AddDays(pricingPlan.AdActiveDays);
+                    newUserJobPost.RefreshDateTime = now;
+                    newUserJobPost.RefreshIntervalInDays = pricingPlan.Name == "Premium" ? 3 : pricingPlan.Name == "Plus" ? 7 : null;
+
+                    await DataContext.UserJobPosts.AddAsync(newUserJobPost);
+
+                    user.Credits -= pricingPlan.PriceInCredits;
+
+                    await DataContext.SaveChangesAsync();  
+                    await transaction.CommitAsync(); 
+
+                    return newUserJobPost;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError($"[ERROR] Failed to create job post for UserId: {newUserJobPost.SubmittingUserId}. Reason: {ex.Message}");
+                    throw;
+                }
             }
         }
 
+
         public async Task<UserApplication> CreateUserApplicationAsync(UserApplication application)
         {
-            try
+            using (var transaction = await DataContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
             {
-                await DataContext.UserApplications.AddAsync(application);
-                await DataContext.SaveChangesAsync();
-                return application;
-            }
-            catch (Exception ex)
-            {
-                throw;
+                try
+                {
+                    //Ensure user is not applying to the same job post multiple times
+                    var existingApplication = await DataContext.UserApplications
+                        .AnyAsync(a => a.CompanyJobPostId == application.CompanyJobPostId && a.SubmittingUserId == application.SubmittingUserId);
+
+                    if (existingApplication)
+                    {
+                        throw new Exception("Već ste se prijavili na ovaj oglas.");
+                    }
+
+                    await DataContext.UserApplications.AddAsync(application);
+                    await DataContext.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return application;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError($"[ERROR] Failed to create user application for UserId: {application.SubmittingUserId}, JobPostId: {application.CompanyJobPostId}. Reason: {ex.Message}");
+                    throw;
+                }
             }
         }
+
 
         public async Task<UserJobPost> UpdateUserJobPostAsync(UserJobPost updatedUserJobPost)
         {

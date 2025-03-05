@@ -33,10 +33,10 @@ namespace API.DTOs
         public string Position { get; set; }
         public DateTime? MeetingDateTime { get; set; }
 
-        public int? AIMatchingResult { get; set; }
-        public int? AIMatchingExperience { get; set; }
-        public int? AIMatchingSkills { get; set; }
-        public int? AIMatchingEducationLevel { get; set; }
+        public double? AIMatchingResult { get; set; }
+        public double? AIMatchingExperience { get; set; }
+        public double? AIMatchingSkills { get; set; }
+        public double? AIMatchingEducationLevel { get; set; }
         public string AIMatchingDescription { get; set; }
 
         public List<UserEducationDto> Educations { get; set; }

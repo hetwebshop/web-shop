@@ -12,19 +12,19 @@
     "IsApproved": true,
     "EmailConfirmed": true
   },
-  {
-    "FirstName": "Emin",
-    "LastName": "Dukić",
-    "UserName": "ai.jobify@gmail.com",
-    "Gender": "Male",
-    "DateOfBirth": "1997-12-24",
-    "Email": "ai.jobify@gmail.com",
-    "PhoneNumber": "+38762917495",
-    "CityId": 106,
-    "LastActive": "2024-12-24",
-    "IsCompany": true,
-    "IsApproved": true,
-    "CompanyId": 1,
-    "EmailConfirmed": true
-  }
+  //{
+  //  "FirstName": "Emin",
+  //  "LastName": "Dukić",
+  //  "UserName": "podrska@poslovnioglasi.ba",
+  //  "Gender": "Male",
+  //  "DateOfBirth": "1997-12-24",
+  //  "Email": "podrska@poslovnioglasi.ba",
+  //  "PhoneNumber": "+38762917495",
+  //  "CityId": 106,
+  //  "LastActive": "2024-12-24",
+  //  "IsCompany": true,
+  //  "IsApproved": true,
+  //  "CompanyId": 1,
+  //  "EmailConfirmed": true
+  //}
 ]

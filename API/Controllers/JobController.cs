@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -38,8 +39,9 @@ namespace API.Controllers
         private readonly IEmailService emailService;
         private readonly string UIBaseUrl;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<JobController> _logger;
 
-        public JobController(IUserJobPostService jobPostService, IUnitOfWork uow, IBlobStorageService blobStorageService, IUserJobPostRepository userJobPostRepository, DataContext dbContext, IEmailService emailService, IConfiguration configuration)
+        public JobController(IUserJobPostService jobPostService, IUnitOfWork uow, IBlobStorageService blobStorageService, IUserJobPostRepository userJobPostRepository, DataContext dbContext, IEmailService emailService, IConfiguration configuration, ILogger<JobController> logger)
         {
             _jobPostService = jobPostService;
             _uow = uow;
@@ -49,6 +51,7 @@ namespace API.Controllers
             this.emailService = emailService;
             UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
             _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpPost("ads")]
@@ -71,7 +74,7 @@ namespace API.Controllers
             var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
             var pagedResponse = jobPosts.ToPagedResponse();
             var contactedAdsByCurrentUser = await _dbContext.Conversations.Where(r => r.FromUserId == userId).ToListAsync();
-            var contactedAdsByCurrentUserIds = contactedAdsByCurrentUser.Select(r => r.Id);
+            var contactedAdsByCurrentUserIds = contactedAdsByCurrentUser.Select(r => r.UserJobPostId);
             var currentUser = await _uow.UserRepository.GetUserByIdAsync(userId);
             foreach(var item in pagedResponse.Items)
             {
@@ -110,7 +113,7 @@ namespace API.Controllers
             var userJob = await _jobPostService.GetUserJobPostByIdAsync(id);
             if (userJob.IsDeleted || userJob.JobPostStatusId != (int)JobPostStatus.Active || userJob.AdEndDate < DateTime.Now)
                 return NotFound("Oglas je obrisan, zatvoren, ili je istekao.");
-            var contactedAdsByCurrentUserIds = await _dbContext.Conversations.Where(r => r.FromUserId == userId).Select(r => r.FromUserId).ToListAsync();
+            var contactedAdsByCurrentUserIds = await _dbContext.Conversations.Where(r => r.FromUserId == userId).Select(r => r.UserJobPostId).ToListAsync();
             var currentUser = await _uow.UserRepository.GetUserByIdAsync(userId);
             if (contactedAdsByCurrentUserIds.Contains(userJob.Id) || userJob.SubmittingUserId == userId || !currentUser.IsCompany)
                 userJob.CanCurrentUserApplyOnAd = false;
@@ -140,6 +143,20 @@ namespace API.Controllers
         {
             try
             {
+                if (!FileHelper.IsValidPdf(userJobPostDto.CvFile))
+                {
+                    return BadRequest("Nevažeći format datoteke. Dozvoljen je samo PDF format.");
+                }
+                var currentUserId = HttpContext.User.GetUserId();
+                var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
+                var pricingPlan = await _dbContext.PricingPlanCompanies.FirstOrDefaultAsync(r => r.Name.Equals(userJobPostDto.PricingPlanName) && r.AdActiveDays == userJobPostDto.AdDuration);
+                if (pricingPlan == null)
+                    return BadRequest("Niste odabrali ispravan plan paketa oglasa.");
+                if (user.Credits < pricingPlan.PriceInCredits)
+                    return BadRequest("Nemate dovoljno kredita za objavu odabranog tipa oglasa. Molimo Vas da dopunite kredite ili odaberete neki drugi paket oglasa");
+
+                userJobPostDto.PricingPlanId = pricingPlan.Id;
+
                 if (!string.IsNullOrEmpty(Request.Form["applicantEducations"]))
                 {
                     var applicantEducationsJson = Request.Form["applicantEducations"];
@@ -150,42 +167,15 @@ namespace API.Controllers
                     var applicantPrevCompaniesJson = Request.Form["applicantPreviousCompanies"];
                     userJobPostDto.ApplicantPreviousCompanies = JsonConvert.DeserializeObject<List<ApplicantPreviousCompaniesDto>>(applicantPrevCompaniesJson);
                 }
-                var currentUserId = HttpContext.User.GetUserId();
-                var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
-                if (user.Credits == 0)
-                {
-
-                }
-                if (!Enum.IsDefined(typeof(AdDuration), userJobPostDto.AdDuration))
-                {
-                    return BadRequest("Dužina trajanja oglasa nije ispravna.");
-                }
-                //userJobPostDto.PricingPlanName = PricingPlanName.Base;
-                var validPricingPlans = new List<string> { PricingPlanName.Base, PricingPlanName.Plus, PricingPlanName.Premium };
-                if (!validPricingPlans.Contains(userJobPostDto.PricingPlanName))
-                {
-                    return BadRequest("Paket pretplate oglasa nije ispravna.");
-                }
-
                 userJobPostDto.SubmittingUserId = currentUserId;
-                if (userJobPostDto.CvFile != null)
-                {
-                    var fileUrl = await _blobStorageService.UploadFileAsync(userJobPostDto.CvFile);
-                    var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
-                    userJobPostDto.CvFilePath = decodedFileUrl;
-                    userJobPostDto.CvFileName = userJobPostDto.CvFile.FileName;
-                }
-                else if(userJobPostDto.IsUserProfileCvFileSubmitted == true)
-                {
-                    userJobPostDto.CvFilePath = user.CvFilePath;
-                }
-
-                var newItem = await _jobPostService.CreateUserJobPostAsync(userJobPostDto);
+                var newItem = await _jobPostService.CreateUserJobPostAsync(userJobPostDto, user);
+                newItem.CurrentUserCredits = user.Credits;
                 return Ok(newItem);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                throw;
+                _logger.LogError($"[ERROR] Job post creation failed for UserId: {HttpContext.User.GetUserId()}. Reason: {ex.Message}");
+                return StatusCode(500, "Došlo je do greške na serveru. Molimo pokušajte ponovo kasnije.");
             }
         }
 
@@ -194,38 +184,48 @@ namespace API.Controllers
         {
             try
             {
-                if (!string.IsNullOrEmpty(Request.Form["educations"]))
-                {
-                    var applicantEducationsJson = Request.Form["educations"];
-                    userApplication.Educations = JsonConvert.DeserializeObject<List<UserEducationDto>>(applicantEducationsJson);
-                }
-                if (!string.IsNullOrEmpty(Request.Form["previousCompanies"]))
-                {
-                    var applicantPrevCompaniesJson = Request.Form["previousCompanies"];
-                    userApplication.PreviousCompanies = JsonConvert.DeserializeObject<List<UserPreviousCompaniesDto>>(applicantPrevCompaniesJson);
-                }
                 var currentUserId = HttpContext.User.GetUserId();
+                if (currentUserId == null)
+                {
+                    return Unauthorized("Niste autorizovani za ovu funkcionalnost.");
+                }
+                if (userApplication.CvFile != null && !FileHelper.IsValidPdf(userApplication.CvFile))
+                {
+                    return BadRequest("Nevažeći format datoteke. Dozvoljen je samo PDF format.");
+                }
+                try
+                {
+                    if (!string.IsNullOrEmpty(Request.Form["educations"]))
+                    {
+                        var applicantEducationsJson = Request.Form["educations"];
+                        userApplication.Educations = JsonConvert.DeserializeObject<List<UserEducationDto>>(applicantEducationsJson);
+                    }
+                    if (!string.IsNullOrEmpty(Request.Form["previousCompanies"]))
+                    {
+                        var applicantPrevCompaniesJson = Request.Form["previousCompanies"];
+                        userApplication.PreviousCompanies = JsonConvert.DeserializeObject<List<UserPreviousCompaniesDto>>(applicantPrevCompaniesJson);
+                    }
+                }
+                catch (Exception jsonEx)
+                {
+                    _logger.LogError($"[ERROR] Failed to parse JSON data for UserId: {currentUserId}. Reason: {jsonEx.Message}");
+                    return BadRequest("Neispravan format podataka o obrazovanju ili prethodnim kompanijama.");
+                }
                 var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
+                if (user == null)
+                {
+                    _logger.LogWarning($"[FAILED] UserId: {currentUserId} does not exist.");
+                    return Unauthorized("Korisnik ne postoji.");
+                }
                 userApplication.SubmittingUserId = currentUserId;
-                if (userApplication.CvFile != null)
-                {
-                    var fileUrl = await _blobStorageService.UploadFileAsync(userApplication.CvFile);
-                    var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
-                    userApplication.CvFilePath = decodedFileUrl;
-                    userApplication.CvFileName = userApplication.CvFile.FileName;
-                }
-                else if (userApplication.IsUserProfileCvFileSubmitted == true)
-                {
-                    userApplication.CvFilePath = user.CvFilePath;
-                    userApplication.CvFileName = user.CvFileName;
-                }
 
-                var newItem = await _jobPostService.CreateUserApplicationAsync(userApplication);
+                var newItem = await _jobPostService.CreateUserApplicationAsync(userApplication, user);
                 return Ok(newItem);
             }
             catch (Exception ex)
             {
-                throw;
+                _logger.LogError($"[ERROR] User application failed for UserId: {HttpContext.User.GetUserId()}. Reason: {ex.Message}");
+                return StatusCode(500, "Došlo je do greške na serveru. Molimo pokušajte ponovo kasnije.");
             }
         }
 
@@ -450,6 +450,10 @@ namespace API.Controllers
             if (HttpContext.User.GetUserId() == null)
             {
                 return Unauthorized("Korisnik ne postoji!");
+            }
+            if (!FileHelper.IsValidPdf(req.CvFile))
+            {
+                return BadRequest("Nevažeći format datoteke. Dozvoljen je samo PDF format.");
             }
             var userId = HttpContext.User.GetUserId();
             var userJob = await _jobPostService.GetUserJobPostByIdAsync(userAdId);

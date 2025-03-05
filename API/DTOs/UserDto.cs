@@ -24,7 +24,7 @@ namespace API.DTOs
         public string AboutCompany { get; set; }
         public int? CompanyId { get; set; }
 
-        public int Credits { get; set; }
+        public double Credits { get; set; }
         public Gender Gender { get; set; }
 
         public string PhoneNumber { get; set; }
