@@ -19,6 +19,8 @@ namespace API.Entities.Applications
         public string PhoneNumber { get; set; }
         public DateTime DateOfBirth { get; set; }
 
+        public string Biography { get; set; }
+
         public ApplicationStatus ApplicationStatusId { get; set; }
 
         public string CoverLetter { get; set; }

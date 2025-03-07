@@ -193,6 +193,7 @@ namespace API.Controllers
                 IsOnlineMeeting = userApplication.IsOnlineMeeting,
                 Position = userApplication.CompanyJobPost?.Position,
                 MeetingDateTime = userApplication.MeetingDateTime,
+                Biography = userApplication.Biography,
                 PreviousCompanies = userApplication.PreviousCompanies?.Select(userPreviousCompany => new UserPreviousCompaniesDto
                 {
                     CompanyName = userPreviousCompany.CompanyName,

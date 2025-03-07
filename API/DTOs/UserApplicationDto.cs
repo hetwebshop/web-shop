@@ -27,6 +27,7 @@ namespace API.DTOs
         public int? EducationLevelId { get; set; }
         public string EducationLevel { get; set; }
         public int? YearsOfExperience { get; set; }
+        public string Biography { get; set; }
 
         public string OnlineMeetingLink { get; set; }
         public bool? IsOnlineMeeting { get; set; }
