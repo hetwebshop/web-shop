@@ -9,6 +9,7 @@ using API.Mappers;
 using API.PaginationEntities;
 using API.Services;
 using API.Services.CompanyJobPostServices;
+using Ganss.Xss;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -379,6 +380,14 @@ namespace API.Controllers
             }
             companyJobPostDto.SubmittingUserId = userId;
             companyJobPostDto.PricingPlanId = pricingPlan.Id;
+            var sanitizer = new HtmlSanitizer();
+            string sanitizedJobDescription = sanitizer.Sanitize(companyJobPostDto.JobDescription);
+            string sanitizedBenefits = sanitizer.Sanitize(companyJobPostDto.Benefits);
+            string sanitizedWorkEnv = sanitizer.Sanitize(companyJobPostDto.WorkEnvironmentDescription);
+            companyJobPostDto.JobDescription = sanitizedJobDescription;
+            companyJobPostDto.WorkEnvironmentDescription = sanitizedWorkEnv;
+            companyJobPostDto.Benefits = sanitizedBenefits;
+
             try
             {
                 var newItem = await _jobPostService.CreateCompanyJobPostAsync(companyJobPostDto);
@@ -473,9 +482,12 @@ namespace API.Controllers
             var valid = await CheckDoesAdBelongsToUser(companyJob, currentUserId);
             if (!valid)
                 return Unauthorized("Nemate pravo pristupa ovom oglasu");
+
+            var sanitizer = new HtmlSanitizer();
+            string sanitizedDescription = sanitizer.Sanitize(companyJobPostDto.JobDescription);
+            companyJob.JobDescription = sanitizedDescription;
             companyJob.CityId = companyJobPostDto.CityId;
             companyJob.JobCategoryId = companyJobPostDto.JobCategoryId;
-            companyJob.JobDescription = companyJobPostDto.JobDescription;
             companyJob.JobTypeId = companyJobPostDto.JobTypeId;
             companyJob.EmailForReceivingApplications = companyJobPostDto.EmailForReceivingApplications;
             companyJob.Position = companyJobPostDto.Position;
@@ -497,8 +509,12 @@ namespace API.Controllers
                 return Unauthorized("Nemate pravo pristupa ovom oglasu");
             companyJob.MinSalary = companyJobPostDto.MinSalary;
             companyJob.MaxSalary = companyJobPostDto.MaxSalary;
-            companyJob.Benefits = companyJobPostDto.Benefits;
-            companyJob.WorkEnvironmentDescription = companyJobPostDto.WorkEnvironmentDescription;
+            var sanitizer = new HtmlSanitizer();
+            string sanitizedBenefits = sanitizer.Sanitize(companyJobPostDto.Benefits);
+            string sanitizedWorkEnv = sanitizer.Sanitize(companyJobPostDto.WorkEnvironmentDescription);
+
+            companyJob.Benefits = sanitizedBenefits;
+            companyJob.WorkEnvironmentDescription = sanitizedWorkEnv;
             var updatedItem = await _jobPostService.UpdateCompensationAndWorkEnvAsync(companyJob);
             return Ok(updatedItem);
         }

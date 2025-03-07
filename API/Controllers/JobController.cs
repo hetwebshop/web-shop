@@ -11,12 +11,14 @@ using API.Mappers;
 using API.PaginationEntities;
 using API.Services;
 using API.Services.UserOfferServices;
+using Ganss.Xss;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using SendGrid.Helpers.Mail;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -155,6 +157,10 @@ namespace API.Controllers
                 if (user.Credits < pricingPlan.PriceInCredits)
                     return BadRequest("Nemate dovoljno kredita za objavu odabranog tipa oglasa. Molimo Vas da dopunite kredite ili odaberete neki drugi paket oglasa");
 
+                var sanitizer = new HtmlSanitizer();
+                string sanitizedBiography = sanitizer.Sanitize(userJobPostDto.Biography);
+                userJobPostDto.Biography = sanitizedBiography;
+                
                 userJobPostDto.PricingPlanId = pricingPlan.Id;
 
                 if (!string.IsNullOrEmpty(Request.Form["applicantEducations"]))
@@ -218,6 +224,12 @@ namespace API.Controllers
                     return Unauthorized("Korisnik ne postoji.");
                 }
                 userApplication.SubmittingUserId = currentUserId;
+
+                var sanitizer = new HtmlSanitizer();
+                string sanitizedBiography = sanitizer.Sanitize(userApplication.Biography);
+                string sanitizedCoverLetter = sanitizer.Sanitize(userApplication.CoverLetter);
+                userApplication.Biography = sanitizedBiography;
+                userApplication.CoverLetter = sanitizedCoverLetter;
 
                 var newItem = await _jobPostService.CreateUserApplicationAsync(userApplication, user);
                 return Ok(newItem);
@@ -353,6 +365,11 @@ namespace API.Controllers
             if (!valid)
                 return Unauthorized("Nemate pravo pristupa ovom oglasu");
             userAdBaseInfoRequest.UserAdId = id;
+
+            var sanitizer = new HtmlSanitizer();
+            string sanitizedBiography = sanitizer.Sanitize(userAdBaseInfoRequest.Biography);
+            userAdBaseInfoRequest.Biography = sanitizedBiography;
+
             var updatedItem = await _jobPostService.UpdateAdInfo(userAdBaseInfoRequest);
             return Ok(updatedItem);
         }

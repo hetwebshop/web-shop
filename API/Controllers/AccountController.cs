@@ -1,11 +1,13 @@
 ﻿using API.Data;
 using API.DTOs;
 using API.Entities;
+using API.Entities.Applications;
 using API.Extensions;
 using API.Helpers;
 using API.Mappers;
 using API.Services;
 using AutoMapper;
+using Ganss.Xss;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -332,8 +334,10 @@ namespace API.Controllers
                 {
                     return NotFound(new { message = "User not found" });
                 }
+                var sanitizer = new HtmlSanitizer();
+                string sanitizedCoverLetter = sanitizer.Sanitize(req.Coverletter);
 
-                user.Coverletter = req.Coverletter;
+                user.Coverletter = sanitizedCoverLetter;
 
                 await _dbContext.SaveChangesAsync();
 
@@ -497,13 +501,16 @@ namespace API.Controllers
             if (user.IsCompany == false)
                 return BadRequest("Korisnik ne pripada kompaniji!");
             //user.Email = req.Email;
+
+            var sanitizer = new HtmlSanitizer();
+            string sanitizedAboutUs = sanitizer.Sanitize(req.AboutUs);
+            user.Company.AboutUs = sanitizedAboutUs;
             user.FirstName = req.FirstName;
             user.LastName = req.LastName;
             user.PhoneNumber = req.PhoneNumber;
             user.CityId = req.CityId;
             user.Company.CompanyName = req.CompanyName;
             user.Company.Address = req.Address;
-            user.Company.AboutUs = req.AboutUs;
             user.Company.PhoneNumber = req.PhoneNumber;
 
             var result = await _userManager.UpdateAsync(user);
@@ -567,7 +574,10 @@ namespace API.Controllers
 
             var user = await FetchUserWithIncludesAsync((int)req.UserId);
 
-            user.Biography = req.Biography;
+            var sanitizer = new HtmlSanitizer();
+            string sanitizedBiography = sanitizer.Sanitize(req.Biography);
+            
+            user.Biography = sanitizedBiography;
             user.Position = req.Position;
             user.JobCategoryId = req.JobCategoryId;
             user.JobTypeId = req.JobTypeId;

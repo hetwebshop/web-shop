@@ -6,6 +6,7 @@ using API.Entities.JobPost;
 using API.Helpers;
 using API.PaginationEntities;
 using API.Services;
+using Ganss.Xss;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -351,11 +352,11 @@ namespace API.Data.IUserOfferRepository
             var existingUserJobPost = await FetchUserAdWithNecessaryDependencies(updateAdInfo.UserAdId);
             if (existingUserJobPost != null)
             {
+                existingUserJobPost.Biography = updateAdInfo.Biography;
                 existingUserJobPost.AdTitle = updateAdInfo.AdTitle;
                 existingUserJobPost.JobCategoryId = updateAdInfo.JobCategoryId;
                 existingUserJobPost.JobTypeId = updateAdInfo.JobTypeId;
                 existingUserJobPost.Position = updateAdInfo.Position;
-                existingUserJobPost.Biography = updateAdInfo.Biography;
                 existingUserJobPost.YearsOfExperience = updateAdInfo.YearsOfExperience;
                 existingUserJobPost.EmploymentStatusId = updateAdInfo.EmploymentStatusId;
                 existingUserJobPost.EmploymentTypeId = updateAdInfo.EmploymentTypeId;
