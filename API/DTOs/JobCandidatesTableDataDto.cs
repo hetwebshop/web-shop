@@ -5,6 +5,7 @@ namespace API.DTOs
 {
     public class JobCandidatesTableDataDto
     {
+        public int UserId { get; set; }
         public int UserApplicationId { get; set; }
         public string CandidateFullName { get; set; }
         public DateTime CandidateDateOfBirth { get; set; }
@@ -24,5 +25,6 @@ namespace API.DTOs
         public double? AIMatchingEducationLevel { get; set; }
         public string AIMatchingDescription { get; set; }
         public int? ConversationId { get; set; }
+        public bool DidUserApplyOnPreviousCompanyJobPosts { get; set; }
     }
 }

@@ -325,11 +325,25 @@ namespace API.Controllers
 
             var userApplicationsForJobPost = await _userApplicationsRepository.GetApplicationsForSpecificCompanyJobPost(jobId);
             var conversations = await _dbContext.Conversations.Where(r => r.CompanyJobPostId == jobId).ToListAsync();
+
+            var allPreviousCompanyJobPostsIds = await _dbContext.CompanyJobPosts.Where(r => r.SubmittingUserId == user.Id && r.Id != companyJobPost.Id).Select(r => r.Id).ToListAsync();
+            List<int> getApplicantsForAllCompanyJobPosts = new List<int>();
+
+            if (allPreviousCompanyJobPostsIds.Any())
+            {
+                // If there are other job posts, fetch the applicants who applied to those job posts
+                getApplicantsForAllCompanyJobPosts = await _dbContext.UserApplications
+                    .Where(r => allPreviousCompanyJobPostsIds.Contains(r.CompanyJobPostId))
+                    .Select(r => r.SubmittingUserId)
+                    .ToListAsync();
+            }
+
             var candidatesTableData = new List<JobCandidatesTableDataDto>();
             foreach (var application in userApplicationsForJobPost)
             {
                 var tableData = new JobCandidatesTableDataDto()
                 {
+                    UserId = application.SubmittingUserId,
                     CandidateEmail = application.Email,
                     ApplicationStatusId = application.ApplicationStatusId,
                     UserApplicationId = application.Id,
@@ -348,7 +362,8 @@ namespace API.Controllers
                     AIMatchingDescription = application.AIMatchingDescription,
                     AIMatchingEducationLevel = application.AIMatchingEducationLevel,
                     AIMatchingExperience = application.AIMatchingExperience,
-                    ConversationId = conversations.FirstOrDefault(r => r.ToUserId == application.SubmittingUserId)?.Id
+                    ConversationId = conversations.FirstOrDefault(r => r.ToUserId == application.SubmittingUserId)?.Id,
+                    DidUserApplyOnPreviousCompanyJobPosts = getApplicantsForAllCompanyJobPosts.Contains(application.SubmittingUserId)
                 };
                 candidatesTableData.Add(tableData);
             }

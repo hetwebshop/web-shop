@@ -6,6 +6,7 @@ using API.Extensions;
 using API.Helpers;
 using API.Mappers;
 using API.Services;
+using Aspose.Words;
 using AutoMapper;
 using Ganss.Xss;
 using Microsoft.AspNetCore.Authentication;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.VisualBasic;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -288,7 +290,7 @@ namespace API.Controllers
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-            if (!result.Succeeded && loginDto.UserNameOrEmail != Constants.TestUser) return BadRequest("Pogrešan email ili password.");
+            if (!result.Succeeded && loginDto.UserNameOrEmail != API.Helpers.Constants.TestUser) return BadRequest("Pogrešan email ili password.");
 
             var token = await _tokenService.CreateToken(user);
             var refreshToken = _tokenService.CreateRefreshToken();
@@ -724,7 +726,6 @@ namespace API.Controllers
             var dto = ConvertUserToUserDto(user);
             return dto;
         }
-
         [HttpPost("useruploadresume")]
         public async Task<ActionResult<UserDto>> UserUploadResume([FromForm] UserUploadResumeRequest req)
         {
@@ -757,6 +758,7 @@ namespace API.Controllers
             return dto;
         }
 
+       
         [HttpGet("userdeleteresume")]
         public async Task<ActionResult<UserDto>> UserDeleteResume()
         {
@@ -812,7 +814,7 @@ namespace API.Controllers
             if (await _userManager.Users.AnyAsync(u => u.Id != companyDto.UserId &&
                                                        u.NormalizedEmail == companyDto.UserName.ToUpper()))
                 return BadRequest("Email is already registered.");
-            if (HttpContext.User.GetUserName() == Constants.TestUser && companyDto.UserName.ToLower() != Constants.TestUser)
+            if (HttpContext.User.GetUserName() == API.Helpers.Constants.TestUser && companyDto.UserName.ToLower() != API.Helpers.Constants.TestUser)
                 return BadRequest("Test User cannot change username.");
 
             var user = await _userManager.Users.Include(r => r.Company).SingleAsync(u => u.Id == companyDto.UserId);

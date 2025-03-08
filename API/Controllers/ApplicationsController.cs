@@ -8,7 +8,9 @@ using API.Migrations;
 using API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,8 +30,10 @@ namespace API.Controllers
         private readonly IConfiguration _configuration;
         private readonly IEmailService _emailService;
         private readonly ISendNotificationsQueueClient _sendNotificationsQueueClient;
+        private readonly DataContext _dbContext;
+        private readonly ILogger<ApplicationsController> _logger;
 
-        public ApplicationsController(IUserApplicationsRepository userApplicationsRepository, IUnitOfWork uow, IBlobStorageService blobStorageService, IConfiguration configuration, IEmailService emailService, ISendNotificationsQueueClient sendNotificationsQueueClient)
+        public ApplicationsController(IUserApplicationsRepository userApplicationsRepository, IUnitOfWork uow, IBlobStorageService blobStorageService, IConfiguration configuration, IEmailService emailService, ISendNotificationsQueueClient sendNotificationsQueueClient, DataContext dbContext, ILogger<ApplicationsController> logger)
         {
             this.userApplicationsRepository = userApplicationsRepository;
             _uow = uow;
@@ -38,6 +42,8 @@ namespace API.Controllers
             UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
             _emailService = emailService;
             _sendNotificationsQueueClient = sendNotificationsQueueClient;
+            _dbContext = dbContext;
+            _logger = logger;
         }
 
         [HttpGet("userapplications")]
@@ -174,6 +180,144 @@ namespace API.Controllers
             };
             await _sendNotificationsQueueClient.SendMessageToUserOnUpdateApplicationStatusAsync(jobPostNotificationMessage);
             return Ok(areApplicationsRejected);
+        }
+
+        [HttpPost("addcomment")]
+        public async Task<IActionResult> AddCandidateComment([FromBody] AddCandidateCommentRequest req)
+        {
+            try
+            {
+                var userId = HttpContext.User.GetUserId();
+                var user = await _uow.UserRepository.GetUserByIdAsync(userId);
+                if (user == null || user.CompanyId == null)
+                {
+                    return Unauthorized("Nemate pravo pristupa.");
+                }
+
+                var companyJobPost = await _dbContext.CompanyJobPosts.FirstOrDefaultAsync(r => r.Id == req.CompanyJobPostId);
+                if (companyJobPost == null)
+                {
+                    return BadRequest("Oglas ne postoji.");
+                }
+
+                var userApplication = await _dbContext.UserApplications.FirstOrDefaultAsync(r => r.Id == req.UserApplicationId);
+                if (userApplication == null)
+                {
+                    return BadRequest("Aplikacija ne postoji");
+                }
+
+                if (userApplication.CompanyJobPostId != companyJobPost.Id && companyJobPost.SubmittingUserId != userId)
+                {
+                    _logger.LogWarning($"Unauthorized access attempt by user with ID: {userId} for JobPostId: {companyJobPost.Id}");
+                    return Unauthorized("Nemate pravo pristupa");
+                }
+
+                var candidateComment = new CandidateComment()
+                {
+                    CandidateId = req.CandidateId,
+                    Comment = req.Comment,
+                    CompanyUserId = userId,
+                    Date = DateTime.UtcNow,
+                    UserApplicationId = req.UserApplicationId
+                };
+
+                await _dbContext.AddAsync(candidateComment);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(candidateComment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while adding a comment.");
+                return StatusCode(500, "Internal server error. Please try again later.");
+            }
+        }
+
+        [HttpGet("companycandidatecomments/{candidateId}")]
+        public async Task<IActionResult> GetAllCandidateCommentsByCompany(int candidateId)
+        {
+            try
+            {
+                var userId = HttpContext.User.GetUserId();
+                var user = await _uow.UserRepository.GetUserByIdAsync(userId);
+                if (user == null || user.CompanyId == null)
+                {
+                    return Unauthorized("Nemate pravo pristupa.");
+                }
+
+                var candidateComments = await _dbContext.CandidateComments
+                    .Where(r => r.CandidateId == candidateId && r.CompanyUserId == userId).OrderBy(r => r.Date)
+                    .ToListAsync();
+
+                return Ok(candidateComments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while retrieving comments for CandidateId: {candidateId}.");
+                return StatusCode(500, "Internal server error. Please try again later.");
+            }
+        }
+
+        [HttpDelete("deletecomment/{id}")]
+        public async Task<IActionResult> DeleteCandidateComment(int id)
+        {
+            try
+            {
+                var userId = HttpContext.User.GetUserId();
+                var user = await _uow.UserRepository.GetUserByIdAsync(userId);
+                if (user == null || user.CompanyId == null)
+                {
+                    return Unauthorized("Nemate pravo pristupa.");
+                }
+
+                var candidateComment = await _dbContext.CandidateComments
+                    .FirstOrDefaultAsync(r => r.CompanyUserId == userId && r.Id == id); 
+
+                if(candidateComment != null)
+                {
+                   _dbContext.Remove(candidateComment);
+                    await _dbContext.SaveChangesAsync();
+                    return Ok(true);
+                }
+
+                return Ok(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while deleting comment with id: {id}.");
+                return StatusCode(500, "Internal server error. Please try again later.");
+            }
+        }
+
+        [HttpPut("updatecomment/{id}")]
+        public async Task<IActionResult> UpdateCandidateComment(int id, [FromBody] UpdateCandidateCommentRequest req)
+        {
+            try
+            {
+                var userId = HttpContext.User.GetUserId();
+                var user = await _uow.UserRepository.GetUserByIdAsync(userId);
+                if (user == null || user.CompanyId == null)
+                {
+                    return Unauthorized("Nemate pravo pristupa.");
+                }
+
+                var candidateComment = await _dbContext.CandidateComments
+                    .FirstOrDefaultAsync(r => r.CompanyUserId == userId && r.Id == id);
+
+                if (candidateComment != null)
+                {
+                    candidateComment.Comment = req.Comment;
+                    await _dbContext.SaveChangesAsync();
+                    return Ok(true);
+                }
+
+                return Ok(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while updating comment with id: {id}.");
+                return StatusCode(500, "Internal server error. Please try again later.");
+            }
         }
 
         public static UserApplicationDto ConvertToDto(UserApplication userApplication)

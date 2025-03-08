@@ -47,6 +47,7 @@ namespace API.Data
         public DbSet<DemoMeetingRequest> DemoMeetingRequests { get; set; }
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<CandidateComment> CandidateComments { get; set; }
 
         public DbSet<Notification> Notifications { get; set; }
 
