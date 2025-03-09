@@ -303,6 +303,38 @@ namespace API.Controllers
             return dto;
         }
 
+
+        [HttpGet("role-and-credits")]
+        public async Task<ActionResult<UserDto>> GetUserRoleAndCredits()
+        {
+            var userId = HttpContext.User.GetUserId();
+
+            // Fetch the user with roles in a single query and ensure the user exists and has roles
+            var user = await _dbContext.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                return Unauthorized("User not found.");
+            }
+
+            // Ensure the user has roles assigned
+            var userRole = user.UserRoles.FirstOrDefault();
+            if (userRole == null)
+            {
+                return Unauthorized("User has no assigned roles.");
+            }
+
+            return Ok(new
+            {
+                Role = userRole.Role.Name,
+                Credits = user.Credits
+            });
+        }
+
+
         [HttpGet("token-update")]
         public async Task<ActionResult<UserDto>> GetUpdatedToken()
         {
