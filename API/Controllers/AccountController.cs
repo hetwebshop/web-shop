@@ -270,7 +270,6 @@ namespace API.Controllers
                 //Token = token,
                 PhotoUrl = user.PhotoUrl,
                 Email = user.Email,
-                IsCompany = true,
                 CompanyAddress = user.Company.Address,
             };
         }
@@ -916,7 +915,6 @@ namespace API.Controllers
                 UserName = user.UserName,
                 PhotoUrl = user.PhotoUrl,
                 Email = user.Email,
-                IsCompany = user.IsCompany,
                 CompanyAddress = user.Company?.Address,
                 CompanyId = user.Company?.Id,
                 CompanyName = user.Company?.CompanyName,
@@ -935,7 +933,6 @@ namespace API.Controllers
                 CvFilePath = user.CvFilePath, // Assuming this is the correct field
                 CvFileName = user.CvFileName,
                 Position = user.Position,
-                Roles = user.UserRoles.Select(r => r.Role.Name).ToList(),
                 EmploymentType = user.EmploymentType?.Name,
                 EmploymentTypeId = user.EmploymentType?.Id,
                 EmploymentStatusId = user.EmploymentStatusId,
@@ -981,7 +978,6 @@ namespace API.Controllers
                 UserName = user.UserName,
                 PhotoUrl = user.PhotoUrl,
                 Email = user.Email,
-                IsCompany = user.IsCompany,
                 CompanyAddress = user.Company?.Address,
                 CompanyId = user.Company?.Id,
                 CompanyName = user.Company?.CompanyName,
@@ -989,7 +985,6 @@ namespace API.Controllers
                 AboutCompany = user.Company?.AboutUs,
                 Credits = user.Credits,
                 PhoneNumber = user.PhoneNumber,
-                Roles = user.UserRoles.Select(r => r.Role.Name).ToList(),
             };
             if (!string.IsNullOrEmpty(token))
                 dto.Token = token;

@@ -17,7 +17,6 @@ namespace API.DTOs
         public string City { get; set; }
         public string PhotoUrl { get; set; }
         public string Email { get; set; }
-        public bool IsCompany { get; set; } = false;
         public string CompanyName { get; set; }
         public string CompanyAddress { get; set; }
         public string CompanyPhone { get; set; }
@@ -39,7 +38,6 @@ namespace API.DTOs
         public string CvFileName { get; set; }
         public DateTime DateOfBirth { get; set; }
         public List<UserEducationDto> UserEducations { get; set; }
-        public List<string> Roles { get; set; }
 
         public string EmploymentType { get; set; }
         public int? EmploymentTypeId { get; set; }
