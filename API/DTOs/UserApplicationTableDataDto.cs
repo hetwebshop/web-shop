@@ -18,5 +18,7 @@ namespace API.DTOs
         public string Feedback { get; set; }
         public DateTime? MeetingDateTime { get; set; }
         public int Id { get; set; }
+        public bool IsCompanyAdExpired { get; set; }
+        public DateTime CompanyAdEndDate { get; set; }
     }
 }

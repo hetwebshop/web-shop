@@ -296,7 +296,7 @@ namespace API.Controllers
 
             user.LastActive = DateTime.UtcNow;
             user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
             await _userManager.UpdateAsync(user);
 
             var dto = ConvertUserToUserDto(user, token);

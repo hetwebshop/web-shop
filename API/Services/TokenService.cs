@@ -36,7 +36,7 @@ namespace API.Services
             };
             var roles = await _userManager.GetRolesAsync(user);
 
-            var expireDate = DateTime.Now.AddMinutes(15);
+            var expireDate = DateTime.UtcNow.AddMinutes(15);
 
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 

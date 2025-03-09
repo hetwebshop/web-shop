@@ -31,7 +31,7 @@ namespace API.Controllers
             var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken);
             var username = principal.Identity.Name; //this is mapped to the Name claim by default
             var user = _dbContext.Users.FirstOrDefault(r => r.UserName == username);
-            if (user is null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.Now)
+            if (user is null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
                 return BadRequest("Invalid client request");
             var newAccessToken = await _tokenService.CreateToken(user);
             var newRefreshToken = _tokenService.CreateRefreshToken();

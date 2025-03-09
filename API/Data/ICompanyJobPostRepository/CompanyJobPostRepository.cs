@@ -132,7 +132,7 @@ namespace API.Data.ICompanyJobPostRepository
         
         public async Task<List<CompanyJobPost>> GetCompanyActiveAdsAsync(int companyId)
         {
-            var userJobPosts = await GetCompanyJobPostBaseQuery().Where(r => r.User.CompanyId == companyId && r.AdEndDate.AddDays(CompanyActiveAdDays) >= DateTime.Now).OrderByDescending(r => r.CreatedAt).ToListAsync();
+            var userJobPosts = await GetCompanyJobPostBaseQuery().Where(r => r.User.CompanyId == companyId && r.AdEndDate.AddDays(CompanyActiveAdDays) >= DateTime.UtcNow).OrderByDescending(r => r.CreatedAt).ToListAsync();
             return userJobPosts;
         }
 

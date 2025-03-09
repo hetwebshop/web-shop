@@ -101,7 +101,7 @@ namespace API.Controllers
         public async Task<IActionResult> GetUserJobById(int id)
         {
             var userJob = await _jobPostService.GetUserJobPostByIdAsync(id);
-            if(userJob.IsDeleted || userJob.JobPostStatusId != (int)JobPostStatus.Active || userJob.AdEndDate < DateTime.Now)
+            if(userJob.IsDeleted || userJob.JobPostStatusId != (int)JobPostStatus.Active || userJob.AdEndDate < DateTime.UtcNow)
                 return NotFound("Oglas je obrisan, zatvoren, ili je istekao.");
             return Ok(userJob);
         }
@@ -113,7 +113,7 @@ namespace API.Controllers
             if (userId == null)
                 return Unauthorized("Nemate pravo pristupa!");
             var userJob = await _jobPostService.GetUserJobPostByIdAsync(id);
-            if (userJob.IsDeleted || userJob.JobPostStatusId != (int)JobPostStatus.Active || userJob.AdEndDate < DateTime.Now)
+            if (userJob.IsDeleted || userJob.JobPostStatusId != (int)JobPostStatus.Active || userJob.AdEndDate < DateTime.UtcNow)
                 return NotFound("Oglas je obrisan, zatvoren, ili je istekao.");
             var contactedAdsByCurrentUserIds = await _dbContext.Conversations.Where(r => r.FromUserId == userId).Select(r => r.UserJobPostId).ToListAsync();
             var currentUser = await _uow.UserRepository.GetUserByIdAsync(userId);

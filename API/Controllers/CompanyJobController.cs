@@ -139,7 +139,7 @@ namespace API.Controllers
             {
                 companyJob.CanCurrentUserApplyOnAd = companyJob.UsersThatAppliedOnJobPost.Contains(currentUserId) || user.UserRoles.Select(r => r.Role.Name).Contains("Company") ? false : true;
             }
-            if (companyJob.IsDeleted || companyJob.JobPostStatusId != (int)JobPostStatus.Active || companyJob.AdEndDate < DateTime.Now)
+            if (companyJob.IsDeleted || companyJob.JobPostStatusId != (int)JobPostStatus.Active || companyJob.AdEndDate < DateTime.UtcNow)
                 return NotFound("Oglas je obrisan, zatvoren, ili je istekao.");
             return Ok(companyJob);
         }
@@ -149,7 +149,7 @@ namespace API.Controllers
         public async Task<IActionResult> GetCompanyJobByIdPublic(int id)
         {
             var companyJob = await _jobPostService.GetCompanyJobPostByIdAsync(id);
-            if (companyJob.IsDeleted || companyJob.JobPostStatusId != (int)JobPostStatus.Active || companyJob.AdEndDate < DateTime.Now)
+            if (companyJob.IsDeleted || companyJob.JobPostStatusId != (int)JobPostStatus.Active || companyJob.AdEndDate < DateTime.UtcNow)
                 return NotFound("Oglas je obrisan, zatvoren, ili je istekao.");
             return Ok(companyJob);
         }

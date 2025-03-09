@@ -67,7 +67,9 @@ namespace API.Controllers
                     Email = application.Email,
                     Feedback = application.Feedback,
                     MeetingDateTime = application.MeetingDateTime,
-                    Id = application.Id
+                    Id = application.Id,
+                    IsCompanyAdExpired = application.CompanyJobPost.AdEndDate < DateTime.UtcNow ? true : false,
+                    CompanyAdEndDate = application.CompanyJobPost.AdEndDate
                 };
                 userApplicationsTableData.Add(tableData);
             }
@@ -80,15 +82,15 @@ namespace API.Controllers
             var currentUserId = HttpContext.User.GetUserId();
             var userApplication = await userApplicationsRepository.GetUserApplicationByIdAsync(id);
             var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
-            if (user == null || !user.IsCompany)
+            if (user == null || (user.IsCompany == false && user.Id != userApplication.SubmittingUserId))
             {
                 return Forbid("Nemate pravo pristupa.");
             }
             if (userApplication == null)
                 return NotFound("Oglas ne postoji!");
-            if (user.Id != userApplication.CompanyJobPost.SubmittingUserId)
+            if (user.IsCompany && user.Id != userApplication.CompanyJobPost.SubmittingUserId)
                 return Forbid("Nemate pravo pristupa");
-            if (userApplication.CompanyJobPost.AdEndDate.AddDays(CompanyAdActiveDays) < DateTime.UtcNow)
+            if (user.IsCompany && userApplication.CompanyJobPost.AdEndDate.AddDays(CompanyAdActiveDays) < DateTime.UtcNow)
                 return BadRequest("Pristup aplikaciji je istekao");
 
             var userApplicationDto = ConvertToDto(userApplication);
@@ -104,14 +106,14 @@ namespace API.Controllers
                 return Forbid("Nemate pravo pristupa.");
             }
             var user = await _uow.UserRepository.GetUserByIdAsync(userId);
-            if (user == null || !user.IsCompany)
+            var userApplication = await userApplicationsRepository.GetUserApplicationByIdAsync(userApplicationId);
+            if (user == null || (user.IsCompany == false && user.Id != userApplication.SubmittingUserId))
             {
                 return Forbid("Nemate pravo pristupa.");
             }
-            var userApplication = await userApplicationsRepository.GetUserApplicationByIdAsync(userApplicationId);
             if (userApplication == null)
                 return NotFound("Oglas ne postoji!");
-            if (user.Id != userApplication.CompanyJobPost.SubmittingUserId)
+            if (user.IsCompany && user.Id != userApplication.CompanyJobPost.SubmittingUserId)
                 return Forbid("Nemate pravo pristupa");
             var fileName = Path.GetFileName(userApplication.CvFilePath);
             var fileDto = await _blobStorageService.GetFileAsync(fileName);
