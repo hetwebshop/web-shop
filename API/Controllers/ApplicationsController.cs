@@ -32,6 +32,7 @@ namespace API.Controllers
         private readonly ISendNotificationsQueueClient _sendNotificationsQueueClient;
         private readonly DataContext _dbContext;
         private readonly ILogger<ApplicationsController> _logger;
+        private readonly int CompanyAdActiveDays; 
 
         public ApplicationsController(IUserApplicationsRepository userApplicationsRepository, IUnitOfWork uow, IBlobStorageService blobStorageService, IConfiguration configuration, IEmailService emailService, ISendNotificationsQueueClient sendNotificationsQueueClient, DataContext dbContext, ILogger<ApplicationsController> logger)
         {
@@ -44,6 +45,7 @@ namespace API.Controllers
             _sendNotificationsQueueClient = sendNotificationsQueueClient;
             _dbContext = dbContext;
             _logger = logger;
+            CompanyAdActiveDays = int.Parse(_configuration.GetSection("CompanyActiveAdDays").Value);
         }
 
         [HttpGet("userapplications")]
@@ -86,6 +88,8 @@ namespace API.Controllers
                 return NotFound("Oglas ne postoji!");
             if (user.Id != userApplication.CompanyJobPost.SubmittingUserId)
                 return Forbid("Nemate pravo pristupa");
+            if (userApplication.CompanyJobPost.AdEndDate.AddDays(CompanyAdActiveDays) < DateTime.UtcNow)
+                return BadRequest("Pristup aplikaciji je istekao");
 
             var userApplicationDto = ConvertToDto(userApplication);
             return Ok(userApplicationDto);

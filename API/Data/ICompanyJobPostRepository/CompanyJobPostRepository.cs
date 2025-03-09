@@ -6,6 +6,7 @@ using API.PaginationEntities;
 using API.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -19,13 +20,17 @@ namespace API.Data.ICompanyJobPostRepository
         ISortHelper<CompanyJobPost> _sortHelper;
         private readonly IBlobStorageService _blobStorageService;
         private readonly ILogger<CompanyJobPostRepository> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly int CompanyActiveAdDays;
 
-        public CompanyJobPostRepository(DataContext dataContext, ISortHelper<CompanyJobPost> sortHelper, IBlobStorageService blobStorageService, ILogger<CompanyJobPostRepository> logger)
+        public CompanyJobPostRepository(DataContext dataContext, ISortHelper<CompanyJobPost> sortHelper, IBlobStorageService blobStorageService, ILogger<CompanyJobPostRepository> logger, IConfiguration configuration)
             : base(dataContext)
         {
             _sortHelper = sortHelper;
             _blobStorageService = blobStorageService;
             _logger = logger;
+            _configuration = configuration;
+            CompanyActiveAdDays = int.Parse(_configuration.GetSection("CompanyActiveAdDays").Value);
         }
 
         private IQueryable<CompanyJobPost> GetCompanyJobPostBaseQuery()
@@ -127,7 +132,7 @@ namespace API.Data.ICompanyJobPostRepository
         
         public async Task<List<CompanyJobPost>> GetCompanyActiveAdsAsync(int companyId)
         {
-            var userJobPosts = await GetCompanyJobPostBaseQuery().Where(r => r.User.CompanyId == companyId && r.JobPostStatusId == 1 && r.AdEndDate >= DateTime.Now).OrderByDescending(r => r.CreatedAt).ToListAsync();
+            var userJobPosts = await GetCompanyJobPostBaseQuery().Where(r => r.User.CompanyId == companyId && r.AdEndDate.AddDays(CompanyActiveAdDays) >= DateTime.Now).OrderByDescending(r => r.CreatedAt).ToListAsync();
             return userJobPosts;
         }
 

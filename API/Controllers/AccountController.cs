@@ -6,7 +6,6 @@ using API.Extensions;
 using API.Helpers;
 using API.Mappers;
 using API.Services;
-using Aspose.Words;
 using AutoMapper;
 using Ganss.Xss;
 using Microsoft.AspNetCore.Authentication;
@@ -295,6 +294,7 @@ namespace API.Controllers
             var token = await _tokenService.CreateToken(user);
             var refreshToken = _tokenService.CreateRefreshToken();
 
+            user.LastActive = DateTime.UtcNow;
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
             await _userManager.UpdateAsync(user);

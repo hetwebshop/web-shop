@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -33,8 +34,10 @@ namespace API.Controllers
         private readonly IBlobStorageService _blobStorageService;
         private readonly ISendNotificationsQueueClient _sendNotificationsQueueClient;
         private readonly ILogger<CompanyJobController> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly int CompanyAdActiveDays;
 
-        public CompanyJobController(ICompanyJobPostService jobPostService, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IUserApplicationsRepository userApplicationsRepository, DataContext dbContext, IBlobStorageService blobStorageService, ISendNotificationsQueueClient sendNotificationsQueueClient, ILogger<CompanyJobController> logger)
+        public CompanyJobController(ICompanyJobPostService jobPostService, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IUserApplicationsRepository userApplicationsRepository, DataContext dbContext, IBlobStorageService blobStorageService, ISendNotificationsQueueClient sendNotificationsQueueClient, ILogger<CompanyJobController> logger, IConfiguration configuration)
         {
             _jobPostService = jobPostService;
             _uow = uow;
@@ -44,6 +47,8 @@ namespace API.Controllers
             _blobStorageService = blobStorageService;
             _sendNotificationsQueueClient = sendNotificationsQueueClient;
             _logger = logger;
+            _configuration = configuration;
+            CompanyAdActiveDays = int.Parse(configuration.GetSection("CompanyActiveAdDays").Value);
         }
 
 
@@ -312,16 +317,16 @@ namespace API.Controllers
             var userId = HttpContext.User.GetUserId();
             var user = await _uow.UserRepository.GetUserByIdAsync(userId);
             if (user == null || user.CompanyId == null)
-                return Unauthorized("You do not belong to the current company.");
+                return Unauthorized("Nemate pravo pristupa");
 
             var companyId = user.CompanyId;
             var companyJobPost = await _jobPostRepository.GetCompanyJobPostByIdAsync(jobId);
             if (companyJobPost == null)
                 return NotFound();
             if (companyJobPost.User.CompanyId != companyId)
-                return Unauthorized("Not belong to current company");
-            //if (companyJobPost.JobPostStatusId != 1 || companyJobPost.AdEndDate < DateTime.Now)
-            //    return BadRequest("Oglas je istekao");
+                return Unauthorized("Nemate pravo pristupa");
+            if (companyJobPost.AdEndDate.AddDays(CompanyAdActiveDays) < DateTime.UtcNow)
+                return BadRequest("Pristup aplikaciji je istekao");
 
             var userApplicationsForJobPost = await _userApplicationsRepository.GetApplicationsForSpecificCompanyJobPost(jobId);
             var conversations = await _dbContext.Conversations.Where(r => r.CompanyJobPostId == jobId).ToListAsync();
