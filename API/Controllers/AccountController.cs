@@ -41,6 +41,7 @@ namespace API.Controllers
         private readonly DataContext _dbContext;
         private readonly string UIBaseUrl;
         private readonly string SupportEmail;
+        private readonly string Environment;
 
         public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration,
             IUnitOfWork uow, IMapper mapper, ITokenService tokenService, IEmailService emailService, IBlobStorageService blobStorageService, DataContext dbContext)
@@ -57,6 +58,7 @@ namespace API.Controllers
             _dbContext = dbContext;
             UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
             SupportEmail = configuration.GetSection("SupportEmail").Value;
+            Environment = configuration.GetSection("Environment").Value;
         }
 
         [HttpPost("register")]
@@ -274,6 +276,34 @@ namespace API.Controllers
             };
         }
 
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetUserInfo()
+        {
+            var username = User.Identity.Name;
+            var user = _dbContext.Users.SingleOrDefaultAsync(u => u.UserName == username);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            return Ok();
+        }
+
+        [HttpGet("me-info")]
+        [Authorize]
+        public async Task<IActionResult> GetMyInfoDetails()
+        {
+            var username = User.Identity.Name;
+            var user = await FetchUserWithIncludesAsync(null, username);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+            var dto = ConvertUserToUserDto(user);
+            return Ok(dto);
+        }
+
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
@@ -295,12 +325,14 @@ namespace API.Controllers
 
             user.LastActive = DateTime.UtcNow;
             user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // SAME VALUE IS IN SetTokenInsideCookie
             await _userManager.UpdateAsync(user);
 
-            var dto = ConvertUserToUserDto(user, token);
+            _tokenService.SetTokenInsideCookie(token, refreshToken, HttpContext);
 
-            return dto;
+            var dto = ConvertUserToUserDto(user);
+
+            return Ok(dto);
         }
 
 
@@ -344,7 +376,7 @@ namespace API.Controllers
             var accessToken = await HttpContext.GetTokenAsync("access_token");
             var token = await _tokenService.CreateToken(user);
 
-            var dto = ConvertUserToUserDto(user, token);
+            var dto = ConvertUserToUserDto(user);
             return dto;
         }
 
@@ -935,7 +967,7 @@ namespace API.Controllers
         }
 
 
-        private UserDto ConvertUserToUserDto(User user, string token = null)
+        private UserDto ConvertUserToUserDto(User user)
         {
             var dto = new UserDto
             {
@@ -971,8 +1003,8 @@ namespace API.Controllers
                 EmploymentStatus = user.EmploymentStatus?.Name,
                 EducationLevel = user.EducationLevel?.Name,
                 EducationLevelId = user.EducationLevel?.Id,
-                RefreshToken = user.RefreshToken,
                 Coverletter = user.Coverletter,
+                Role = user.UserRoles.First().Role.Name,
                 UserPreviousCompanies = user.UserPreviousCompanies?.Select(userPreviousCompany => new UserPreviousCompaniesDto()
                 {
                     CompanyName = userPreviousCompany.CompanyName,
@@ -994,12 +1026,11 @@ namespace API.Controllers
                     InstitutionName = userEducation.InstitutionName // Fixed this field assignment
                 }).ToList() ?? new List<UserEducationDto>() // In case user.UserEducations is null, return an empty list
             };
-            if(!string.IsNullOrEmpty(token))
-                dto.Token = token;
+
             return dto;
         }
 
-        private UserDto ConvertCompanyUserToUserDto(User user, string token = null)
+        private UserDto ConvertCompanyUserToUserDto(User user)
         {
             var dto = new UserDto
             {
@@ -1018,8 +1049,7 @@ namespace API.Controllers
                 Credits = user.Credits,
                 PhoneNumber = user.PhoneNumber,
             };
-            if (!string.IsNullOrEmpty(token))
-                dto.Token = token;
+
             return dto;
         }
 

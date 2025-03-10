@@ -9,8 +9,6 @@ namespace API.DTOs
     {
         public int Id { get; set; }
         public string UserName { get; set; }
-        public string Token { get; set; }
-        public string RefreshToken { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public int CityId { get; set; }
@@ -22,6 +20,7 @@ namespace API.DTOs
         public string CompanyPhone { get; set; }
         public string AboutCompany { get; set; }
         public int? CompanyId { get; set; }
+        public string Role { get; set; }
 
         public double Credits { get; set; }
         public Gender Gender { get; set; }

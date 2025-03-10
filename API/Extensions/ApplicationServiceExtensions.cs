@@ -18,6 +18,7 @@ using API.Data.ICompanyJobPostRepository;
 using API.Mappers;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using System.Threading.Tasks;
 
 namespace API.Extensions
 {
@@ -89,6 +90,10 @@ namespace API.Extensions
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 })
+                .AddCookie(x =>
+                {
+                    x.Cookie.Name = "accessToken";
+                })
                 .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
@@ -99,6 +104,18 @@ namespace API.Extensions
                         ValidateIssuer = false,
                         ValidateAudience = false,
                         ClockSkew = TimeSpan.Zero
+                    };
+                    options.SaveToken = true;
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = ctx =>
+                        {
+                            ctx.Request.Cookies.TryGetValue("accessToken", out var accessToken);
+                            if (!string.IsNullOrEmpty(accessToken))
+                                ctx.Token = accessToken;
+                            return Task.CompletedTask;
+                        }
                     };
                 });
 
