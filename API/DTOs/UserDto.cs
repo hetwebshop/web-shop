@@ -48,6 +48,8 @@ namespace API.DTOs
         public List<UserPreviousCompaniesDto> UserPreviousCompanies { get; set; }
 
         public string Coverletter { get; set; }
+        public string AccessToken { get; set; }
+        public string RefreshToken { get; set; }
     }
 
     public class UserInfoDto

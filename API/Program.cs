@@ -27,11 +27,22 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
 });
 
+var allowedOrigins = builder.Configuration.GetSection("AllowedCorsOrigins").Get<string[]>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 
 //middleware
-var allowedOrigins = builder.Configuration.GetSection("AllowedCorsOrigins").Get<string[]>();
 var app = builder.Build();
 app.UseRouting();
+app.UseCors("CorsPolicy");
 app.UseCors(options =>
 options.AllowAnyHeader().AllowCredentials().AllowAnyMethod().WithOrigins(allowedOrigins));
 

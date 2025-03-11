@@ -29,9 +29,9 @@ namespace API.Controllers
             Environment = configuration.GetSection("Environment").Value;
         }
         [HttpPost]
-        [Route("refresh")]
+        [Route("refresh-cookie")]
         [AllowAnonymous]
-        public async Task<IActionResult> Refresh()
+        public async Task<IActionResult> RefreshCookie()
         {
             HttpContext.Request.Cookies.TryGetValue("accessToken", out var accessToken);
             HttpContext.Request.Cookies.TryGetValue("refreshToken", out var refreshToken);
@@ -53,9 +53,48 @@ namespace API.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        [Route("refresh")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Refresh(TokenApiModel tokenApiModel)
+        {
+            if (tokenApiModel is null)
+                return BadRequest("Invalid client request");
+            string accessToken = tokenApiModel.AccessToken;
+            string refreshToken = tokenApiModel.RefreshToken;
+            var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken);
+            var username = principal.Identity.Name; //this is mapped to the Name claim by default
+            var user = _dbContext.Users.FirstOrDefault(r => r.UserName == username);
+            if (user is null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+                return BadRequest("Invalid client request");
+            var newAccessToken = await _tokenService.CreateToken(user);
+            var newRefreshToken = _tokenService.CreateRefreshToken();
+            user.RefreshToken = newRefreshToken;
+            _dbContext.SaveChanges();
+            return Ok(new TokenApiModel()
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken
+            });
+        }
+
         [HttpPost, Authorize]
         [Route("revoke")]
-        public async Task<IActionResult> Revoke()
+        public IActionResult Revoke()
+        {
+            var username = User.Identity.Name;
+            var user = _dbContext.Users.SingleOrDefault(u => u.UserName == username);
+            if (user == null) return BadRequest();
+            user.RefreshToken = null;
+            _dbContext.SaveChanges();
+
+            return NoContent();
+        }
+
+
+        [HttpPost, Authorize]
+        [Route("revoke-cookie")]
+        public async Task<IActionResult> RevokeCookie()
         {
             var username = User.Identity.Name;
             var user = _dbContext.Users.SingleOrDefault(u => u.UserName == username);
@@ -69,7 +108,8 @@ namespace API.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(-1), // Set to a past date
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.None
+                SameSite = SameSiteMode.Lax,
+                Domain = ".azurewebsites.net",
             });
 
             Response.Cookies.Append("refreshToken", "", new CookieOptions
@@ -77,7 +117,8 @@ namespace API.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(-1), // Set to a past date
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.None
+                SameSite = SameSiteMode.Lax,
+                Domain = ".azurewebsites.net",
             });
 
             return NoContent();
@@ -87,6 +128,6 @@ namespace API.Controllers
     public class TokenApiModel
     {
         public string? AccessToken { get; set; }
-        //public string? RefreshToken { get; set; }
+        public string? RefreshToken { get; set; }
     }
 }

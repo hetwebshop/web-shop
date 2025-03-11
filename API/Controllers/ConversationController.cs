@@ -119,7 +119,7 @@ namespace API.Controllers
                 UserId = userJobPost.SubmittingUserId.ToString(),
                 CreatedAt = now,
                 IsRead = false,
-                Link = UIBaseUrl + $"conversation/{conversation.Id}",
+                Link = UIBaseUrl + $"conversations/{conversation.Id}",
                 Message = "Nova poslovna prilika! Poslodavac Vas je kontaktirao."
             };
             _dbContext.Notifications.Add(notification);
@@ -179,7 +179,7 @@ namespace API.Controllers
                         UserId = userApplication.SubmittingUserId.ToString(),
                         CreatedAt = now,
                         IsRead = false,
-                        Link = UIBaseUrl + $"conversation/{conversation.Id}",
+                        Link = UIBaseUrl + $"conversations/{conversation.Id}",
                         Message = "Nova poslovna prilika! Poslodavac Vas je kontaktirao."
                     };
                     _dbContext.Notifications.Add(notification);
@@ -473,7 +473,7 @@ namespace API.Controllers
         {
             if (userAd != null)
             {
-                var applicationUrl = UIBaseUrl + $"conversation/{conversationId}";
+                var applicationUrl = UIBaseUrl + $"conversations/{conversationId}";
 
                 string messageBody = $@"
             <h4 style='color: black;'>Naslov: {requestSubject}</h4>
@@ -502,7 +502,7 @@ namespace API.Controllers
         {
             if (userApplication != null)
             {
-                var applicationUrl = UIBaseUrl + $"conversation/{conversationId}";
+                var applicationUrl = UIBaseUrl + $"conversations/{conversationId}";
 
                 string messageBody = $@"
             <h4 style='color: black;'>Naslov: Poslodavac je odgovorio na vašu aplikaciju za posao!</h4>
@@ -512,7 +512,7 @@ namespace API.Controllers
                 <a href='{applicationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Pogledajte oglas</a>
             </p>";
 
-                var subject = "POSLOVNIOGLASI - Nova poslovna prilika! Poslodavac Vas je odgovorio na aplikaciju";
+                var subject = "POSLOVNIOGLASI - Nova poslovna prilika! Poslodavac Vam je odgovorio na aplikaciju";
                 var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, _configuration);
 
                 try

@@ -97,7 +97,8 @@ namespace API.Services
                     HttpOnly = true,
                     IsEssential = true,
                     Secure = true,
-                    SameSite = SameSiteMode.None,
+                    SameSite = SameSiteMode.Lax,
+                    Domain = ".azurewebsites.net",
                 });
             context.Response.Cookies.Append("refreshToken", refreshToken,
                 new CookieOptions
@@ -106,7 +107,8 @@ namespace API.Services
                     HttpOnly = true,
                     IsEssential = true,
                     Secure = true,
-                    SameSite = SameSiteMode.None,
+                    SameSite = SameSiteMode.Lax,
+                    Domain = ".azurewebsites.net",
                 });
         }
 

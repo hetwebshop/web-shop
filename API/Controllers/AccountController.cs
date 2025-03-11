@@ -76,7 +76,7 @@ namespace API.Controllers
             //user.IsApproved = false;
 
             user.IsApproved = true;
-            user.EmailConfirmed = true;
+            //user.EmailConfirmed = true;
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
@@ -86,43 +86,43 @@ namespace API.Controllers
 
 
 
-            //var emailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            //var verificationUrl = $"{verificationEmailBaseAddress}confirm-email?userId=" + user.Id + "&token=" + Uri.EscapeDataString(emailToken);
+            var emailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var verificationUrl = $"{verificationEmailBaseAddress}confirm-email?userId=" + user.Id + "&token=" + Uri.EscapeDataString(emailToken);
 
 
-            //var notificationsSettings = new List<UserNotificationSettings>();
-            //if(user != null)
-            //{
-            //    notificationsSettings.Add(new UserNotificationSettings()
-            //    {
-            //        UserId = user.Id,
-            //        NotificationType = UserNotificationType.NewInterestingCompanyAdInApp,
-            //        IsEnabled = true
-            //    });
-            //    notificationsSettings.Add(new UserNotificationSettings()
-            //    {
-            //        UserId = user.Id,
-            //        NotificationType = UserNotificationType.NewInterestingCompanyAdEmail,
-            //        IsEnabled = true
-            //    });
-            //    _dbContext.UserNotificationSettings.AddRange(notificationsSettings);
-            //    await _dbContext.SaveChangesAsync();
-            //}
+            var notificationsSettings = new List<UserNotificationSettings>();
+            if (user != null)
+            {
+                notificationsSettings.Add(new UserNotificationSettings()
+                {
+                    UserId = user.Id,
+                    NotificationType = UserNotificationType.NewInterestingCompanyAdInApp,
+                    IsEnabled = true
+                });
+                notificationsSettings.Add(new UserNotificationSettings()
+                {
+                    UserId = user.Id,
+                    NotificationType = UserNotificationType.NewInterestingCompanyAdEmail,
+                    IsEnabled = true
+                });
+                _dbContext.UserNotificationSettings.AddRange(notificationsSettings);
+                await _dbContext.SaveChangesAsync();
+            }
 
-            //// Slanje verifikacionog emaila (ovdje koristite svoju email uslugu)
-            //string messageBody = $@"
-            //<p style='color: #66023C;'>Hvala vam što ste se registrirali na našu platformu. Molimo vas da potvrdite vašu email adresu kako biste aktivirali svoj račun.</p>
-            //<p style='text-align: center;'>
-            //    <a href='{verificationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Kliknite ovdje</a>
-            //</p>";
-            //string subject = "Verifikujte svoju email adresu";
-            //string emailHtml = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, configuration);
+            // Slanje verifikacionog emaila (ovdje koristite svoju email uslugu)
+            string messageBody = $@"
+            <p style='color: #66023C;'>Hvala vam što ste se registrirali na našu platformu. Molimo vas da potvrdite vašu email adresu kako biste aktivirali svoj račun.</p>
+            <p style='text-align: center;'>
+                <a href='{verificationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Kliknite ovdje</a>
+            </p>";
+            string subject = "Verifikujte svoju email adresu";
+            string emailHtml = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, configuration);
 
-            //await _emailService.SendEmailWithTemplateAsync(
-            //    user.Email,
-            //    subject,
-            //    emailHtml
-            //);
+            await _emailService.SendEmailWithTemplateAsync(
+                user.Email,
+                subject,
+                emailHtml
+            );
 
             return new UserDto
             {
@@ -304,9 +304,9 @@ namespace API.Controllers
             return Ok(dto);
         }
 
-        [HttpPost("login")]
+        [HttpPost("login-cookie")]
         [AllowAnonymous]
-        public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
+        public async Task<ActionResult<UserDto>> LoginCookie(LoginDto loginDto)
         {
             var user = await FetchUserWithIncludesAsync(null, loginDto.UserNameOrEmail);
 
@@ -335,6 +335,36 @@ namespace API.Controllers
             return Ok(dto);
         }
 
+        [HttpPost("login")]
+        [AllowAnonymous]
+        public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
+        {
+            var user = await FetchUserWithIncludesAsync(null, loginDto.UserNameOrEmail);
+
+            if (user == null) return BadRequest("Korisnik sa unešenom email adresom ne postoji.");
+
+            if (!user.IsApproved)
+            {
+                return BadRequest("Račun vaše kompanije čeka odobrenje od strane admina.");
+            }
+
+            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+            if (!result.Succeeded && loginDto.UserNameOrEmail != API.Helpers.Constants.TestUser) return BadRequest("Pogrešan email ili password.");
+
+            var token = await _tokenService.CreateToken(user);
+            var refreshToken = _tokenService.CreateRefreshToken();
+
+            user.LastActive = DateTime.UtcNow;
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            await _userManager.UpdateAsync(user);
+
+            var dto = ConvertUserToUserDto(user);
+            dto.AccessToken = token;
+            dto.RefreshToken = refreshToken;
+
+            return Ok(dto);
+        }
 
         [HttpGet("role-and-credits")]
         public async Task<ActionResult<UserDto>> GetUserRoleAndCredits()

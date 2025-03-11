@@ -53,7 +53,7 @@ namespace API.Mappers
 
             this.CreateMap<UserJobPostDto, UserJobPost>()
                 .ForMember(dest => dest.JobPostStatusId, src => src.MapFrom(x => x.JobPostStatusId != 0 ? x.JobPostStatusId : (int)Helpers.JobPostStatus.Active))
-                .ForMember(dest => dest.PricingPlan, src => src.MapFrom(x => new PricingPlan { AdActiveDays = x.AdDuration, Name = x.PricingPlanName}));
+                .ForMember(dest => dest.PricingPlan, opt => opt.Ignore());
 
             this.CreateMap<ApplicantEducation, ApplicantEducationDto>();
             this.CreateMap<ApplicantEducationDto, ApplicantEducation>();
