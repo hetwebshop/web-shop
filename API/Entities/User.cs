@@ -32,6 +32,7 @@ namespace API.Entities
         public Company? Company { get; set; }
 
         public bool IsApproved { get; set; }
+        public bool TermsAccepted { get; set; }
 
         public int? EducationLevelId { get; set; }
         public EducationLevel? EducationLevel { get; set; }

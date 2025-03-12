@@ -24,5 +24,7 @@ namespace API.DTOs
         public string ConfirmPassword { get; set; }
 
         public IFormFile Photo { get; set; }
+        [Required]
+        public bool TermsAccepted { get; set; }
     }
 }

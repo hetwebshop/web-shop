@@ -205,6 +205,8 @@ namespace API.Controllers
                 return Unauthorized("Nemate pravo pristupa");
 
             var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
+            if (!user.IsCompany)
+                return Unauthorized("Nemate pravo pristupa");
             // Optimize the query to only select necessary columns
             var userConversations = await _dbContext.Conversations
                 .Include(r => r.FromUser)
@@ -263,6 +265,8 @@ namespace API.Controllers
                 return Unauthorized("Nemate pravo pristupa");
 
             var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
+            if (user.IsCompany)
+                return Unauthorized("Nemate pravo pristupa");
             // Optimize the query to only select necessary columns
             var userConversations = await _dbContext.Conversations
                 .Include(r => r.FromUser)

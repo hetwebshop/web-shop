@@ -66,6 +66,10 @@ namespace API.Controllers
         public async Task<ActionResult<UserDto>> Register(UserRegisterDto registerDto)
         {
             registerDto.UserName = registerDto.Email;
+            if(registerDto.TermsAccepted == false)
+            {
+                return BadRequest("Morate prihvatiti uslove korištenja i politiku bezbjednosti.");
+            }
             if (await UserNameExist(registerDto.UserName))
                 return BadRequest("Ovaj email je već povezan s postojećim korisničkim nalogom.");
             if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
@@ -76,6 +80,7 @@ namespace API.Controllers
             //user.IsApproved = false;
 
             user.IsApproved = true;
+            user.TermsAccepted = registerDto.TermsAccepted;
             //user.EmailConfirmed = true;
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
@@ -149,7 +154,7 @@ namespace API.Controllers
 
             // Send the email
             await _emailService.SendEmailWithTemplateAsync(
-                SupportEmail,
+                "emindukic123@gmail.com",
                 subject,
                 emailHtml
             );
@@ -187,6 +192,10 @@ namespace API.Controllers
         public async Task<ActionResult<UserDto>> RegisterCompany([FromForm] CompanyRegisterDto registerDto)
         {
             registerDto.UserName = registerDto.Email;
+            if (registerDto.TermsAccepted == false)
+            {
+                return BadRequest("Morate prihvatiti uslove korištenja i politiku bezbjednosti.");
+            }
             if (await UserNameExist(registerDto.UserName))
                 return BadRequest("Ovaj email je već povezan s postojećim korisničkim nalogom.");
             if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
@@ -205,6 +214,7 @@ namespace API.Controllers
             }
             user.IsApproved = false;
 
+            user.TermsAccepted = registerDto.TermsAccepted;
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
 

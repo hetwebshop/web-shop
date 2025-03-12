@@ -25,5 +25,7 @@ namespace API.DTOs
         [Required(ErrorMessage = "Potvrda lozinke je obavezna.")]
         [Compare("Password", ErrorMessage = "Lozinka i potvrda lozinke se ne podudaraju.")]
         public string ConfirmPassword { get; set; }
+        [Required]
+        public bool TermsAccepted { get; set; }
     }
 }

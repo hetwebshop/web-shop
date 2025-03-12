@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
+using System.Net;
+using System;
 
 namespace API.Helpers
 {
@@ -7,7 +9,7 @@ namespace API.Helpers
         public static string GenerateEmailTemplate(string subject, string htmlMessageBody, IConfiguration configuration)
         {
             string companyName = "POSLOVNIOGLASI";
-            //string companyLogoUrl = "https://yourcompany.com/logo.png";
+            string companyLogoUrl = configuration.GetSection("CompanyLogoPng").Value;
             string companyWebsite =  configuration.GetSection("UIBaseUrl").Value;
             string supportEmail = configuration.GetSection("SupportEmail").Value;
             string contactNumber = configuration.GetSection("SupportPhoneNumber").Value;
@@ -83,7 +85,9 @@ namespace API.Helpers
         <div class='email-container'>
             <!-- Essential Header Section -->
             <div class='header'>
-                <a href={companyWebsite}><span style='pointer-events: none !important; text-decoration: none; color: #66023C; cursor: default !important;'>{companyName}</span></a>
+                <a href='{companyWebsite}'>
+                <img src='{companyLogoUrl}' alt='{companyName} Logo' style='max-width: 500px; height: auto;' />
+            </a>
             </div>
 
             <!-- Main Content Section -->
