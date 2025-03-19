@@ -26,6 +26,8 @@ namespace API.Helpers
                     Address = src.Address,
                     Email = src.Email,
                     PhoneNumber = src.PhoneNumber,
+                    IdNumber = src.IdNumber,
+                    PdvNumber = src.PdvNumber
                 }));
 
             CreateMap<User, UserProfileDto>()

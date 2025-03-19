@@ -20,6 +20,7 @@ using API.Entities.JobPost;
 using API.Entities;
 using SendGrid.Helpers.Mail;
 using API.Entities.Applications;
+using Microsoft.Extensions.Logging;
 
 namespace API.Controllers
 {
@@ -61,8 +62,9 @@ namespace API.Controllers
         private readonly string UIBaseUrl;
         private readonly IConfiguration _configuration;
         private IUserApplicationsRepository userApplicationsRepository;
+        private readonly ILogger<ConversationController> _logger;
 
-        public ConversationController(IUserJobPostService jobPostService, IUnitOfWork uow, IBlobStorageService blobStorageService, IUserJobPostRepository userJobPostRepository, DataContext dbContext, IEmailService emailService, IConfiguration configuration, IUserApplicationsRepository userApplicationsRepository)
+        public ConversationController(IUserJobPostService jobPostService, IUnitOfWork uow, IBlobStorageService blobStorageService, IUserJobPostRepository userJobPostRepository, DataContext dbContext, IEmailService emailService, IConfiguration configuration, IUserApplicationsRepository userApplicationsRepository, ILogger<ConversationController> logger)
         {
             _jobPostService = jobPostService;
             _uow = uow;
@@ -73,6 +75,7 @@ namespace API.Controllers
             UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
             _configuration = configuration;
             this.userApplicationsRepository = userApplicationsRepository;
+            _logger = logger;
         }
 
         [HttpPost("contactuser/{userAdId}")]
@@ -126,7 +129,8 @@ namespace API.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            await SendNewContactUserEmailAsync(userJobPost, conversation.Id, request.Message, request.Subject, request.Phone, request.Email);
+            // Fire-and-forget email sending using Task.Run
+            Task.Run(() => SendNewContactUserEmailAsync(userJobPost, conversation.Id, request.Message, request.Subject, request.Phone, request.Email));
 
             return Ok(new { message = "Poruka je uspešno poslana!" });
         }
@@ -185,7 +189,10 @@ namespace API.Controllers
                     _dbContext.Notifications.Add(notification);
 
                     await _dbContext.SaveChangesAsync();
-                    await SendNewReplyToUserApplicationEmailAsync(userApplication, conversation.Id, request.Message, companyJobPost.EmailForReceivingApplications);
+
+
+                    // Fire-and-forget email sending using Task.Run
+                    Task.Run(() => SendNewReplyToUserApplicationEmailAsync(userApplication, conversation.Id, request.Message, companyJobPost.EmailForReceivingApplications));
 
                     return Ok(conversation.Id);
                 }
@@ -449,28 +456,36 @@ namespace API.Controllers
         [HttpGet("userjoboffers")]
         public async Task<IActionResult> GetAllUserJobOffers()
         {
-            var currentUserId = HttpContext.User.GetUserId();
-            if (currentUserId == null)
-                return Unauthorized("Nemate pravo pristupa");
-            var userJobOffers = await _dbContext.Conversations.Where(r => r.ToUserId == currentUserId).Include(r => r.UserJobPost).OrderByDescending(r => r.CreatedAt).ToListAsync();
-            var userJobOffersTableData = new List<UserJobOffersTableData>();
-            foreach (var jobOffer in userJobOffers)
+            try
             {
-                var tableData = new UserJobOffersTableData()
+                var currentUserId = HttpContext.User.GetUserId();
+                if (currentUserId == null)
+                    return Unauthorized("Nemate pravo pristupa");
+                var userJobOffers = await _dbContext.Conversations.Where(r => r.ToUserId == currentUserId).Include(e => e.FromUser).ThenInclude(r => r.Company).Include(r => r.UserJobPost).OrderByDescending(r => r.CreatedAt).ToListAsync();
+                var userJobOffersTableData = new List<UserJobOffersTableData>();
+                foreach (var jobOffer in userJobOffers)
                 {
-                    JobPosition = jobOffer.UserJobPost.Position,
-                    CreatedAt = jobOffer.CreatedAt,
-                    //CompanyName = jobOffer.CompanyName,
-                    UserJobPostId = (int)jobOffer.UserJobPostId,
-                    //Phone = jobOffer.CompanyContactPhone,
-                    //Email = jobOffer.CompanyContactEmail,
-                    //Message = jobOffer.Message,
-                    //Subject = jobOffer.Subject,
-                    Id = jobOffer.Id
-                };
-                userJobOffersTableData.Add(tableData);
+                    var tableData = new UserJobOffersTableData()
+                    {
+                        JobPosition = jobOffer.UserJobPost?.Position,
+                        CreatedAt = jobOffer.CreatedAt,
+                        CompanyName = jobOffer.FromUser?.Company?.CompanyName,
+                        UserJobPostId = jobOffer.UserJobPostId.HasValue ? jobOffer.UserJobPostId.Value : 0,
+                        Phone = jobOffer.FromUser?.Company?.PhoneNumber,
+                        Email = jobOffer.FromUser?.Email,
+                        //Message = jobOffer.Message,
+                        //Subject = jobOffer.Subject,
+                        Id = jobOffer.Id
+                    };
+                    userJobOffersTableData.Add(tableData);
+                }
+                return Ok(userJobOffersTableData);
             }
-            return Ok(userJobOffersTableData);
+            catch(Exception ex)
+            {
+                _logger.LogError($"There was an error while trying to fetch all user job offers: {ex.Message}");
+                return StatusCode(500, "Došlo je do greške na serveru. Molimo pokušajte ponovo kasnije.");
+            }
         }
 
         private async Task SendNewContactUserEmailAsync(UserJobPostDto userAd, int conversationId, string message, string requestSubject, string phone, string email)
@@ -497,6 +512,7 @@ namespace API.Controllers
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError($"Something went wrong while trying to send contact user email {ex.Message}");
                     throw;
                 }
             }

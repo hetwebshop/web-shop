@@ -69,7 +69,7 @@ namespace API.Data.IUserOfferRepository
                     (adsParameters.fromDate == null && adsParameters.toDate == null) ||
                     (adsParameters.fromDate.HasValue && !adsParameters.toDate.HasValue && u.AdStartDate.Date >= adsParameters.fromDate.Value.Date) ||
                     (adsParameters.fromDate.HasValue  && adsParameters.toDate.HasValue && u.AdStartDate.Date >= adsParameters.fromDate.Value.Date && u.AdStartDate.Date <= adsParameters.toDate.Value.Date) ||
-                    (!adsParameters.fromDate.HasValue && adsParameters.toDate.HasValue && u.AdStartDate.Date <= adsParameters.toDate.Value.Date))
+                    (!adsParameters.fromDate.HasValue && adsParameters.toDate.HasValue && u.AdEndDate.Date <= adsParameters.toDate.Value.Date))
                 );
 
             if (!string.IsNullOrEmpty(adsParameters.searchKeyword))

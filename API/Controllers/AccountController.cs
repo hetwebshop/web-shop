@@ -42,9 +42,10 @@ namespace API.Controllers
         private readonly string UIBaseUrl;
         private readonly string SupportEmail;
         private readonly string Environment;
+        private readonly RecaptchaService _recaptchaService;
 
         public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration,
-            IUnitOfWork uow, IMapper mapper, ITokenService tokenService, IEmailService emailService, IBlobStorageService blobStorageService, DataContext dbContext)
+            IUnitOfWork uow, IMapper mapper, ITokenService tokenService, IEmailService emailService, IBlobStorageService blobStorageService, DataContext dbContext, RecaptchaService recaptchaService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -59,6 +60,7 @@ namespace API.Controllers
             UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
             SupportEmail = configuration.GetSection("SupportEmail").Value;
             Environment = configuration.GetSection("Environment").Value;
+            _recaptchaService = recaptchaService;
         }
 
         [HttpPost("register")]
@@ -74,7 +76,24 @@ namespace API.Controllers
                 return BadRequest("Ovaj email je već povezan s postojećim korisničkim nalogom.");
             if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
                 return BadRequest("Ovaj email je već povezan s postojećim korisničkim nalogom.");
+            if (string.IsNullOrEmpty(registerDto.CaptchaToken))
+            {
+                return BadRequest("Morate prihvatiti reCAPTCHA.");
+            }
+            var isCaptchaValid = await _recaptchaService.VerifyCaptchaAsync(registerDto.CaptchaToken);
+            if (!isCaptchaValid)
+            {
+                return BadRequest("Neispravan reCAPTCHA odgovor.");
+            }
 
+            var today = DateTime.Today;
+            var age = today.Year - registerDto.DateOfBirth.Year;
+            // Check if birthday hasn't occurred yet this year
+            //ensures you subtract one year if the birthday hasn’t occurred yet this year — making the age calculation precise.
+            if (registerDto.DateOfBirth.Date > today.AddYears(-age))
+                age--;
+            if (age < 18)
+                return BadRequest("Morate imati najmanje 18 godina da biste koristili aplikaciju.");
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
             //user.IsApproved = false;
@@ -200,7 +219,15 @@ namespace API.Controllers
                 return BadRequest("Ovaj email je već povezan s postojećim korisničkim nalogom.");
             if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
                 return BadRequest("Ovaj email je već povezan s postojećim korisničkim nalogom.");
-
+            if (string.IsNullOrEmpty(registerDto.CaptchaToken))
+            {
+                return BadRequest("Morate prihvatiti reCAPTCHA.");
+            }
+            var isCaptchaValid = await _recaptchaService.VerifyCaptchaAsync(registerDto.CaptchaToken);
+            if (!isCaptchaValid)
+            {
+                return BadRequest("Neispravan reCAPTCHA odgovor.");
+            }
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
             if (registerDto.Photo != null)
@@ -455,18 +482,42 @@ namespace API.Controllers
             }
         }
 
+        [HttpPost("demo-request-private")]
+        public async Task<ActionResult> SubmitDemoRequestPrivate([FromBody] DemoRequestBody req)
+        {
+            var userId = HttpContext.User.GetUserId();
+            if (userId == null)
+                return Unauthorized("Nemate pravo pristupa");
+            return await CheckAndCreateDemoRequest(req);
+        }
 
         [HttpPost("demo-request")]
         [AllowAnonymous]
         public async Task<ActionResult> SubmitDemoRequest([FromBody] DemoRequestBody req)
         {
+            if (string.IsNullOrEmpty(req.CaptchaToken))
+            {
+                return BadRequest("Morate prihvatiti reCAPTCHA.");
+            }
+            var isCaptchaValid = await _recaptchaService.VerifyCaptchaAsync(req.CaptchaToken);
+            if (!isCaptchaValid)
+            {
+                return BadRequest("Neispravan reCAPTCHA odgovor.");
+            }
+
+            return await CheckAndCreateDemoRequest(req);
+        }
+
+        private async Task<ActionResult> CheckAndCreateDemoRequest(DemoRequestBody req)
+        {
             // Validate the request body
             if (string.IsNullOrEmpty(req.FirstName) ||
                 string.IsNullOrEmpty(req.LastName) ||
                 string.IsNullOrEmpty(req.Email) ||
-                string.IsNullOrEmpty(req.Phone))
+                string.IsNullOrEmpty(req.Phone) ||
+                string.IsNullOrEmpty(req.Message))
             {
-                return BadRequest("All required fields must be provided: FirstName, LastName, Email, and Phone.");
+                return BadRequest("All required fields must be provided: FirstName, LastName, Email, Message and Phone.");
             }
 
             var demoMeeting = new DemoMeetingRequest

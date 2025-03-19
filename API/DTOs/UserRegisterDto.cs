@@ -27,5 +27,8 @@ namespace API.DTOs
         public string ConfirmPassword { get; set; }
         [Required]
         public bool TermsAccepted { get; set; }
+
+        [Required]
+        public string CaptchaToken { get; set; }
     }
 }

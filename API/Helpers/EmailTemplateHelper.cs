@@ -56,6 +56,7 @@ namespace API.Helpers
             .content {{
                 margin-top: 20px;
                 line-height: 1.6;
+                text-align: center;
             }}
             .button {{
                 display: inline-block;
@@ -92,7 +93,7 @@ namespace API.Helpers
 
             <!-- Main Content Section -->
             <div class='content'>
-                <h2 style='text-align: center;'>{subject}</h2>
+                <h3 style='text-align: center;'>{subject}</h3>
                 {htmlMessageBody}
             </div>
 

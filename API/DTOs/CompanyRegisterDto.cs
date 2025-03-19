@@ -26,5 +26,10 @@ namespace API.DTOs
         public IFormFile Photo { get; set; }
         [Required]
         public bool TermsAccepted { get; set; }
+        [Required]
+        public string CaptchaToken { get; set; }
+
+        public string IdNumber { get; set; }
+        public string PdvNumber { get; set; }
     }
 }

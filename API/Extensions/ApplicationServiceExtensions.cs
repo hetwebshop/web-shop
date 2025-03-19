@@ -67,6 +67,8 @@ namespace API.Extensions
 
             services.AddScoped<IUserApplicationsRepository, UserApplicationsRepository>();
 
+            services.AddHttpClient<RecaptchaService>();
+
             services.AddIdentity<User, Role>(opt => { 
                 opt.Password.RequireNonAlphanumeric = true;
                 opt.Password.RequiredLength = 8;

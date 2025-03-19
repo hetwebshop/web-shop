@@ -15,6 +15,8 @@ namespace API.Entities
         public string PhoneNumber { get; set; } 
         public string AboutUs { get; set; }
         public string PhotoUrl { get; set; }
+        public string IdNumber { get; set; }
+        public string PdvNumber { get; set; }
 
         //public int ContactPersonId { get; set; }
         //public User ContactPerson { get; set; }
