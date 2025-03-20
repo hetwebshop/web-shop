@@ -1,9 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
+using System.Net;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace jobify_azure_function
 {
@@ -12,7 +9,7 @@ namespace jobify_azure_function
         public static string GenerateEmailTemplate(string subject, string htmlMessageBody, IConfiguration configuration)
         {
             string companyName = "POSLOVNIOGLASI";
-            //string companyLogoUrl = "https://yourcompany.com/logo.png";
+            string companyLogoUrl = configuration.GetSection("CompanyLogoPng").Value;
             string companyWebsite = configuration.GetSection("UIBaseUrl").Value;
             string supportEmail = configuration.GetSection("SupportEmail").Value;
             string contactNumber = configuration.GetSection("SupportPhoneNumber").Value;
@@ -59,6 +56,7 @@ namespace jobify_azure_function
             .content {{
                 margin-top: 20px;
                 line-height: 1.6;
+                text-align: center;
             }}
             .button {{
                 display: inline-block;
@@ -88,12 +86,14 @@ namespace jobify_azure_function
         <div class='email-container'>
             <!-- Essential Header Section -->
             <div class='header'>
-                <a href={companyWebsite}><span style='pointer-events: none !important; text-decoration: none; color: #66023C; cursor: default !important;'>{companyName}</span></a>
+                <a href='{companyWebsite}'>
+                <img src='{companyLogoUrl}' alt='{companyName} Logo' style='max-width: 500px; height: auto;' />
+            </a>
             </div>
 
             <!-- Main Content Section -->
             <div class='content'>
-                <h2 style='text-align: center;'>{subject}</h2>
+                <h3 style='text-align: center;'>{subject}</h3>
                 {htmlMessageBody}
             </div>
 

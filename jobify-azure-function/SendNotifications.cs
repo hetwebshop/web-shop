@@ -54,11 +54,11 @@ namespace jobify_notification_function
                     if (usersWithSimilarInterest.Any())
                     {
                         // Get user notification settings using Dapper
-                        var userNotifSettingsQuery = "SELECT * FROM UserNotificationSettings WHERE UserId IN @UserIds";
+                        var userNotifSettingsQuery = "SELECT * FROM UserNotificationSettings WHERE IsEnabled = 1 AND UserId IN @UserIds";
                         var userNotifSettings = await connection.QueryAsync<dynamic>(userNotifSettingsQuery, new { UserIds = usersWithSimilarInterest.Select(u => u.Id).ToArray() });
 
                         // In-app notifications using Dapper
-                        foreach (var userNotif in userNotifSettings.Where(r => r.NotificationType == 0 && r.IsEnabled))
+                        foreach (var userNotif in userNotifSettings.Where(r => r.NotificationType == 0))
                         {
                             var notification = new
                             {
@@ -75,7 +75,7 @@ namespace jobify_notification_function
 
                         // Email notifications using Dapper
                         var emailTasks = userNotifSettings
-                            .Where(setting => setting.NotificationType == 1 && setting.IsEnabled)
+                            .Where(setting => setting.NotificationType == 1)
                             .Select(async userNotif =>
                             {
                                 var user = usersWithSimilarInterest.FirstOrDefault(u => u.Id == userNotif.UserId);
@@ -83,9 +83,9 @@ namespace jobify_notification_function
                                 {
                                     string adUrl = UIBaseUrl + $"company-ad-details/{newItem.Id}";
                                     string messageBody = $@"
-                                    <p style='color: #66023C;'>Dragi <strong>{user.Email}</strong>,</p>
+                                    <p style='color: #66023C;'>Poštovani <strong>{user.Email}</strong>,</p>
                                     <p style='color: #66023C;'>Kreiran je novi oglas za posao u kategoriji: <strong>{newItem.JobCategory?.Name}</strong>.</p>
-                                    <p style='color: #66023C;'>Pogledajte detalje i prijavite se za ovu priliku što je prije moguće.</p>
+                                    <p style='color: #66023C;'>Pogledajte detalje i prijavite se za ovu poslovnu priliku.</p>
                                     <p style='text-align: center;'>
                                         <a href='{adUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Pogledajte Oglas</a>
                                     </p>";
@@ -127,7 +127,7 @@ namespace jobify_notification_function
                     );
 
                     var companiesNotifSettings = await connection.QueryAsync<dynamic>(
-                        "SELECT * FROM CompanyNotificationPreferences WHERE UserId IN @UserIds",
+                        "SELECT * FROM CompanyNotificationPreferences WHERE IsEnabled = 1 AND UserId IN @UserIds",
                         new { UserIds = companiesToNotify.Select(c => c.UserId).ToArray() }
                     );
 
@@ -137,7 +137,7 @@ namespace jobify_notification_function
                     );
 
                     // In-app notifications
-                    foreach (var companiesSetting in companiesNotifSettings.Where(r => r.NotificationType == 2 && r.IsEnabled))
+                    foreach (var companiesSetting in companiesNotifSettings.Where(r => r.NotificationType == 2))
                     {
                         var notification = new
                         {
@@ -154,7 +154,7 @@ namespace jobify_notification_function
 
                     // Send email notifications
                     var emailTasks = companiesNotifSettings
-                        .Where(setting => setting.NotificationType == 3 && setting.IsEnabled)
+                        .Where(setting => setting.NotificationType == 3)
                         .Select(async companiesSetting =>
                         {
                             var user = companiesToNotify.FirstOrDefault(u => u.UserId == companiesSetting.UserId);
@@ -162,7 +162,7 @@ namespace jobify_notification_function
                             {
                                 string adUrl = UIBaseUrl + $"ad-details/{newItem.Id}";
                                 string messageBody = $@"
-                            <p style='color: #66023C;'>Dragi <strong>{user.Email}</strong>,</p>
+                            <p style='color: #66023C;'>Poštovani <strong>{user.Email}</strong>,</p>
                             <p style='color: #66023C;'>Kreiran je novi korisnički oglas za posao u kategoriji: <strong>{category}</strong>.</p>
                             <p style='color: #66023C;'>Pogledajte detalje i kontaktirajte korisnika kako biste saznali više.</p>
                             <p style='text-align: center;'>
@@ -182,7 +182,7 @@ namespace jobify_notification_function
         }
 
         [Function("SendCompanyNotificationOnNewUserApplication")]
-        public async Task Run([QueueTrigger("jobify-new-applicant-queue", Connection = "AzureWebJobsStorage")] QueueMessage message)
+        public async Task SendCompanyNotificationOnNewUserApplication([QueueTrigger("jobify-new-applicant-queue", Connection = "AzureWebJobsStorage")] QueueMessage message)
         {
             var userApplicationMessage = JsonConvert.DeserializeObject<NewApplicantQueueMessage>(message.MessageText);
 
@@ -210,17 +210,18 @@ namespace jobify_notification_function
                     if (companyNotifPreferences != null && companyNotifPreferences.Any())
                     {
                         var emailNotifEnabled = companyNotifPreferences.FirstOrDefault(r => r.NotificationType == 1);
-                        if(emailNotifEnabled != null)
+                        var applicationUrl = UIBaseUrl + $"company-settings/candidate-details/{userApplicationMessage.UserApplicationId}";
+
+                        if (emailNotifEnabled != null)
                         {
                             var userEmail = companyJobPost.EmailForReceivingApplications;
                             var companyName = companyJobPost.CompanyName;
                             var position = companyJobPost.Position;
-                            var applicationUrl = UIBaseUrl + $"company-settings/candidate-details/{userApplicationMessage.UserApplicationId}";
 
                             string messageBody = $@"
             <p style='color: #66023C;'>Dragi <strong>{companyName}</strong>,</p>
             <p style='color: #66023C;'>Dobili ste novu prijavu za poziciju: <strong>{position}</strong>.</p>
-            <p style='color: #66023C;'>Pogledajte prijavu i obavite daljnje radnje prema vašim potrebama.</p>
+            <p style='color: #66023C;'>Pregledajte prijavu i poduzmite odgovarajuće korake.</p>
             <p style='text-align: center;'>
                 <a href='{applicationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Pogledajte Prijavu</a>
             </p>";
@@ -247,13 +248,92 @@ namespace jobify_notification_function
                                 UserId = companyJobPost.SubmittingUserId.ToString(),
                                 CreatedAt = DateTime.UtcNow,
                                 IsRead = false,
-                                Link = $"{UIBaseUrl}company-settings/job-candidates/{userApplicationMessage.UserApplicationId}",
+                                Link = applicationUrl,
                                 Message = $"Kreirana je nova aplikacija za posao na vašem oglasu {companyJobPost.Position}"
                             };
 
                             var insertNotificationQuery = "INSERT INTO Notifications (UserId, CreatedAt, IsRead, Link, Message) VALUES (@UserId, @CreatedAt, @IsRead, @Link, @Message)";
                             await connection.ExecuteAsync(insertNotificationQuery, notification);
 
+                        }
+                    }
+                }
+            }
+        }
+
+        [Function("SendFeedbackToUserOnCompanyUpdateStatus")]
+        public async Task Run([QueueTrigger("jobify-applicant-status-updated-queue", Connection = "AzureWebJobsStorage")] QueueMessage message)
+        {
+            var userApplicationMessage = JsonConvert.DeserializeObject<ApplicantStatusUpdated>(message.MessageText);
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                var userApplicationsQuery = "SELECT * FROM UserApplications WHERE Id IN @UserApplicationIds";
+                var userApplications = await connection.QueryAsync<dynamic>(userApplicationsQuery, new
+                {
+                    UserApplicationIds = userApplicationMessage.UserApplicationIds
+                });
+                if (userApplications != null && userApplications.Any())
+                {
+                    // Get the job post by ID
+                    var query = "SELECT * FROM CompanyJobPosts WHERE Id = @JobPostId";
+                    var companyJobPost = await connection.QueryFirstOrDefaultAsync<dynamic>(query, new { JobPostId = userApplications.First().CompanyJobPostId });
+
+                    if (companyJobPost != null)
+                    {
+                        foreach(var userApplication in userApplications)
+                        {
+                            var userEmail = userApplication.Email;
+                            var companyName = companyJobPost.CompanyName;
+                            var companyEmail = companyJobPost.EmailForReceivingApplications;
+                            var position = companyJobPost.Position;
+                            var feedback = userApplication.Feedback;
+                            bool isMeetingScheduled = userApplication.ApplicationStatusId == 3 ? true : false;
+                            var applicationUrl = UIBaseUrl + $"user-settings/my-applications/{userApplication.Id}";
+                            var title = $"Kompanija {companyName} vam je odgovorila na prijavu za poziciju {companyJobPost.Position}.";
+                            var meetingDateTimeUTC = userApplication.MeetingDateTime;
+                            var messageToUser = feedback;
+                            if(isMeetingScheduled && meetingDateTimeUTC != null)
+                            {
+                                TimeZoneInfo cetTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+                                var meetingDateTimeCET = TimeZoneInfo.ConvertTimeFromUtc(meetingDateTimeUTC, cetTimeZone);
+                                var formattedDateTime = meetingDateTimeCET.ToString("dd.MM.yyyy HH:mm");
+                                messageToUser = $"Vaš intervju je zakazan za {formattedDateTime} (CET).";
+                            }
+
+                            string messageBody = $@"
+            <h4 style='color: black;'>Naslov: {title}</h4>
+            <p style='color: #66023C;'>Poruka: 
+                {messageToUser}</p>
+            <p style='color: #66023C;'>Email poslodavca: {companyEmail}</p>
+            <p style='text-align: center;'>
+                <a href='{applicationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Više detalja</a>
+            </p>";
+
+                            var subject = $"POSLOVNIOGLASI – Odgovor na vašu prijavu za poziciju {companyJobPost.Position}";
+                            var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, _configuration);
+
+                            try
+                            {
+                                await _emailService.SendEmailWithTemplateAsync(userEmail, subject, emailTemplate);
+                            }
+                            catch (Exception ex)
+                            {
+                                throw;
+                            }
+
+                            var notification = new
+                            {
+                                UserId = userApplication.SubmittingUserId.ToString(),
+                                CreatedAt = DateTime.UtcNow,
+                                IsRead = false,
+                                Link = applicationUrl,
+                                Message = $"Poslodavac je odgovorio na vašu prijavu za poziciju {companyJobPost.Position}"
+                            };
+
+                            var insertNotificationQuery = "INSERT INTO Notifications (UserId, CreatedAt, IsRead, Link, Message) VALUES (@UserId, @CreatedAt, @IsRead, @Link, @Message)";
+                            await connection.ExecuteAsync(insertNotificationQuery, notification);
                         }
                     }
                 }
@@ -269,5 +349,10 @@ namespace jobify_notification_function
     {
         public int JobPostId { get; set; }
         public int UserApplicationId { get; set; }
+    }
+
+    public class ApplicantStatusUpdated
+    {
+        public List<int> UserApplicationIds { get; set; }
     }
 }
