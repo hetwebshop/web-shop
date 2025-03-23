@@ -4,10 +4,12 @@ using API.Entities.Chat;
 using API.Entities.CompanyJobPost;
 using API.Entities.JobPost;
 using API.Entities.Notification;
+using API.Entities.Payment;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Emit;
+using System.Transactions;
 
 namespace API.Data
 {
@@ -48,6 +50,7 @@ namespace API.Data
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
         public DbSet<CandidateComment> CandidateComments { get; set; }
+        public DbSet<UserTransaction> UserTransactions { get; set; }
 
         public DbSet<Notification> Notifications { get; set; }
 
@@ -299,6 +302,17 @@ namespace API.Data
                 .HasOne(u => u.User)
                 .WithMany(u => u.UserEducations)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<UserTransaction>()
+                .HasOne(t => t.User) // A transaction has one user
+                .WithMany() // User can have many transactions
+                .HasForeignKey(t => t.UserId) // Foreign key property
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<User>()
+                .HasMany(u => u.UserTransactions)  // User has many transactions
+                .WithOne(t => t.User)  // A transaction has one user
+                .HasForeignKey(t => t.UserId);
         }
 
 

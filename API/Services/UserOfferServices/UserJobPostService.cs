@@ -7,9 +7,11 @@ using API.Entities;
 using API.Entities.Applications;
 using API.Entities.JobPost;
 using API.Entities.Notification;
+using API.Entities.Payment;
 using API.Helpers;
 using API.Mappers;
 using API.PaginationEntities;
+using CloudinaryDotNet;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -90,18 +92,13 @@ namespace API.Services.UserOfferServices
                 }
                 var newItem = await userJobPostRepository.CreateUserJobPostAsync(entity);
                 var dto = newItem.ToDto();
-                var jobPostNotificationMessage = new JobPostNotificationQueueMessage
+                var jobPostNotificationMessage = new NotificationEventMessage
                 {
                     JobPostId = newItem.Id,
+                    NotificationType = NotificationType.SendCompanyNotificationOnCreateUserAd
                 };
-                try
-                {
-                    await _sendNotificationsQueueClient.SendMessageToCompanyAsync(jobPostNotificationMessage);
-                }
-                catch (Exception notifEx)
-                {
-                    _logger.LogError($"[ERROR] Failed to send notification for JobPostId: {newItem.Id}. Error: {notifEx.Message}");
-                }
+                await _sendNotificationsQueueClient.SendMessageToCompanyAsync(jobPostNotificationMessage);
+                _logger.LogInformation($"Notification sending finished.");
 
                 return dto;
             }
@@ -166,19 +163,16 @@ namespace API.Services.UserOfferServices
                         _logger.LogError($"[ERROR] Failed to send AI Prediction message for JobPostId: {companyJobPost.Id}, ApplicationId: {newItem.Id}. Reason: {predictionEx.Message}");
                     }
                 }
-                var newApplicantMessage = new NewApplicantQueueMessage()
+                var newApplicantMessage = new NotificationEventMessage()
                 {
                     JobPostId = companyJobPost.Id,
-                    UserApplicationId = newItem.Id
+                    UserApplicationIds = new List<int> { newItem.Id },
+                    NotificationType = NotificationType.SendCompanyNotificationOnNewUserApplication
                 };
-                try
-                {
-                    await _sendNotificationsQueueClient.SendNewApplicantMessageToCompanyAsync(newApplicantMessage);
-                }
-                catch (Exception notificationEx)
-                {
-                    _logger.LogError($"[ERROR] Failed to send company notification for JobPostId: {companyJobPost.Id}, ApplicationId: {newItem.Id}. Reason: {notificationEx.Message}");
-                }
+
+                await _sendNotificationsQueueClient.SendNewApplicantMessageToCompanyAsync(newApplicantMessage);
+                _logger.LogInformation($"Notification sending finished.");
+
                 var dto = newItem.ToDto();
                 return dto;
             }

@@ -63,6 +63,7 @@ namespace API.Controllers
         private readonly IConfiguration _configuration;
         private IUserApplicationsRepository userApplicationsRepository;
         private readonly ILogger<ConversationController> _logger;
+        private readonly int CompanyAdActiveDays;
 
         public ConversationController(IUserJobPostService jobPostService, IUnitOfWork uow, IBlobStorageService blobStorageService, IUserJobPostRepository userJobPostRepository, DataContext dbContext, IEmailService emailService, IConfiguration configuration, IUserApplicationsRepository userApplicationsRepository, ILogger<ConversationController> logger)
         {
@@ -76,6 +77,7 @@ namespace API.Controllers
             _configuration = configuration;
             this.userApplicationsRepository = userApplicationsRepository;
             _logger = logger;
+            CompanyAdActiveDays = int.Parse(configuration.GetSection("CompanyActiveAdDays").Value);
         }
 
         [HttpPost("contactuser/{userAdId}")]
@@ -91,8 +93,10 @@ namespace API.Controllers
 
             var userJobPost = await _jobPostService.GetUserJobPostByIdAsync(userAdId);
             var user = await _uow.UserRepository.GetUserByIdAsync(userId);
-            if (user == null || userJobPost == null)
-                return BadRequest(new { message = "Korisnik ili oglas nije pronadjen!" });
+            if (user == null || !user.IsCompany)
+                return Unauthorized("Nemate pravo pristupa");
+            if (userJobPost == null)
+                return BadRequest(new { message = "Oglas nije pronadjen!" });
 
             var now = DateTime.UtcNow;
             var conversation = new Conversation()
@@ -123,7 +127,7 @@ namespace API.Controllers
                 CreatedAt = now,
                 IsRead = false,
                 Link = UIBaseUrl + $"conversations/{conversation.Id}",
-                Message = "Nova poslovna prilika! Poslodavac Vas je kontaktirao."
+                Message = "Nova poslovna prilika! Poslodavac Vam je poslao poruku."
             };
             _dbContext.Notifications.Add(notification);
 
@@ -146,9 +150,13 @@ namespace API.Controllers
                     return BadRequest(new { message = "Korisnik je obavezan!" });
                 var user = await _uow.UserRepository.GetUserByIdAsync(userId);
                 if (user == null || !user.IsCompany)
-                    return Forbid("Zabranjen pristup");
+                    return Unauthorized("Nemate pravo pristupa");
 
                 var userApplication = await userApplicationsRepository.GetUserApplicationByIdAsync(request.UserApplicationId);
+                if(userApplication.CreatedAt.AddDays(CompanyAdActiveDays + 20) < DateTime.UtcNow)//Added 20 more days because UserApplication can happen before company ad ended. This value can be changed to 10, or 5, or 25..
+                {
+                    return BadRequest("Aplikacija je istekla. Ne mozete pokrenuti konverzaciju.");
+                }
                 if (userApplication != null)
                 {
                     var companyJobPost = await _dbContext.CompanyJobPosts.FirstOrDefaultAsync(r => r.Id == userApplication.CompanyJobPostId);
@@ -184,7 +192,7 @@ namespace API.Controllers
                         CreatedAt = now,
                         IsRead = false,
                         Link = UIBaseUrl + $"conversations/{conversation.Id}",
-                        Message = "Nova poslovna prilika! Poslodavac Vas je kontaktirao."
+                        Message = "Nova poslovna prilika! Poslodavac Vam je poslao poruku."
                     };
                     _dbContext.Notifications.Add(notification);
 
@@ -391,9 +399,15 @@ namespace API.Controllers
                     return Unauthorized("Nemate pravo pristupa");
                 }
 
-                if (string.IsNullOrWhiteSpace(req.Message))
+                if (string.IsNullOrWhiteSpace(req.Message?.Trim()))
                 {
                     return BadRequest("Poruka ne može biti prazna");
+                }
+
+                var conversation = await _dbContext.Conversations.FirstOrDefaultAsync(r => r.Id == conversationId);
+                if(conversation.FromUserId != currentUserId && conversation.ToUserId != conversationId)
+                {
+                    return Unauthorized("Nemate pravo pristupa");
                 }
 
                 var chatMessage = new ChatMessage()
@@ -435,9 +449,20 @@ namespace API.Controllers
                     return Unauthorized("Nemate pravo pristupa");
                 }
 
-                var chatMessages = await _dbContext.ChatMessages
+                var chatMessages = await _dbContext.ChatMessages.Include(r => r.Conversation)
                 .Where(r => r.FromUserId != currentUserId && r.ConversationId == conversationId)
                 .ToListAsync();
+                
+                if(chatMessages == null || !chatMessages.Any())
+                {
+                    return Ok();
+                }
+                var conversation = chatMessages.First().Conversation;
+                if(conversation.ToUserId != currentUserId)
+                {
+                    return Unauthorized("Nemate pravo pristupa");
+                }
+
                 foreach (var chat in chatMessages)
                 {
                     chat.IsRead = true;

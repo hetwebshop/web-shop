@@ -19,6 +19,7 @@ using API.Mappers;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using System.Threading.Tasks;
+using API.Services.Payment;
 
 namespace API.Extensions
 {
@@ -56,7 +57,10 @@ namespace API.Extensions
             services.AddScoped<IUserJobPostRepository, UserJobPostRepository>();
             services.AddScoped<ICompanyJobPostService, CompanyJobPostService>();
             services.AddScoped<ICompanyJobPostRepository, CompanyJobPostRepository>();
-            
+
+
+            //PAYMENT
+            services.AddSingleton<IPaymentService, PaymentService>();
 
             //locations
             services.AddScoped<ILocationRepository, LocationRepository>();

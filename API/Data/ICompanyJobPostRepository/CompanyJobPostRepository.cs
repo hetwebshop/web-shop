@@ -2,6 +2,7 @@
 using API.Entities;
 using API.Entities.CompanyJobPost;
 using API.Entities.JobPost;
+using API.Entities.Payment;
 using API.PaginationEntities;
 using API.Services;
 using Microsoft.AspNetCore.Http;
@@ -173,6 +174,21 @@ namespace API.Data.ICompanyJobPostRepository
 
                     
                     user.Credits -= pricingPlan.PriceInCredits;
+
+
+                    var userTransaction = new UserTransaction()
+                    {
+                        Amount = pricingPlan.PriceInCredits,
+                        UserId = user.Id,
+                        CreatedAt = DateTime.UtcNow,
+                        ChFullName = user.FirstName + " " + user.LastName,
+                        IsProcessed = false,
+                        TransactionType = TransactionType.PostingAd,
+                        IsAddingCredits = false,
+                        OrderInfo = OrderInfoMessages.PostingAdMessage
+                    };
+
+                    await DataContext.UserTransactions.AddAsync(userTransaction);
 
                     await DataContext.SaveChangesAsync(); 
                     await transaction.CommitAsync();

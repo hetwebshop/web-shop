@@ -88,21 +88,14 @@ namespace API.Services.CompanyJobPostServices
                 var newItem = await companyJobPostRepository.CreateCompanyJobPostAsync(companyJobPostDto.ToEntity());
                 _logger.LogInformation($"Job post {newItem.Id} successfully created by user {companyJobPostDto.SubmittingUserId}.");
 
-                var jobPostNotificationMessage = new JobPostNotificationQueueMessage
+                var jobPostNotificationMessage = new NotificationEventMessage
                 {
                     JobPostId = newItem.Id,
+                    NotificationType = NotificationType.SendUserNotificationsOnCreateCompanyAd
                 };
 
-                try
-                {
-                    await _sendNotificationsQueueClient.SendMessageToUserAsync(jobPostNotificationMessage);
-                    _logger.LogInformation($"Notification sent for JobPost ID {newItem.Id}.");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"Failed to send notification for JobPost ID {newItem.Id}: {ex.Message}");
-                    //Do not throw here, since the job post was already created.
-                }
+                await _sendNotificationsQueueClient.SendMessageToUserAsync(jobPostNotificationMessage);
+                _logger.LogInformation($"Notification sending finished.");
 
                 return newItem.ToDto();
             }

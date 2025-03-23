@@ -2,6 +2,7 @@
 using API.DTOs;
 using API.Entities;
 using API.Entities.Applications;
+using API.Entities.Notification;
 using API.Extensions;
 using API.Helpers;
 using API.Mappers;
@@ -13,8 +14,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json.Linq;
 using System;
@@ -41,12 +44,15 @@ namespace API.Controllers
         private readonly DataContext _dbContext;
         private readonly string UIBaseUrl;
         private readonly string SupportEmail;
+        private readonly string SupportPhone;
         private readonly string Environment;
         private readonly RecaptchaService _recaptchaService;
+        private readonly ILogger<AccountController> _logger;
 
         public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration,
-            IUnitOfWork uow, IMapper mapper, ITokenService tokenService, IEmailService emailService, IBlobStorageService blobStorageService, DataContext dbContext, RecaptchaService recaptchaService)
+            IUnitOfWork uow, IMapper mapper, ITokenService tokenService, IEmailService emailService, IBlobStorageService blobStorageService, DataContext dbContext, RecaptchaService recaptchaService, ILogger<AccountController> logger)
         {
+            _logger = logger;
             _userManager = userManager;
             _signInManager = signInManager;
             _uow = uow;
@@ -59,8 +65,39 @@ namespace API.Controllers
             _dbContext = dbContext;
             UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
             SupportEmail = configuration.GetSection("SupportEmail").Value;
+            SupportPhone = configuration.GetSection("SupportPhoneNumber").Value;
             Environment = configuration.GetSection("Environment").Value;
             _recaptchaService = recaptchaService;
+        }
+
+        private bool IsUserAdult(DateTime dateOfBirth)
+        {
+            var today = DateTime.Today;
+            var age = today.Year - dateOfBirth.Year;
+            if (dateOfBirth.Date > today.AddYears(-age)) age--;
+            return age >= 18;
+        }
+
+        private async Task AddDefaultNotificationSettingsAsync(int userId)
+        {
+            var notificationsSettings = new List<UserNotificationSettings>
+            {
+                new UserNotificationSettings
+                {
+                    UserId = userId,
+                    NotificationType = UserNotificationType.NewInterestingCompanyAdInApp,
+                    IsEnabled = true
+                },
+                new UserNotificationSettings
+                {
+                    UserId = userId,
+                    NotificationType = UserNotificationType.NewInterestingCompanyAdEmail,
+                    IsEnabled = true
+                }
+            };
+
+            _dbContext.UserNotificationSettings.AddRange(notificationsSettings);
+            await _dbContext.SaveChangesAsync();
         }
 
         [HttpPost("register")]
@@ -80,20 +117,23 @@ namespace API.Controllers
             {
                 return BadRequest("Morate prihvatiti reCAPTCHA.");
             }
-            var isCaptchaValid = await _recaptchaService.VerifyCaptchaAsync(registerDto.CaptchaToken);
-            if (!isCaptchaValid)
+            try
             {
-                return BadRequest("Neispravan reCAPTCHA odgovor.");
+                var isCaptchaValid = await _recaptchaService.VerifyCaptchaAsync(registerDto.CaptchaToken);
+                if (!isCaptchaValid)
+                {
+                    return BadRequest("Neispravan reCAPTCHA odgovor.");
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("Captcha is not available.");
+                return BadRequest($"reCaptcha nije dostupna. Molimo vas da kontaktirate podrsku na {SupportEmail} ili pozovite {SupportPhone}");
             }
 
-            var today = DateTime.Today;
-            var age = today.Year - registerDto.DateOfBirth.Year;
-            // Check if birthday hasn't occurred yet this year
-            //ensures you subtract one year if the birthday hasn’t occurred yet this year — making the age calculation precise.
-            if (registerDto.DateOfBirth.Date > today.AddYears(-age))
-                age--;
-            if (age < 18)
+            if (!IsUserAdult(registerDto.DateOfBirth))
                 return BadRequest("Morate imati najmanje 18 godina da biste koristili aplikaciju.");
+
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
             //user.IsApproved = false;
@@ -104,34 +144,23 @@ namespace API.Controllers
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
-
-            result = await _userManager.AddToRoleAsync(user, RoleType.User.ToString());
-            if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
-
-
+            if (!result.Succeeded)
+            {
+                _logger.LogWarning("Greška pri kreiranju korisnika: {Errors}", result.Errors.ToStringError());
+                return BadRequest(result.Errors.ToStringError());
+            }
+            var roleResult = await _userManager.AddToRoleAsync(user, RoleType.User.ToString());
+            if (!roleResult.Succeeded)
+            {
+                _logger.LogWarning("Greška pri dodavanju korisničke uloge: {Errors}", roleResult.Errors.ToStringError());
+                return BadRequest(roleResult.Errors.ToStringError());
+            }
 
             var emailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var verificationUrl = $"{verificationEmailBaseAddress}confirm-email?userId=" + user.Id + "&token=" + Uri.EscapeDataString(emailToken);
 
+            await AddDefaultNotificationSettingsAsync(user.Id);
 
-            var notificationsSettings = new List<UserNotificationSettings>();
-            if (user != null)
-            {
-                notificationsSettings.Add(new UserNotificationSettings()
-                {
-                    UserId = user.Id,
-                    NotificationType = UserNotificationType.NewInterestingCompanyAdInApp,
-                    IsEnabled = true
-                });
-                notificationsSettings.Add(new UserNotificationSettings()
-                {
-                    UserId = user.Id,
-                    NotificationType = UserNotificationType.NewInterestingCompanyAdEmail,
-                    IsEnabled = true
-                });
-                _dbContext.UserNotificationSettings.AddRange(notificationsSettings);
-                await _dbContext.SaveChangesAsync();
-            }
 
             // Slanje verifikacionog emaila (ovdje koristite svoju email uslugu)
             string messageBody = $@"
@@ -142,11 +171,19 @@ namespace API.Controllers
             string subject = "Verifikujte svoju email adresu";
             string emailHtml = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, configuration);
 
-            await _emailService.SendEmailWithTemplateAsync(
-                user.Email,
-                subject,
-                emailHtml
-            );
+            try
+            {
+                await _emailService.SendEmailWithTemplateAsync(
+                    user.Email,
+                    subject,
+                    emailHtml
+                );
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Neuspjelo slanje verifikacionog emaila korisniku {Email}", user.Email);
+                return BadRequest($"Registracija uspješna, ali nismo uspjeli poslati verifikacioni email. Molimo vas da kontaktirate podrsku na {SupportEmail} ili pozovite {SupportPhone}");
+            }
 
             return new UserDto
             {
@@ -223,10 +260,18 @@ namespace API.Controllers
             {
                 return BadRequest("Morate prihvatiti reCAPTCHA.");
             }
-            var isCaptchaValid = await _recaptchaService.VerifyCaptchaAsync(registerDto.CaptchaToken);
-            if (!isCaptchaValid)
+            try
             {
-                return BadRequest("Neispravan reCAPTCHA odgovor.");
+                var isCaptchaValid = await _recaptchaService.VerifyCaptchaAsync(registerDto.CaptchaToken);
+                if (!isCaptchaValid)
+                {
+                    return BadRequest("Neispravan reCAPTCHA odgovor.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Captcha is not available.");
+                return BadRequest($"reCaptcha nije dostupna. Molimo vas da kontaktirate podrsku na {SupportEmail} ili pozovite {SupportPhone}");
             }
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
@@ -234,47 +279,44 @@ namespace API.Controllers
             {
                 if (!FileHelper.IsValidImage(registerDto.Photo))
                     return BadRequest("Nevažeći format slike. Dozvoljeni formati: JPG, PNG, GIF, BMP, WEBP.");
-                var fileUrl = await _blobStorageService.UploadFileAsync(registerDto.Photo);
-                var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
-                user.PhotoUrl = decodedFileUrl;
-                user.Company.PhotoUrl = decodedFileUrl;
+                try
+                {
+                    var fileUrl = await _blobStorageService.UploadFileAsync(registerDto.Photo);
+                    var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
+                    user.PhotoUrl = decodedFileUrl;
+                    user.Company.PhotoUrl = decodedFileUrl;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Greška prilikom upload-a slike na blob storage.");
+                    return BadRequest("Došlo je do greške prilikom upload-a slike. Molimo pokušajte ponovo.");
+                }
             }
             user.IsApproved = false;
 
             user.TermsAccepted = registerDto.TermsAccepted;
             var result = await _userManager.CreateAsync(user, registerDto.Password);
-            if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
+            if (!result.Succeeded)
+            {
+                _logger.LogWarning("Greška pri kreiranju korisnika: {Errors}", result.Errors.ToStringError());
+                return BadRequest(result.Errors.ToStringError());
+            }
 
-            result = await _userManager.AddToRoleAsync(user, RoleType.Company.ToString());
-            if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
+            var roleResult = await _userManager.AddToRoleAsync(user, RoleType.Company.ToString());
+            if (!roleResult.Succeeded)
+            {
+                _logger.LogWarning("Greška pri dodavanju uloge kompanije: {Errors}", roleResult.Errors.ToStringError());
+                return BadRequest(roleResult.Errors.ToStringError());
+            }
 
-
-            var companyNotifications = new List<CompanyNotificationPreferences>();
-            companyNotifications.Add(new CompanyNotificationPreferences()
+            var notificationPreferences = new List<CompanyNotificationPreferences>
             {
-                UserId = user.Id,
-                NotificationType = Entities.Notification.CompanyNotificationType.newApplicantInApp,
-                IsEnabled = true
-            });
-            companyNotifications.Add(new CompanyNotificationPreferences()
-            {
-                UserId = user.Id,
-                NotificationType = Entities.Notification.CompanyNotificationType.newApplicantEmail,
-                IsEnabled = true
-            });
-            companyNotifications.Add(new CompanyNotificationPreferences()
-            {
-                UserId = user.Id,
-                NotificationType = Entities.Notification.CompanyNotificationType.newInterestingUserAdInApp,
-                IsEnabled = false
-            });
-            companyNotifications.Add(new CompanyNotificationPreferences()
-            {
-                UserId = user.Id,
-                NotificationType = Entities.Notification.CompanyNotificationType.newInsterestingUserAdEmail,
-                IsEnabled = false
-            });
-            _dbContext.CompanyNotificationPreferences.AddRange(companyNotifications);
+                new() { UserId = user.Id, NotificationType = CompanyNotificationType.newApplicantInApp, IsEnabled = true },
+                new() { UserId = user.Id, NotificationType = CompanyNotificationType.newApplicantEmail, IsEnabled = true },
+                new() { UserId = user.Id, NotificationType = CompanyNotificationType.newInterestingUserAdInApp, IsEnabled = false },
+                new() { UserId = user.Id, NotificationType = CompanyNotificationType.newInsterestingUserAdEmail, IsEnabled = false }
+            };
+            _dbContext.CompanyNotificationPreferences.AddRange(notificationPreferences);
             await _dbContext.SaveChangesAsync();
             //var token = await _tokenService.CreateToken(user);
 
@@ -295,11 +337,11 @@ namespace API.Controllers
                     emailHtml
                 );
                 //Notify admin
-                await _emailService.SendEmailAsync(configuration.GetSection("AdminRecipientEmailAddress").Value, "Registracija kompanije - novi zahtjev", $"Dobili ste novi zahtjev za registracijom od kompanije: {registerDto.Email}, {registerDto.CompanyName}");
+                _emailService.SendEmailAsync(configuration.GetSection("AdminRecipientEmailAddress").Value, "Registracija kompanije - novi zahtjev", $"Dobili ste novi zahtjev za registracijom od kompanije: {registerDto.Email}, {registerDto.CompanyName}");
             }
             catch (Exception ex)
             {
-                throw;
+                _logger.LogError(ex, "Slanje email poruka nije uspjelo za korisnika {Email}.", user.Email);
             }
             return new UserDto
             {
@@ -433,20 +475,6 @@ namespace API.Controllers
             });
         }
 
-
-        [HttpGet("token-update")]
-        public async Task<ActionResult<UserDto>> GetUpdatedToken()
-        {
-            var id = HttpContext.User.GetUserId();
-            var user = await FetchUserWithIncludesAsync(id);
-
-            var accessToken = await HttpContext.GetTokenAsync("access_token");
-            var token = await _tokenService.CreateToken(user);
-
-            var dto = ConvertUserToUserDto(user);
-            return dto;
-        }
-
         [HttpGet("{userName}")]
         [AllowAnonymous]
         public async Task<bool> UserNameExist(string userName)
@@ -464,7 +492,7 @@ namespace API.Controllers
 
                 if (user == null)
                 {
-                    return NotFound(new { message = "User not found" });
+                    return Unauthorized("Nemate pravo pristupa");
                 }
                 var sanitizer = new HtmlSanitizer();
                 string sanitizedCoverLetter = sanitizer.Sanitize(req.Coverletter);
@@ -499,12 +527,20 @@ namespace API.Controllers
             {
                 return BadRequest("Morate prihvatiti reCAPTCHA.");
             }
-            var isCaptchaValid = await _recaptchaService.VerifyCaptchaAsync(req.CaptchaToken);
-            if (!isCaptchaValid)
-            {
-                return BadRequest("Neispravan reCAPTCHA odgovor.");
-            }
 
+            try
+            {
+                var isCaptchaValid = await _recaptchaService.VerifyCaptchaAsync(req.CaptchaToken);
+                if (!isCaptchaValid)
+                {
+                    return BadRequest("Neispravan reCAPTCHA odgovor.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Captcha is not available.");
+                return BadRequest($"reCaptcha nije dostupna. Molimo vas da kontaktirate podrsku na {SupportEmail} ili pozovite {SupportPhone}");
+            }
             return await CheckAndCreateDemoRequest(req);
         }
 
@@ -535,11 +571,13 @@ namespace API.Controllers
             {
                 await _dbContext.AddAsync(demoMeeting);
                 await _dbContext.SaveChangesAsync();
-                await _emailService.SendEmailAsync(configuration.GetSection("AdminRecipientEmailAddress").Value, "Novi zahtjev za demo sastankom", $"Dobili ste novi zahtjev za demo sastankom od korisnika sa Emailom: {req.Email}");
+                //trigger sending email but do not wait
+                _emailService.SendEmailAsync(configuration.GetSection("AdminRecipientEmailAddress").Value, "Novi zahtjev za demo sastankom", $"Dobili ste novi zahtjev za demo sastankom od korisnika sa Emailom: {req.Email}");
                 return Ok("Demo request submitted successfully.");
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Došlo je do greške prilikom kreiranja zahtjeva za demo: {ex.Message}");
                 return StatusCode(500, "An error occurred while submitting the request. Please try again later.");
             }
         }
@@ -557,7 +595,7 @@ namespace API.Controllers
             }
             var userId = HttpContext.User.GetUserId();
             if (userId == null)
-                return Forbid("Niste autorizovani za ovu funkcionalnost.");
+                return Unauthorized("Niste autorizovani za ovu funkcionalnost.");
             try
             {
                 var fileUrl = await _blobStorageService.UploadFileAsync(photo);
@@ -570,6 +608,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Došlo je do greške prilikom upload-a profilne slike: {ex.Message}");
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
@@ -591,6 +630,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Došlo je do greške prilikom brisanja profilne slike: {ex.Message}");
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
@@ -615,7 +655,7 @@ namespace API.Controllers
         {
             if(HttpContext.User.GetUserId() == null)
             {
-                return Unauthorized("Korisnik ne postoji!");
+                return Unauthorized("Nemate pravo pristupa.");
             }
             req.UserId = HttpContext.User.GetUserId();
 
@@ -650,12 +690,12 @@ namespace API.Controllers
         {
             if (HttpContext.User.GetUserId() == null)
             {
-                return Unauthorized("Korisnik ne postoji!");
+                return Unauthorized("Nemate pravo pristupa");
             }
             var userId = HttpContext.User.GetUserId();
             var user = await FetchUserWithIncludesAsync(userId);
             if (user.IsCompany == false)
-                return BadRequest("Korisnik ne pripada kompaniji!");
+                return Unauthorized("Nemate pravo pristupa");
             //user.Email = req.Email;
 
             var sanitizer = new HtmlSanitizer();
@@ -724,7 +764,7 @@ namespace API.Controllers
         {
             if (HttpContext.User.GetUserId() == null)
             {
-                return Unauthorized("Korisnik ne postoji!");
+                return Unauthorized("Nemate pravo pristupa.");
             }
             req.UserId = HttpContext.User.GetUserId();
 
@@ -756,7 +796,7 @@ namespace API.Controllers
         {
             if (HttpContext.User.GetUserId() == null)
             {
-                return Unauthorized("Korisnik ne postoji!");
+                return Unauthorized("Nemate pravo pristupa.");
             }
             req.UserId = HttpContext.User.GetUserId();
 
@@ -792,7 +832,7 @@ namespace API.Controllers
         {
             if (HttpContext.User.GetUserId() == null)
             {
-                return Unauthorized("Korisnik ne postoji!");
+                return Unauthorized("Nemate pravo pristupa.");
             }
             req.UserId = HttpContext.User.GetUserId();
 
@@ -828,7 +868,7 @@ namespace API.Controllers
         {
             if (HttpContext.User.GetUserId() == null)
             {
-                return Unauthorized("Korisnik ne postoji!");
+                return Unauthorized("Nemate pravo pristupa.");
             }
             var userId = HttpContext.User.GetUserId();
 
@@ -857,7 +897,7 @@ namespace API.Controllers
         {
             if (HttpContext.User.GetUserId() == null)
             {
-                return Unauthorized("Korisnik ne postoji!");
+                return Unauthorized("Nemate pravo pristupa");
             }
             var userId = HttpContext.User.GetUserId();
 
@@ -885,7 +925,7 @@ namespace API.Controllers
         {
             if (HttpContext.User.GetUserId() == null)
             {
-                return Unauthorized("Korisnik ne postoji!");
+                return Unauthorized("Nemate pravo pristupa.");
             }
             var userId = HttpContext.User.GetUserId();
 
@@ -901,11 +941,19 @@ namespace API.Controllers
             }
             if (req.CvFile != null)
             {
-                var fileUrl = await _blobStorageService.UploadFileAsync(req.CvFile);
-                var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
-                user.CvFilePath = decodedFileUrl;
-                user.CvFileName = req.CvFile.FileName;
-                await _userManager.UpdateAsync(user);
+                try
+                {
+                    var fileUrl = await _blobStorageService.UploadFileAsync(req.CvFile);
+                    var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
+                    user.CvFilePath = decodedFileUrl;
+                    user.CvFileName = req.CvFile.FileName;
+                    await _userManager.UpdateAsync(user);
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError($"Došlo je do greške prilikom upload-a file-a(CV): {ex.Message}");
+                    return StatusCode(500, "Došlo je do greške prilikom upload-a file-a");
+                }
             }
 
             var dto = ConvertUserToUserDto(user);
@@ -924,9 +972,17 @@ namespace API.Controllers
 
             var user = await FetchUserWithIncludesAsync(userId);
 
+            try
+            {
+                await _blobStorageService.RemoveFileAsync(user.CvFileName);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("Desila se greška prilikom brisanja cv-a korisnika.");
+                return StatusCode(500, "Desila se greška prilikom brisanja cv-a korisnika.");
+            }
             user.CvFileName = null;
             user.CvFilePath = null;
-            //IMPLEMENTE DELETE FILE FROM BLOB
             var result = await _userManager.UpdateAsync(user);
 
             if (!result.Succeeded) return BadRequest("Desila se greška prilikom brisanja cv-a korisnika.");
@@ -944,17 +1000,24 @@ namespace API.Controllers
 
             if (user == null)
             {
-                return Forbid("Niste autorizovani za pristup.");
+                return Unauthorized("Niste autorizovani za pristup.");
             }
-            var fileName = Path.GetFileName(user.CvFilePath);
-            var fileDto = await _blobStorageService.GetFileAsync(fileName);
-
-            if (fileDto.FileContent == null)
+            try
             {
-                return NotFound("Cv nije pronađen.");
-            }
+                var fileName = Path.GetFileName(user.CvFilePath);
+                var fileDto = await _blobStorageService.GetFileAsync(fileName);
+                if (fileDto.FileContent == null)
+                {
+                    return NotFound("Cv nije pronađen.");
+                }
 
-            return File(fileDto.FileContent, fileDto.MimeType, fileName);
+                return File(fileDto.FileContent, fileDto.MimeType, fileName);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, "Desila se greška prilikom dohvaćanja cv-a korisnika.");
+            }
         }
 
         [HttpPost("company-profile")]
@@ -998,7 +1061,7 @@ namespace API.Controllers
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
             {
-                return NotFound("Korisnik sa proslijeđenim emailom ne postoji.");
+                return NotFound("Korisnik ne postoji.");
             }
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -1014,7 +1077,15 @@ namespace API.Controllers
             var subject = "Zahtjev za promjenom lozinke";
 
             var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate(subject, emailBody, configuration);
-            await _emailService.SendEmailWithTemplateAsync(request.Email, subject, emailTemplate);
+            try
+            {
+                await _emailService.SendEmailWithTemplateAsync(request.Email, subject, emailTemplate);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("Došlo je do greške prilikom slanja verifikacijskog emaila za promjenu lozinke");
+                return StatusCode(500, "Došlo je do greške prilikom slanja verifikacijskog emaila za promjenu lozinke");
+            }
 
             return Ok();
         }
@@ -1067,6 +1138,7 @@ namespace API.Controllers
                 LastName = user.LastName,
                 CityId = user.CityId,
                 City = user.City?.Name,
+                ZipCode = user.City?.PostalCode,
                 UserName = user.UserName,
                 PhotoUrl = user.PhotoUrl,
                 Email = user.Email,

@@ -1,5 +1,6 @@
 ﻿using API.Entities.Applications;
 using API.Entities.JobPost;
+using API.Entities.Payment;
 using API.Helpers;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -55,6 +56,8 @@ namespace API.Entities
         public ICollection<CompanyJobPost.CompanyJobPost> CompanyJobPosts { get; set; }
 
         public ICollection<UserApplication> UserApplications { get; set; }
+
+        public ICollection<UserTransaction> UserTransactions { get; set; }
 
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiryTime { get; set; }

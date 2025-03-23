@@ -30,12 +30,68 @@ namespace jobify_notification_function
             _emailService = emailService;
         }
 
-        [Function("SendUserNotificationsOnCreateCompanyAd")]
-        public async Task SendUserNotificationsOnCreateCompanyAd([QueueTrigger("jobify-user-notification-queue", Connection = "AzureWebJobsStorage")] QueueMessage message)
+        [Function("SendEmailNotification")]
+        public async Task SendEmailNotificationFunction([QueueTrigger("jobify-notification-queue", Connection = "AzureWebJobsStorage")] QueueMessage message)
         {
-            var jobPostNotificationMessage = JsonConvert.DeserializeObject<JobPostNotificationQueueMessage>(message.MessageText);
+            var notificationMessage = JsonConvert.DeserializeObject<NotificationEventMessage>(message.MessageText);
 
-            _logger.LogInformation($"Processing notification for job post: {jobPostNotificationMessage.JobPostId}");
+            _logger.LogInformation("Processing notification");
+
+            if(notificationMessage.NotificationType == null)
+            {
+                _logger.LogError("Notification type should not be null!");
+                return;
+            }
+
+            var notificationType = notificationMessage.NotificationType;
+            switch (notificationType)
+            {
+                case NotificationType.SendUserNotificationsOnCreateCompanyAd:
+                    if(notificationMessage.JobPostId == null)
+                    {
+                        _logger.LogWarning("JobPostId must be provided when creating notification of type SendUserNotificationsOnCreateCompanyAd");
+                        return;
+                    }
+                    await SendUserNotificationsOnCreateCompanyAd(notificationMessage.JobPostId);
+                    break;
+                case NotificationType.SendCompanyNotificationOnCreateUserAd:
+                    if (notificationMessage.JobPostId == null)
+                    {
+                        _logger.LogWarning("JobPostId must be provided when creating notification of type SendCompanyNotificationOnCreateUserAd");
+                        return;
+                    }
+                    await SendCompanyNotificationOnCreateUserAd(notificationMessage.JobPostId);
+                    break;
+
+                case NotificationType.SendCompanyNotificationOnNewUserApplication:
+                    if(notificationMessage.JobPostId == null || notificationMessage.UserApplicationIds == null || !notificationMessage.UserApplicationIds.Any())
+                    {
+                        _logger.LogWarning("JobPostId and UserApplicationId must be provided when creating notification of type SendCompanyNotificationOnNewUserApplication");
+                        return;
+                    }
+                    var userApplicationId = notificationMessage.UserApplicationIds.First();//in this notification type we will have only one item in the list
+                    var jobPostId = notificationMessage.JobPostId;
+                    await SendCompanyNotificationOnNewUserApplication(jobPostId, userApplicationId);
+                    break;
+                case NotificationType.SendFeedbackToUserOnCompanyUpdateStatus:
+                    if(notificationMessage.UserApplicationIds == null || !notificationMessage.UserApplicationIds.Any())
+                    {
+                        _logger.LogWarning("UserApplicationIds must be provided when creating notification of type SendFeedbackToUserOnCompanyUpdateStatus");
+                        return;
+                    }
+                    await SendFeedbackToUserOnCompanyUpdateStatus(notificationMessage.UserApplicationIds);
+                    break;
+
+                default:
+                    _logger.LogWarning("Unknown notification type: {NotificationType}", notificationMessage.NotificationType);
+                    break;
+            }
+        }
+
+
+        private async Task SendUserNotificationsOnCreateCompanyAd(int jobPostId)
+        {
+            _logger.LogInformation($"Processing new company ad creation notification for job post: {jobPostId}");
 
             using (var connection = new SqlConnection(_connectionString))
             {
@@ -43,7 +99,7 @@ namespace jobify_notification_function
 
                 // Get the job post by ID using Dapper
                 var query = "SELECT * FROM CompanyJobPosts WHERE Id = @JobPostId";
-                var newItem = await connection.QueryFirstOrDefaultAsync<dynamic>(query, new { JobPostId = jobPostNotificationMessage.JobPostId });
+                var newItem = await connection.QueryFirstOrDefaultAsync<dynamic>(query, new { JobPostId = jobPostId });
 
                 if (newItem != null)
                 {
@@ -103,12 +159,9 @@ namespace jobify_notification_function
             }
         }
 
-        [Function("SendCompanyNotificationOnCreateUserAd")]
-        public async Task SendCompanyNotificationOnCreateUserAd([QueueTrigger("jobify-company-notification-queue", Connection = "AzureWebJobsStorage")] QueueMessage message)
+        private async Task SendCompanyNotificationOnCreateUserAd(int jobPostId)
         {
-            var jobPostNotificationMessage = JsonConvert.DeserializeObject<JobPostNotificationQueueMessage>(message.MessageText);
-
-            _logger.LogInformation($"Processing notification for job post: {jobPostNotificationMessage.JobPostId}");
+            _logger.LogInformation($"Processing new user ad created notification for job post: {jobPostId}");
 
             using (var connection = new SqlConnection(_connectionString))
             {
@@ -116,7 +169,7 @@ namespace jobify_notification_function
 
                 // Get the job post by ID
                 var query = "SELECT * FROM UserJobPosts WHERE Id = @JobPostId";
-                var newItem = await connection.QueryFirstOrDefaultAsync<dynamic>(query, new { JobPostId = jobPostNotificationMessage.JobPostId });
+                var newItem = await connection.QueryFirstOrDefaultAsync<dynamic>(query, new { JobPostId = jobPostId });
 
                 if (newItem != null)
                 {
@@ -181,12 +234,9 @@ namespace jobify_notification_function
             }
         }
 
-        [Function("SendCompanyNotificationOnNewUserApplication")]
-        public async Task SendCompanyNotificationOnNewUserApplication([QueueTrigger("jobify-new-applicant-queue", Connection = "AzureWebJobsStorage")] QueueMessage message)
+        private async Task SendCompanyNotificationOnNewUserApplication(int jobPostId, int userApplicationId)
         {
-            var userApplicationMessage = JsonConvert.DeserializeObject<NewApplicantQueueMessage>(message.MessageText);
-
-            _logger.LogInformation($"Processing new applicant notification for job post: {userApplicationMessage.JobPostId}");
+            _logger.LogInformation($"Processing new applicant notification for job post: {jobPostId}");
 
             using (var connection = new SqlConnection(_connectionString))
             {
@@ -194,7 +244,7 @@ namespace jobify_notification_function
 
                 // Get the job post by ID
                 var query = "SELECT * FROM CompanyJobPosts WHERE Id = @JobPostId";
-                var companyJobPost = await connection.QueryFirstOrDefaultAsync<dynamic>(query, new { JobPostId = userApplicationMessage.JobPostId });
+                var companyJobPost = await connection.QueryFirstOrDefaultAsync<dynamic>(query, new { JobPostId = jobPostId });
 
                 if (companyJobPost != null)
                 {
@@ -210,7 +260,7 @@ namespace jobify_notification_function
                     if (companyNotifPreferences != null && companyNotifPreferences.Any())
                     {
                         var emailNotifEnabled = companyNotifPreferences.FirstOrDefault(r => r.NotificationType == 1);
-                        var applicationUrl = UIBaseUrl + $"company-settings/candidate-details/{userApplicationMessage.UserApplicationId}";
+                        var applicationUrl = UIBaseUrl + $"company-settings/candidate-details/{userApplicationId}";
 
                         if (emailNotifEnabled != null)
                         {
@@ -261,10 +311,9 @@ namespace jobify_notification_function
             }
         }
 
-        [Function("SendFeedbackToUserOnCompanyUpdateStatus")]
-        public async Task Run([QueueTrigger("jobify-applicant-status-updated-queue", Connection = "AzureWebJobsStorage")] QueueMessage message)
+        private async Task SendFeedbackToUserOnCompanyUpdateStatus(List<int> userApplicationIds)
         {
-            var userApplicationMessage = JsonConvert.DeserializeObject<ApplicantStatusUpdated>(message.MessageText);
+            _logger.LogInformation($"Processing feedback to user on company update status");
 
             using (var connection = new SqlConnection(_connectionString))
             {
@@ -272,7 +321,7 @@ namespace jobify_notification_function
                 var userApplicationsQuery = "SELECT * FROM UserApplications WHERE Id IN @UserApplicationIds";
                 var userApplications = await connection.QueryAsync<dynamic>(userApplicationsQuery, new
                 {
-                    UserApplicationIds = userApplicationMessage.UserApplicationIds
+                    UserApplicationIds = userApplicationIds
                 });
                 if (userApplications != null && userApplications.Any())
                 {
@@ -340,19 +389,19 @@ namespace jobify_notification_function
             }
         }
     }
-    public class JobPostNotificationQueueMessage
+
+    public enum NotificationType
     {
-        public int JobPostId { get; set; }
+        SendUserNotificationsOnCreateCompanyAd,
+        SendCompanyNotificationOnCreateUserAd,
+        SendCompanyNotificationOnNewUserApplication,
+        SendFeedbackToUserOnCompanyUpdateStatus
     }
 
-    public class NewApplicantQueueMessage
+    public class NotificationEventMessage
     {
         public int JobPostId { get; set; }
-        public int UserApplicationId { get; set; }
-    }
-
-    public class ApplicantStatusUpdated
-    {
         public List<int> UserApplicationIds { get; set; }
+        public NotificationType NotificationType { get; set; }
     }
 }

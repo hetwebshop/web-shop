@@ -5,145 +5,88 @@ using System;
 using Microsoft.Extensions.Configuration;
 using System.Text;
 using SendGrid.Helpers.Mail;
+using Microsoft.Extensions.Logging;
 
 namespace API.Services
 {
     public class SendNotificationsQueueClient : ISendNotificationsQueueClient
     {
         private readonly string _connectionString;
-        private readonly string _userQueueName;
-        private readonly string _companyQueueName;
-        private readonly string _newApplicantCompanyQueueName;
         private readonly string _newApplicantPredictionQueueName;
-        private readonly string _updatedApplicationStatusQueueName;
+        private readonly string _notificationsDelegatedServiceName;
+        private readonly ILogger<SendNotificationsQueueClient> _logger;
 
-        public SendNotificationsQueueClient(IConfiguration configuration)
+        public SendNotificationsQueueClient(IConfiguration configuration, ILogger<SendNotificationsQueueClient> logger)
         {
             _connectionString = configuration.GetSection("AzureBlobStorage:ConnectionString").Value;
-            _userQueueName = configuration.GetSection("UserNotificationsQueueName").Value;
-            _companyQueueName = configuration.GetSection("CompanyNotificationsQueueName").Value;
-            _newApplicantCompanyQueueName = configuration.GetSection("CompanyNewApplicantNotificationsQueueName").Value;
+            _notificationsDelegatedServiceName = configuration.GetSection("NotificationsDelegatedServiceName").Value;
             _newApplicantPredictionQueueName = configuration.GetSection("CompanyNewApplicantPredictionQueueName").Value;
-            _updatedApplicationStatusQueueName = configuration.GetSection("UpdatedApplicationStatusQueueName").Value;
+            _logger = logger;
         }
 
-        public async Task SendMessageToUserAsync(JobPostNotificationQueueMessage jobPostNotificationMessage)
+        public async Task SendMessageToUserAsync(NotificationEventMessage message)
         {
             // Create a QueueClient
-            QueueClient queueClient = new QueueClient(_connectionString, _userQueueName);
-
-            // Ensure the queue exists (create if it doesn't)
-            await queueClient.CreateIfNotExistsAsync();
-
-            if (queueClient.Exists())
-            {
-                string messageContent = JsonConvert.SerializeObject(jobPostNotificationMessage);
-
-                // Encode the message content as Base64
-                byte[] messageBytes = Encoding.UTF8.GetBytes(messageContent);
-                string encodedMessage = Convert.ToBase64String(messageBytes);
-
-                // Send the Base64 encoded message to the queue
-                await queueClient.SendMessageAsync(encodedMessage);
-
-                Console.WriteLine($"Message sent to queue: {messageContent}");
-            }
-            else
-            {
-                Console.WriteLine("Queue does not exist.");
-            }
+            QueueClient queueClient = new QueueClient(_connectionString, _notificationsDelegatedServiceName);
+            await SendMessage(queueClient, message);
         }
 
-        public async Task SendMessageToCompanyAsync(JobPostNotificationQueueMessage jobPostNotificationMessage)
+        public async Task SendMessageToCompanyAsync(NotificationEventMessage message)
         {
-            // Create a QueueClient
-            QueueClient queueClient = new QueueClient(_connectionString, _companyQueueName);
-
-            // Ensure the queue exists (create if it doesn't)
-            await queueClient.CreateIfNotExistsAsync();
-
-            if (queueClient.Exists())
-            {
-                string messageContent = JsonConvert.SerializeObject(jobPostNotificationMessage);
-
-                // Encode the message content as Base64
-                byte[] messageBytes = Encoding.UTF8.GetBytes(messageContent);
-                string encodedMessage = Convert.ToBase64String(messageBytes);
-
-                // Send the Base64 encoded message to the queue
-                await queueClient.SendMessageAsync(encodedMessage);
-
-                Console.WriteLine($"Message sent to queue: {messageContent}");
-            }
-            else
-            {
-                Console.WriteLine("Queue does not exist.");
-            }
+            QueueClient queueClient = new QueueClient(_connectionString, _notificationsDelegatedServiceName);
+            await SendMessage(queueClient, message);
         }
 
-        public async Task SendNewApplicantMessageToCompanyAsync(NewApplicantQueueMessage message)
+        public async Task SendNewApplicantMessageToCompanyAsync(NotificationEventMessage message)
         {
-            // Create a QueueClient
-            QueueClient queueClient = new QueueClient(_connectionString, _newApplicantCompanyQueueName);
-
-            // Ensure the queue exists (create if it doesn't)
-            await queueClient.CreateIfNotExistsAsync();
-
-            if (queueClient.Exists())
-            {
-                string messageContent = JsonConvert.SerializeObject(message);
-
-                // Encode the message content as Base64
-                byte[] messageBytes = Encoding.UTF8.GetBytes(messageContent);
-                string encodedMessage = Convert.ToBase64String(messageBytes);
-
-                // Send the Base64 encoded message to the queue
-                await queueClient.SendMessageAsync(encodedMessage);
-
-                Console.WriteLine($"Message sent to queue: {messageContent}");
-            }
-            else
-            {
-                Console.WriteLine("Queue does not exist.");
-            }
+            QueueClient queueClient = new QueueClient(_connectionString, _notificationsDelegatedServiceName);
+            await SendMessage(queueClient, message);
         }
 
         public async Task SendNewApplicantPredictionMessageAsync(NewApplicantPredictionQueueMessage message)
         {
-            // Create a QueueClient
-            QueueClient queueClient = new QueueClient(_connectionString, _newApplicantPredictionQueueName);
-            await SendMessage(queueClient, message);
+            try
+            {
+                QueueClient queueClient = new QueueClient(_connectionString, _newApplicantPredictionQueueName);
+                await SendMessage(queueClient, message);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError($"There was an issue while trying to send event for prediction: {ex.Message}");
+                throw;//WE MUST THROW THERE, BECAUSE THIS OPERATION IS CRITICAL, AND IF EVENT IS NOT SENT WE SHOULD NOT TAKE USER CREDITS
+            }
         }
 
-        public async Task SendMessageToUserOnUpdateApplicationStatusAsync(ApplicantStatusUpdated message)
+        public async Task SendMessageToUserOnUpdateApplicationStatusAsync(NotificationEventMessage message)
         {
-            // Create a QueueClient
-            QueueClient queueClient = new QueueClient(_connectionString, _newApplicantPredictionQueueName);
+            QueueClient queueClient = new QueueClient(_connectionString, _notificationsDelegatedServiceName);
             await SendMessage(queueClient, message);
         }
 
         private async Task SendMessage(QueueClient queueClient, object message)
         {
-            // Ensure the queue exists (create if it doesn't)
             await queueClient.CreateIfNotExistsAsync();
 
             if (queueClient.Exists())
             {
                 string messageContent = JsonConvert.SerializeObject(message);
 
-                // Encode the message content as Base64
+                _logger.LogInformation("Serialized message: {MessageContent}", messageContent);
+
                 byte[] messageBytes = Encoding.UTF8.GetBytes(messageContent);
                 string encodedMessage = Convert.ToBase64String(messageBytes);
 
-                // Send the Base64 encoded message to the queue
+                _logger.LogDebug("Encoded message in Base64: {EncodedMessage}", encodedMessage);
+
                 await queueClient.SendMessageAsync(encodedMessage);
 
-                Console.WriteLine($"Message sent to queue: {messageContent}");
+                _logger.LogInformation("Message sent to queue: {MessageContent}", messageContent);
             }
             else
             {
-                Console.WriteLine("Queue does not exist.");
+                _logger.LogError("Queue does not exist.");
             }
         }
+
     }
 }

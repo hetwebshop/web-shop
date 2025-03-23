@@ -1,8 +1,10 @@
 ﻿using API.Data;
 using API.Data.ICompanyJobPostRepository;
 using API.DTOs;
+using API.Entities;
 using API.Entities.Applications;
 using API.Entities.CompanyJobPost;
+using API.Entities.Payment;
 using API.Extensions;
 using API.Helpers;
 using API.Mappers;
@@ -214,9 +216,6 @@ namespace API.Controllers
                         return BadRequest("Nemate dovoljno kredita za izvršavanje AI analize. Molimo Vas da dopunite kredite, te nakon toga pokrenete AI analizu.");
 
                     //companyJobPost.IsAiAnalysisIncluded = true;
-                    companyJobPost.AiAnalysisReservedCredits = totalAIAnalysisPrice;
-                    await _dbContext.SaveChangesAsync();
-
                     var applicantPredictionMessage = new NewApplicantPredictionQueueMessage()
                     {
                         CompanyJobPostId = companyJobPost.Id,
@@ -225,12 +224,38 @@ namespace API.Controllers
                         ReservedCredits = totalAIAnalysisPrice
                     };
 
-                    await _sendNotificationsQueueClient.SendNewApplicantPredictionMessageAsync(applicantPredictionMessage);
+                    try
+                    {
+                        await _sendNotificationsQueueClient.SendNewApplicantPredictionMessageAsync(applicantPredictionMessage);
+                        _logger.LogInformation("Applicant prediction event sent successfully");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError($"Failed to send new applicant prediction message: {ex.Message}");
+                        return StatusCode(500, "There was an error while processing the applicant prediction message.");
+                    }
+
+                    companyJobPost.AiAnalysisReservedCredits = totalAIAnalysisPrice;
 
                     user.Credits -= totalAIAnalysisPrice;
                     //companyJobPost.AiAnalysisProgress = 0.1;
                     companyJobPost.AiAnalysisStartedOn = DateTime.UtcNow;
                     companyJobPost.AiAnalysisStatus = Entities.CompanyJobPost.AiAnalysisStatus.Running;
+
+                    var userTransaction = new UserTransaction()
+                    {
+                        Amount = totalAIAnalysisPrice,
+                        UserId = user.Id,
+                        CreatedAt = DateTime.UtcNow,
+                        ChFullName = user.FirstName + " " + user.LastName,
+                        IsProcessed = false,
+                        TransactionType = TransactionType.RunningAi,
+                        IsAddingCredits = false,
+                        OrderInfo = OrderInfoMessages.RunningAiMessage
+                    };
+
+                    await _dbContext.UserTransactions.AddAsync(userTransaction);
+
                     await _dbContext.SaveChangesAsync();
 
                     return Ok(true);
@@ -277,12 +302,28 @@ namespace API.Controllers
                             companyJobPost.AiAnalysisEndedOn = DateTime.UtcNow;
                             companyJobPost.AiAnalysisStatus = Entities.CompanyJobPost.AiAnalysisStatus.Completed;
 
+
+                            var userTransaction = new UserTransaction()
+                            {
+                                UserId = user.Id,
+                                CreatedAt = DateTime.UtcNow,
+                                ChFullName = user.FirstName + " " + user.LastName,
+                                IsProcessed = false,
+                                TransactionType = TransactionType.RefundAiCredits,
+                                IsAddingCredits = true,
+                                OrderInfo = OrderInfoMessages.RefundAiCreditsMessage
+                            };
+
                             //Ensure credits are only refunded once
                             if (companyJobPost.AiAnalysisReservedCredits.HasValue)
                             {
                                 user.Credits += companyJobPost.AiAnalysisReservedCredits.Value;
+                                userTransaction.Amount = companyJobPost.AiAnalysisReservedCredits.Value;
+
                                 companyJobPost.AiAnalysisReservedCredits = null;
                             }
+
+                            await _dbContext.UserTransactions.AddAsync(userTransaction);
 
                             await _dbContext.SaveChangesAsync();
                             await transaction.CommitAsync(); //Commit transaction only after all operations succeed

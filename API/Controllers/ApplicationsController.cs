@@ -147,11 +147,13 @@ namespace API.Controllers
             req.UserApplicationId = applicationId;
             req.MeetingDateTimeDateType = req.MeetingDateTime;
             var updatedApplication = await userApplicationsRepository.UpdateUserApplicationStatusAsync(req);
-            var jobPostNotificationMessage = new ApplicantStatusUpdated
+            var jobPostNotificationMessage = new NotificationEventMessage
             {
-                UserApplicationIds = new List<int> { userApplication.Id }
+                UserApplicationIds = new List<int> { userApplication.Id },
+                NotificationType = NotificationType.SendFeedbackToUserOnCompanyUpdateStatus
             };
             await _sendNotificationsQueueClient.SendMessageToUserOnUpdateApplicationStatusAsync(jobPostNotificationMessage);
+            _logger.LogInformation($"Notification sending finished.");
 
             var userApplicationDto = ConvertToDto(updatedApplication);
             return Ok(userApplicationDto);
@@ -180,11 +182,14 @@ namespace API.Controllers
             }
 
             var areApplicationsRejected = await userApplicationsRepository.RejectSelectedCandidatesAsync(req);
-            var jobPostNotificationMessage = new ApplicantStatusUpdated
+            var jobPostNotificationMessage = new NotificationEventMessage
             {
-                UserApplicationIds = req.Candidates
+                UserApplicationIds = req.Candidates,
+                NotificationType = NotificationType.SendFeedbackToUserOnCompanyUpdateStatus
             };
             await _sendNotificationsQueueClient.SendMessageToUserOnUpdateApplicationStatusAsync(jobPostNotificationMessage);
+            _logger.LogInformation($"Notification sending finished.");
+
             return Ok(areApplicationsRejected);
         }
 

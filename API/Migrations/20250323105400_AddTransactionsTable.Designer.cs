@@ -4,6 +4,7 @@ using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250323105400_AddTransactionsTable")]
+    partial class AddTransactionsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -959,8 +961,8 @@ namespace API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<double>("Amount")
-                        .HasColumnType("float");
+                    b.Property<int>("Amount")
+                        .HasColumnType("int");
 
                     b.Property<string>("ChFullName")
                         .HasColumnType("nvarchar(max)");
@@ -968,17 +970,8 @@ namespace API.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsAddingCredits")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsProcessed")
                         .HasColumnType("bit");
-
-                    b.Property<long?>("MonriTransactionId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("OrderInfo")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OrderNumber")
                         .HasColumnType("nvarchar(max)");
@@ -995,9 +988,14 @@ namespace API.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("UserId1")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
 
                     b.ToTable("UserTransactions");
                 });
@@ -1765,10 +1763,14 @@ namespace API.Migrations
             modelBuilder.Entity("API.Entities.Payment.UserTransaction", b =>
                 {
                     b.HasOne("API.Entities.User", "User")
-                        .WithMany("UserTransactions")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("API.Entities.User", null)
+                        .WithMany("UserTransactions")
+                        .HasForeignKey("UserId1");
 
                     b.Navigation("User");
                 });

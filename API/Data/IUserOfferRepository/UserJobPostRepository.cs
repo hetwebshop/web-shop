@@ -3,9 +3,11 @@ using API.DTOs;
 using API.Entities;
 using API.Entities.Applications;
 using API.Entities.JobPost;
+using API.Entities.Payment;
 using API.Helpers;
 using API.PaginationEntities;
 using API.Services;
+using CloudinaryDotNet;
 using Ganss.Xss;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -178,6 +180,20 @@ namespace API.Data.IUserOfferRepository
                     await DataContext.UserJobPosts.AddAsync(newUserJobPost);
 
                     user.Credits -= pricingPlan.PriceInCredits;
+
+                    var userTransaction = new UserTransaction()
+                    {
+                        Amount = pricingPlan.PriceInCredits,
+                        UserId = user.Id,
+                        CreatedAt = DateTime.UtcNow,
+                        ChFullName = user.FirstName + " " + user.LastName,
+                        IsProcessed = false,
+                        TransactionType = TransactionType.PostingAd,
+                        IsAddingCredits = false,
+                        OrderInfo = OrderInfoMessages.PostingAdMessage
+                    };
+
+                    await DataContext.UserTransactions.AddAsync(userTransaction);
 
                     await DataContext.SaveChangesAsync();  
                     await transaction.CommitAsync(); 
