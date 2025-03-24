@@ -18,11 +18,11 @@ namespace API.Services
         public BlobStorageService(IConfiguration configuration, ILogger<BlobStorageService> logger)
         {
             _logger = logger;
-            _connectionString = configuration.GetValue<string>("AzureBlobStorage:ConnectionString");
-            _containerName = configuration.GetValue<string>("AzureBlobStorage:ContainerName");
-            //var blobServiceClient = new BlobServiceClient(_connectionString);
-            //_containerClient = blobServiceClient.GetBlobContainerClient(_containerName);
-            //_containerClient.CreateIfNotExistsAsync().GetAwaiter().GetResult();
+            _connectionString = configuration.GetValue<string>("BlobStorage:ConnectionString");
+            _containerName = configuration.GetValue<string>("BlobStorage:ContainerName");
+            var blobServiceClient = new BlobServiceClient(_connectionString);
+            _containerClient = blobServiceClient.GetBlobContainerClient(_containerName);
+            _containerClient.CreateIfNotExistsAsync().GetAwaiter().GetResult();
         }
 
         public async Task<string> UploadFileAsync(IFormFile file)

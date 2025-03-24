@@ -97,8 +97,13 @@ namespace API.Services
                     HttpOnly = true,
                     IsEssential = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Lax,
-                    Domain = ".azurewebsites.net",
+                    SameSite =
+#if DEBUG
+                    SameSiteMode.None
+#else
+                        SameSiteMode.Lax,
+                        Domain = "poslovnioglasi.ba"
+#endif
                 });
             context.Response.Cookies.Append("refreshToken", refreshToken,
                 new CookieOptions
@@ -107,8 +112,13 @@ namespace API.Services
                     HttpOnly = true,
                     IsEssential = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Lax,
-                    Domain = ".azurewebsites.net",
+                    SameSite =
+#if DEBUG
+                    SameSiteMode.None
+#else
+                        SameSiteMode.Lax,
+                        Domain = "poslovnioglasi.ba"
+#endif
                 });
         }
 

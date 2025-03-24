@@ -18,7 +18,7 @@ namespace API.Services
 
         public SendNotificationsQueueClient(IConfiguration configuration, ILogger<SendNotificationsQueueClient> logger)
         {
-            _connectionString = configuration.GetSection("AzureBlobStorage:ConnectionString").Value;
+            _connectionString = configuration.GetSection("BlobStorage:ConnectionString").Value;
             _notificationsDelegatedServiceName = configuration.GetSection("NotificationsDelegatedServiceName").Value;
             _newApplicantPredictionQueueName = configuration.GetSection("CompanyNewApplicantPredictionQueueName").Value;
             _logger = logger;

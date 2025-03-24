@@ -96,10 +96,10 @@ namespace API.Extensions
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 })
-                //.AddCookie(x =>
-                //{
-                //    x.Cookie.Name = "accessToken";
-                //})
+                .AddCookie(x =>
+                {
+                    x.Cookie.Name = "accessToken";
+                })
                 .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
@@ -113,16 +113,16 @@ namespace API.Extensions
                     };
                     options.SaveToken = true;
 
-                    //options.Events = new JwtBearerEvents
-                    //{
-                    //    OnMessageReceived = ctx =>
-                    //    {
-                    //        ctx.Request.Cookies.TryGetValue("accessToken", out var accessToken);
-                    //        if (!string.IsNullOrEmpty(accessToken))
-                    //            ctx.Token = accessToken;
-                    //        return Task.CompletedTask;
-                    //    }
-                    //};
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = ctx =>
+                        {
+                            ctx.Request.Cookies.TryGetValue("accessToken", out var accessToken);
+                            if (!string.IsNullOrEmpty(accessToken))
+                                ctx.Token = accessToken;
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
 
             return services;

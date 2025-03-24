@@ -142,6 +142,8 @@ namespace API.Controllers
             user.TermsAccepted = registerDto.TermsAccepted;
             //user.EmailConfirmed = true;
 
+            user.Credits = 30;
+
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
             if (!result.Succeeded)
@@ -173,13 +175,20 @@ namespace API.Controllers
 
             try
             {
-                await _emailService.SendEmailWithTemplateAsync(
-                    user.Email,
-                    subject,
-                    emailHtml
-                );
+
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _emailService.SendEmailWithTemplateAsync(user.Email, subject, emailHtml);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send verification email to {Email}", user.Email);
+                    }
+                });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Neuspjelo slanje verifikacionog emaila korisniku {Email}", user.Email);
                 return BadRequest($"Registracija uspješna, ali nismo uspjeli poslati verifikacioni email. Molimo vas da kontaktirate podrsku na {SupportEmail} ili pozovite {SupportPhone}");
@@ -295,6 +304,8 @@ namespace API.Controllers
             user.IsApproved = false;
 
             user.TermsAccepted = registerDto.TermsAccepted;
+            user.Credits = 270;
+
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded)
             {
@@ -331,11 +342,24 @@ namespace API.Controllers
                 string subject = "Registracija uspješna - Čekate Verifikaciju";
                 string emailHtml = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, configuration);
 
-                await _emailService.SendEmailWithTemplateAsync(
-                    user.Email,
-                    subject,
-                    emailHtml
-                );
+
+
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _emailService.SendEmailWithTemplateAsync(
+                            user.Email,
+                            subject,
+                            emailHtml
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send verification email to {Email}", user.Email);
+                    }
+                });
+
                 //Notify admin
                 _emailService.SendEmailAsync(configuration.GetSection("AdminRecipientEmailAddress").Value, "Registracija kompanije - novi zahtjev", $"Dobili ste novi zahtjev za registracijom od kompanije: {registerDto.Email}, {registerDto.CompanyName}");
             }
@@ -414,36 +438,36 @@ namespace API.Controllers
             return Ok(dto);
         }
 
-        [HttpPost("login")]
-        [AllowAnonymous]
-        public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
-        {
-            var user = await FetchUserWithIncludesAsync(null, loginDto.UserNameOrEmail);
+        //[HttpPost("login")]
+        //[AllowAnonymous]
+        //public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
+        //{
+        //    var user = await FetchUserWithIncludesAsync(null, loginDto.UserNameOrEmail);
 
-            if (user == null) return BadRequest("Korisnik sa unešenom email adresom ne postoji.");
+        //    if (user == null) return BadRequest("Korisnik sa unešenom email adresom ne postoji.");
 
-            if (!user.IsApproved)
-            {
-                return BadRequest("Račun vaše kompanije čeka odobrenje od strane admina.");
-            }
+        //    if (!user.IsApproved)
+        //    {
+        //        return BadRequest("Račun vaše kompanije čeka odobrenje od strane admina.");
+        //    }
 
-            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-            if (!result.Succeeded && loginDto.UserNameOrEmail != API.Helpers.Constants.TestUser) return BadRequest("Pogrešan email ili password.");
+        //    var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+        //    if (!result.Succeeded && loginDto.UserNameOrEmail != API.Helpers.Constants.TestUser) return BadRequest("Pogrešan email ili password.");
 
-            var token = await _tokenService.CreateToken(user);
-            var refreshToken = _tokenService.CreateRefreshToken();
+        //    var token = await _tokenService.CreateToken(user);
+        //    var refreshToken = _tokenService.CreateRefreshToken();
 
-            user.LastActive = DateTime.UtcNow;
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-            await _userManager.UpdateAsync(user);
+        //    user.LastActive = DateTime.UtcNow;
+        //    user.RefreshToken = refreshToken;
+        //    user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+        //    await _userManager.UpdateAsync(user);
 
-            var dto = ConvertUserToUserDto(user);
-            dto.AccessToken = token;
-            dto.RefreshToken = refreshToken;
+        //    var dto = ConvertUserToUserDto(user);
+        //    dto.AccessToken = token;
+        //    dto.RefreshToken = refreshToken;
 
-            return Ok(dto);
-        }
+        //    return Ok(dto);
+        //}
 
         [HttpGet("role-and-credits")]
         public async Task<ActionResult<UserDto>> GetUserRoleAndCredits()

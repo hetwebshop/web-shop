@@ -31,7 +31,6 @@ namespace API.Services.UserOfferServices
         private readonly IUserJobPostRepository userJobPostRepository;
         private readonly IUnitOfWork _uow;
         private readonly ICompanyJobPostRepository companyJobPostRepo;
-        private string predictionApiUrl;
         private readonly IBlobStorageService blobStorageService;
         private readonly DataContext _dbContext;
         private readonly IEmailService emailService;
@@ -45,7 +44,6 @@ namespace API.Services.UserOfferServices
             this.userJobPostRepository = userJobPostRepository;
             _uow = uow;
             companyJobPostRepo = companyJobPostRepository;
-            predictionApiUrl = configuration.GetSection("PredictionApiUrl").Value;
             this.blobStorageService = blobStorageService;
             _dbContext = dataContext;
             this.emailService = emailService;

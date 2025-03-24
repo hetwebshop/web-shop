@@ -78,18 +78,18 @@ namespace API.Controllers
             });
         }
 
-        [HttpPost, Authorize]
-        [Route("revoke")]
-        public IActionResult Revoke()
-        {
-            var username = User.Identity.Name;
-            var user = _dbContext.Users.SingleOrDefault(u => u.UserName == username);
-            if (user == null) return BadRequest();
-            user.RefreshToken = null;
-            _dbContext.SaveChanges();
+        //[HttpPost, Authorize]
+        //[Route("revoke")]
+        //public IActionResult Revoke()
+        //{
+        //    var username = User.Identity.Name;
+        //    var user = _dbContext.Users.SingleOrDefault(u => u.UserName == username);
+        //    if (user == null) return BadRequest();
+        //    user.RefreshToken = null;
+        //    _dbContext.SaveChanges();
 
-            return NoContent();
-        }
+        //    return NoContent();
+        //}
 
 
         [HttpPost, Authorize]
@@ -108,8 +108,13 @@ namespace API.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(-1), // Set to a past date
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Lax,
-                Domain = ".azurewebsites.net",
+                SameSite =
+#if DEBUG
+                    SameSiteMode.None
+#else
+                        SameSiteMode.Lax,
+                        Domain = "poslovnioglasi.ba"
+#endif
             });
 
             Response.Cookies.Append("refreshToken", "", new CookieOptions
@@ -117,8 +122,13 @@ namespace API.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(-1), // Set to a past date
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Lax,
-                Domain = ".azurewebsites.net",
+                SameSite =
+                #if DEBUG
+                    SameSiteMode.None
+                #else
+                        SameSiteMode.Lax,
+                        Domain = "poslovnioglasi.ba"
+                #endif
             });
 
             return NoContent();
