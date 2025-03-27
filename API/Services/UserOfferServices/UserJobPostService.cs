@@ -75,11 +75,10 @@ namespace API.Services.UserOfferServices
         {
             try
             {
-                var entity = userJobPostDto.ToEntity();
                 bool isUserProfileCvFileSubmitted = userJobPostDto.IsUserProfileCvFileSubmitted ?? false;
                 if (userJobPostDto.CvFile != null)
                 {
-                    var fileUrl = await blobStorageService.UploadFileAsync(userJobPostDto.CvFile);
+                    var fileUrl = await blobStorageService.UploadFileAsync(userJobPostDto.CvFile, userJobPostDto.SubmittingUserId);
                     var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
                     userJobPostDto.CvFilePath = decodedFileUrl;
                     userJobPostDto.CvFileName = userJobPostDto.CvFile.FileName;
@@ -88,6 +87,7 @@ namespace API.Services.UserOfferServices
                 {
                     userJobPostDto.CvFilePath = user.CvFilePath;
                 }
+                var entity = userJobPostDto.ToEntity();
                 var newItem = await userJobPostRepository.CreateUserJobPostAsync(entity);
                 var dto = newItem.ToDto();
                 var jobPostNotificationMessage = new NotificationEventMessage
@@ -122,7 +122,7 @@ namespace API.Services.UserOfferServices
                 {
                     if (userApplication.CvFile != null)
                     {
-                        var fileUrl = await blobStorageService.UploadFileAsync(userApplication.CvFile);
+                        var fileUrl = await blobStorageService.UploadFileAsync(userApplication.CvFile, userApplication.SubmittingUserId);
                         userApplication.CvFilePath = Uri.UnescapeDataString(fileUrl);
                         userApplication.CvFileName = userApplication.CvFile.FileName;
                     }

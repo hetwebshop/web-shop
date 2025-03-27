@@ -41,8 +41,8 @@ namespace API.Seed
             await _context.Database.MigrateAsync();
             await SeedCountriesCitiesEtc();
             await SeedRoles();
-            await SeedCompanies();
-            await SeedUsers();
+            //await SeedCompanies();
+            //await SeedUsers();
 
             //JobPost
             await SeedUserJobPostModels();

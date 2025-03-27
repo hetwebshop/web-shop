@@ -21,12 +21,15 @@ namespace API.Controllers
         private readonly ITokenService _tokenService;
         private readonly string Environment;
         private readonly IConfiguration _configuration;
+        private readonly bool IsProductionEnvironment;
+
         public TokenController(DataContext dataContext, ITokenService tokenService, IConfiguration configuration)
         {
             this._dbContext = dataContext ?? throw new ArgumentNullException(nameof(dataContext));
             this._tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
             _configuration = configuration;
             Environment = configuration.GetSection("Environment").Value;
+            IsProductionEnvironment = configuration.GetSection("Environment").Value == "Production";
         }
         [HttpPost]
         [Route("refresh-cookie")]
@@ -113,7 +116,7 @@ namespace API.Controllers
                     SameSiteMode.None
 #else
                         SameSiteMode.Lax,
-                        Domain = "poslovnioglasi.ba"
+                        Domain = ".poslovnioglasi.ba"
 #endif
             });
 
@@ -125,10 +128,10 @@ namespace API.Controllers
                 SameSite =
                 #if DEBUG
                     SameSiteMode.None
-                #else
+#else
                         SameSiteMode.Lax,
-                        Domain = "poslovnioglasi.ba"
-                #endif
+                        Domain = ".poslovnioglasi.ba"
+#endif
             });
 
             return NoContent();

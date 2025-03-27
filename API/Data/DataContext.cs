@@ -54,6 +54,8 @@ namespace API.Data
 
         public DbSet<Notification> Notifications { get; set; }
 
+        public DbSet<EarlyAccess> EarlyAccesses { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

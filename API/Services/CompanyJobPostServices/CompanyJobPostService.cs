@@ -76,7 +76,7 @@ namespace API.Services.CompanyJobPostServices
 
                     try
                     {
-                        var fileUrl = await _blobStorageService.UploadFileAsync(companyJobPostDto.Logo);
+                        var fileUrl = await _blobStorageService.UploadFileAsync(companyJobPostDto.Logo, companyJobPostDto.SubmittingUserId);
                         companyJobPostDto.PhotoUrl = Uri.UnescapeDataString(fileUrl);
                     }
                     catch (Exception uploadEx)

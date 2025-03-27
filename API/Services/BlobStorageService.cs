@@ -25,11 +25,14 @@ namespace API.Services
             _containerClient.CreateIfNotExistsAsync().GetAwaiter().GetResult();
         }
 
-        public async Task<string> UploadFileAsync(IFormFile file)
+        public async Task<string> UploadFileAsync(IFormFile file, int userId)
         {
             try
             {
-                var fileName = await GetUniqueFileNameAsync(file.FileName);
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.FileName);
+                var extension = Path.GetExtension(file.FileName);
+                var fileName = $"{fileNameWithoutExtension}__{userId}{extension}";
+                var uniqueFileName = await GetUniqueFileNameAsync(fileName);
                 var blobClient = _containerClient.GetBlobClient(fileName);
 
                 using (var stream = file.OpenReadStream())
@@ -99,7 +102,7 @@ namespace API.Services
 
             while (await blobClient.ExistsAsync())
             {
-                newFileName = $"{fileName}({counter++}){extension}";
+                newFileName = $"{fileName}__({counter++}){extension}";
                 blobClient = _containerClient.GetBlobClient(newFileName);
             }
 

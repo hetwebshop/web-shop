@@ -43,8 +43,6 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 app.UseRouting();
 app.UseCors("CorsPolicy");
-app.UseCors(options =>
-options.AllowAnyHeader().AllowCredentials().AllowAnyMethod().WithOrigins(allowedOrigins));
 
 app.UseAuthentication();
 app.UseAuthorization();

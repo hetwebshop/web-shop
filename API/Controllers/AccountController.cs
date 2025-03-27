@@ -284,13 +284,28 @@ namespace API.Controllers
             }
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
+            
+            user.IsApproved = false;
+
+            user.TermsAccepted = registerDto.TermsAccepted;
+            user.Credits = 270;
             if (registerDto.Photo != null)
             {
                 if (!FileHelper.IsValidImage(registerDto.Photo))
                     return BadRequest("Nevažeći format slike. Dozvoljeni formati: JPG, PNG, GIF, BMP, WEBP.");
+            }
+            var result = await _userManager.CreateAsync(user, registerDto.Password);
+            if (!result.Succeeded)
+            {
+                _logger.LogWarning("Greška pri kreiranju korisnika: {Errors}", result.Errors.ToStringError());
+                return BadRequest(result.Errors.ToStringError());
+            }
+
+            if (registerDto.Photo != null)
+            {
                 try
                 {
-                    var fileUrl = await _blobStorageService.UploadFileAsync(registerDto.Photo);
+                    var fileUrl = await _blobStorageService.UploadFileAsync(registerDto.Photo, user.Id);
                     var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
                     user.PhotoUrl = decodedFileUrl;
                     user.Company.PhotoUrl = decodedFileUrl;
@@ -301,17 +316,7 @@ namespace API.Controllers
                     return BadRequest("Došlo je do greške prilikom upload-a slike. Molimo pokušajte ponovo.");
                 }
             }
-            user.IsApproved = false;
 
-            user.TermsAccepted = registerDto.TermsAccepted;
-            user.Credits = 270;
-
-            var result = await _userManager.CreateAsync(user, registerDto.Password);
-            if (!result.Succeeded)
-            {
-                _logger.LogWarning("Greška pri kreiranju korisnika: {Errors}", result.Errors.ToStringError());
-                return BadRequest(result.Errors.ToStringError());
-            }
 
             var roleResult = await _userManager.AddToRoleAsync(user, RoleType.Company.ToString());
             if (!roleResult.Succeeded)
@@ -622,7 +627,7 @@ namespace API.Controllers
                 return Unauthorized("Niste autorizovani za ovu funkcionalnost.");
             try
             {
-                var fileUrl = await _blobStorageService.UploadFileAsync(photo);
+                var fileUrl = await _blobStorageService.UploadFileAsync(photo, userId);
                 var user =  await _uow.UserRepository.GetUserByIdAsync(userId);
                 var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
                 await _uow.UserRepository.UpdateUserPhotoUrl(user, decodedFileUrl);
@@ -967,7 +972,7 @@ namespace API.Controllers
             {
                 try
                 {
-                    var fileUrl = await _blobStorageService.UploadFileAsync(req.CvFile);
+                    var fileUrl = await _blobStorageService.UploadFileAsync(req.CvFile, userId);
                     var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
                     user.CvFilePath = decodedFileUrl;
                     user.CvFileName = req.CvFile.FileName;

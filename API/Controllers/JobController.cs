@@ -56,15 +56,15 @@ namespace API.Controllers
             _logger = logger;
         }
 
-        [HttpPost("ads")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetAds([FromBody] AdsPaginationParameters adsParameters)
-        {
-            adsParameters.adStatus = JobPostStatus.Active;
-            var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
-            var pagedResponse = jobPosts.ToPagedResponse();
-            return Ok(pagedResponse);
-        }
+        //[HttpPost("ads")]
+        //[AllowAnonymous]
+        //public async Task<IActionResult> GetAds([FromBody] AdsPaginationParameters adsParameters)
+        //{
+        //    adsParameters.adStatus = JobPostStatus.Active;
+        //    var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
+        //    var pagedResponse = jobPosts.ToPagedResponse();
+        //    return Ok(pagedResponse);
+        //}
 
         [HttpPost("ads-private")]
         public async Task<IActionResult> GetAdsPrivate([FromBody] AdsPaginationParameters adsParameters)
@@ -96,15 +96,15 @@ namespace API.Controllers
             return Ok(pagedResponse);
         }
 
-        [HttpGet("user-job/{id}")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetUserJobById(int id)
-        {
-            var userJob = await _jobPostService.GetUserJobPostByIdAsync(id);
-            if(userJob.IsDeleted || userJob.JobPostStatusId != (int)JobPostStatus.Active || userJob.AdEndDate < DateTime.UtcNow)
-                return NotFound("Oglas je obrisan, zatvoren, ili je istekao.");
-            return Ok(userJob);
-        }
+        //[HttpGet("user-job/{id}")]
+        //[AllowAnonymous]
+        //public async Task<IActionResult> GetUserJobById(int id)
+        //{
+        //    var userJob = await _jobPostService.GetUserJobPostByIdAsync(id);
+        //    if(userJob.IsDeleted || userJob.JobPostStatusId != (int)JobPostStatus.Active || userJob.AdEndDate < DateTime.UtcNow)
+        //        return NotFound("Oglas je obrisan, zatvoren, ili je istekao.");
+        //    return Ok(userJob);
+        //}
 
         [HttpGet("user-job-private/{id}")]
         public async Task<IActionResult> GetUserJobByIdPrivate(int id)
@@ -151,7 +151,7 @@ namespace API.Controllers
                 }
                 var currentUserId = HttpContext.User.GetUserId();
                 var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
-                var pricingPlan = await _dbContext.PricingPlanCompanies.FirstOrDefaultAsync(r => r.Name.Equals(userJobPostDto.PricingPlanName) && r.AdActiveDays == userJobPostDto.AdDuration);
+                var pricingPlan = await _dbContext.PricingPlans.FirstOrDefaultAsync(r => r.Name.Equals(userJobPostDto.PricingPlanName) && r.AdActiveDays == userJobPostDto.AdDuration);
                 if (pricingPlan == null)
                     return BadRequest("Niste odabrali ispravan plan paketa oglasa.");
                 if (user.Credits < pricingPlan.PriceInCredits)
@@ -241,18 +241,19 @@ namespace API.Controllers
             }
         }
 
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateUserJobPost(int id, [FromForm] UserJobPostDto userJobPostDto)
-        {
-            userJobPostDto.SubmittingUserId = HttpContext.User.GetUserId();
-            if (userJobPostDto.CvFile != null)
-            {
-                var fileUrl = await _blobStorageService.UploadFileAsync(userJobPostDto.CvFile);
-                userJobPostDto.CvFilePath = fileUrl;
-            }
-            var updatedItem = await _jobPostService.UpdateUserJobPostAsync(userJobPostDto);
-            return Ok(updatedItem);
-        }
+        //[HttpPut("update/{id}")]
+        //public async Task<IActionResult> UpdateUserJobPost(int id, [FromForm] UserJobPostDto userJobPostDto)
+        //{
+        //    var userId = HttpContext.User.GetUserId();
+        //    userJobPostDto.SubmittingUserId = userId;
+        //    if (userJobPostDto.CvFile != null)
+        //    {
+        //        var fileUrl = await _blobStorageService.UploadFileAsync(userJobPostDto.CvFile, userId);
+        //        userJobPostDto.CvFilePath = fileUrl;
+        //    }
+        //    var updatedItem = await _jobPostService.UpdateUserJobPostAsync(userJobPostDto);
+        //    return Ok(updatedItem);
+        //}
 
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteUserJobPost(int id)
@@ -484,7 +485,7 @@ namespace API.Controllers
 
             if (req.CvFile != null)
             {
-                var fileUrl = await _blobStorageService.UploadFileAsync(req.CvFile);
+                var fileUrl = await _blobStorageService.UploadFileAsync(req.CvFile, userId);
                 var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
                 var updatedAd = await _userJobPostRepository.UpdateUserAdCvFilePathAsync(userAdId, decodedFileUrl, req.CvFile.FileName);
                 var dto = updatedAd.ToDto();

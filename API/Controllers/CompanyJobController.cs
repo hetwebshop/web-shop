@@ -484,9 +484,12 @@ namespace API.Controllers
             try
             {
                 var existingLogoUrl = companyJob.PhotoUrl;
-                //if(existingLogoUrl != null)
-                //    await _blobStorageService.RemoveFileAsync(existingLogoUrl);
-                var fileUrl = await _blobStorageService.UploadFileAsync(photo);
+                if (existingLogoUrl != null && existingLogoUrl != user.PhotoUrl)
+                {
+                    var fileName = existingLogoUrl.Substring(existingLogoUrl.LastIndexOf('/') + 1);
+                    await _blobStorageService.RemoveFileAsync(fileName);
+                }
+                var fileUrl = await _blobStorageService.UploadFileAsync(photo, userId);
                 var decodedFileUrl = Uri.UnescapeDataString(fileUrl);
                 companyJob.PhotoUrl = decodedFileUrl;
                 var updateLogo = await _jobPostService.UpdateCompanyJobPostLogoAsync(id, decodedFileUrl);
@@ -511,6 +514,13 @@ namespace API.Controllers
                 return Unauthorized("Nemate pravo pristupa ovom oglasu");
             try
             {
+                var existingLogoUrl = companyJob.PhotoUrl;
+                if (existingLogoUrl != null && existingLogoUrl != user.PhotoUrl)
+                {
+                    var fileName = existingLogoUrl.Substring(existingLogoUrl.LastIndexOf('/') + 1);
+                    await _blobStorageService.RemoveFileAsync(fileName);
+                }
+                    
                 companyJob.PhotoUrl = null;
                 var updateLogo = await _jobPostService.UpdateCompanyJobPostLogoAsync(id, null);
                 return Ok(companyJob);

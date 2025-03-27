@@ -20,12 +20,14 @@ namespace API.Services
         private readonly UserManager<User> _userManager;
         private readonly SymmetricSecurityKey _key;
         private readonly IConfiguration _configuration;
+        private readonly bool IsProductionEnvironment;
 
         public TokenService(IConfiguration config, UserManager<User> userManager)
         {
             _userManager = userManager;
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]));
             _configuration = config;
+            IsProductionEnvironment = config.GetSection("Environment").Value == "Production";
         }
 
         public async Task<string> CreateToken(User user)
@@ -102,7 +104,7 @@ namespace API.Services
                     SameSiteMode.None
 #else
                         SameSiteMode.Lax,
-                        Domain = "poslovnioglasi.ba"
+                        Domain = ".poslovnioglasi.ba"
 #endif
                 });
             context.Response.Cookies.Append("refreshToken", refreshToken,
@@ -117,7 +119,7 @@ namespace API.Services
                     SameSiteMode.None
 #else
                         SameSiteMode.Lax,
-                        Domain = "poslovnioglasi.ba"
+                        Domain = ".poslovnioglasi.ba"
 #endif
                 });
         }
