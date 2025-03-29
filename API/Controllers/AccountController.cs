@@ -48,6 +48,7 @@ namespace API.Controllers
         private readonly string Environment;
         private readonly RecaptchaService _recaptchaService;
         private readonly ILogger<AccountController> _logger;
+        private DateTime EarlyAccessEndDate;
 
         public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration,
             IUnitOfWork uow, IMapper mapper, ITokenService tokenService, IEmailService emailService, IBlobStorageService blobStorageService, DataContext dbContext, RecaptchaService recaptchaService, ILogger<AccountController> logger)
@@ -68,6 +69,16 @@ namespace API.Controllers
             SupportPhone = configuration.GetSection("SupportPhoneNumber").Value;
             Environment = configuration.GetSection("Environment").Value;
             _recaptchaService = recaptchaService;
+            var earlyAccessEndDateString = configuration.GetSection("EarlyAccessEndDate").Value;
+            if (DateTime.TryParse(earlyAccessEndDateString, out var parsedDate))
+            {
+                EarlyAccessEndDate = parsedDate;
+            }
+            else
+            {
+                _logger.LogError($"Invalid EarlyAccessEndDate value: {earlyAccessEndDateString}. Using default value.");
+                EarlyAccessEndDate = DateTime.MinValue;
+            }
         }
 
         private bool IsUserAdult(DateTime dateOfBirth)
@@ -110,9 +121,9 @@ namespace API.Controllers
                 return BadRequest("Morate prihvatiti uslove korištenja i politiku bezbjednosti.");
             }
             if (await UserNameExist(registerDto.UserName))
-                return BadRequest("Ovaj email je već povezan s postojećim korisničkim nalogom.");
+                return BadRequest("Registracija nije uspjela. Provjerite unesene podatke.");
             if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
-                return BadRequest("Ovaj email je već povezan s postojećim korisničkim nalogom.");
+                return BadRequest("Registracija nije uspjela. Provjerite unesene podatke.");
             if (string.IsNullOrEmpty(registerDto.CaptchaToken))
             {
                 return BadRequest("Morate prihvatiti reCAPTCHA.");
@@ -142,7 +153,8 @@ namespace API.Controllers
             user.TermsAccepted = registerDto.TermsAccepted;
             //user.EmailConfirmed = true;
 
-            user.Credits = 30;
+            if(DateTime.Now <= EarlyAccessEndDate)
+                user.Credits = 30;
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
@@ -262,9 +274,9 @@ namespace API.Controllers
                 return BadRequest("Morate prihvatiti uslove korištenja i politiku bezbjednosti.");
             }
             if (await UserNameExist(registerDto.UserName))
-                return BadRequest("Ovaj email je već povezan s postojećim korisničkim nalogom.");
+                return BadRequest("Registracija nije uspjela. Provjerite unesene podatke.");
             if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
-                return BadRequest("Ovaj email je već povezan s postojećim korisničkim nalogom.");
+                return BadRequest("Registracija nije uspjela. Provjerite unesene podatke.");
             if (string.IsNullOrEmpty(registerDto.CaptchaToken))
             {
                 return BadRequest("Morate prihvatiti reCAPTCHA.");
@@ -288,7 +300,8 @@ namespace API.Controllers
             user.IsApproved = false;
 
             user.TermsAccepted = registerDto.TermsAccepted;
-            user.Credits = 270;
+            if (DateTime.Now <= EarlyAccessEndDate)
+                user.Credits = 270;
             if (registerDto.Photo != null)
             {
                 if (!FileHelper.IsValidImage(registerDto.Photo))

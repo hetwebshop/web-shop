@@ -33,7 +33,7 @@ namespace API.Services
                 var extension = Path.GetExtension(file.FileName);
                 var fileName = $"{fileNameWithoutExtension}__{userId}{extension}";
                 var uniqueFileName = await GetUniqueFileNameAsync(fileName);
-                var blobClient = _containerClient.GetBlobClient(fileName);
+                var blobClient = _containerClient.GetBlobClient(uniqueFileName);
 
                 using (var stream = file.OpenReadStream())
                 {

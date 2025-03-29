@@ -58,18 +58,19 @@ namespace API.Controllers
             {
                 var tableData = new UserApplicationTableDataDto()
                 {
-                    JobPosition = application.CompanyJobPost.Position,
-                    CompanyCity = application.CompanyJobPost?.City?.Name,
-                    CreatedAt = application.CreatedAt,
-                    CompanyName = application.CompanyJobPost?.User?.Company?.CompanyName,
-                    CompanyJobPostId = application.CompanyJobPostId,
-                    ApplicationStatusId = application.ApplicationStatusId,
-                    Email = application.Email,
-                    Feedback = application.Feedback,
-                    MeetingDateTime = application.MeetingDateTime,
-                    Id = application.Id,
-                    IsCompanyAdExpired = application.CompanyJobPost.AdEndDate < DateTime.UtcNow ? true : false,
-                    CompanyAdEndDate = application.CompanyJobPost.AdEndDate
+                    JobPosition = application.UserApplication.CompanyJobPost.Position,
+                    CompanyCity = application.UserApplication.CompanyJobPost?.City?.Name,
+                    CreatedAt = application.UserApplication.CreatedAt,
+                    CompanyName = application.UserApplication.CompanyJobPost?.User?.Company?.CompanyName,
+                    CompanyJobPostId = application.UserApplication.CompanyJobPostId,
+                    ApplicationStatusId = application.UserApplication.ApplicationStatusId,
+                    Email = application.UserApplication.Email,
+                    Feedback = application.UserApplication.Feedback,
+                    MeetingDateTime = application.UserApplication.MeetingDateTime,
+                    Id = application.UserApplication.Id,
+                    IsCompanyAdExpired = application.UserApplication.CompanyJobPost.AdEndDate < DateTime.UtcNow ? true : false,
+                    CompanyAdEndDate = application.UserApplication.CompanyJobPost.AdEndDate,
+                    ConversationId = application.ConversationId
                 };
                 userApplicationsTableData.Add(tableData);
             }

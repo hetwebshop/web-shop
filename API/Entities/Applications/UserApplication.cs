@@ -1,4 +1,5 @@
 ﻿using API.DTOs;
+using API.Entities.Chat;
 using API.Helpers;
 using System;
 using System.Collections.Generic;
@@ -53,6 +54,7 @@ namespace API.Entities.Applications
         public double? AIMatchingSkills { get; set; }
         public double? AIMatchingEducationLevel { get; set; }
         public string AIMatchingDescription { get; set; }
+
     }
 
 }

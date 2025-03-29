@@ -45,7 +45,8 @@ namespace API.Controllers
                 {
                     PhoneNumber = request.Phone,
                     Email = request.Email,
-                    IsCompany = request.IsCompany
+                    IsCompany = request.IsCompany,
+                    SubmittedOn = DateTime.UtcNow
                 };
                 await _dbContext.EarlyAccesses.AddAsync(earlyAccess);
                 await _dbContext.SaveChangesAsync();

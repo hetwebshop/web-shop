@@ -20,5 +20,6 @@ namespace API.DTOs
         public int Id { get; set; }
         public bool IsCompanyAdExpired { get; set; }
         public DateTime CompanyAdEndDate { get; set; }
+        public int? ConversationId { get; set; }
     }
 }

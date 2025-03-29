@@ -153,10 +153,10 @@ namespace API.Controllers
                     return Unauthorized("Nemate pravo pristupa");
 
                 var userApplication = await userApplicationsRepository.GetUserApplicationByIdAsync(request.UserApplicationId);
-                if(userApplication.CreatedAt.AddDays(CompanyAdActiveDays + 20) < DateTime.UtcNow)//Added 20 more days because UserApplication can happen before company ad ended. This value can be changed to 10, or 5, or 25..
-                {
-                    return BadRequest("Aplikacija je istekla. Ne mozete pokrenuti konverzaciju.");
-                }
+                //if(userApplication.CreatedAt.AddDays(CompanyAdActiveDays + 20) < DateTime.UtcNow)//Added 20 more days because UserApplication can happen before company ad ended. This value can be changed to 10, or 5, or 25..
+                //{
+                //    return BadRequest("Aplikacija je istekla. Ne možete pokrenuti konverzaciju.");
+                //}
                 if (userApplication != null)
                 {
                     var companyJobPost = await _dbContext.CompanyJobPosts.FirstOrDefaultAsync(r => r.Id == userApplication.CompanyJobPostId);
@@ -405,7 +405,7 @@ namespace API.Controllers
                 }
 
                 var conversation = await _dbContext.Conversations.FirstOrDefaultAsync(r => r.Id == conversationId);
-                if(conversation.FromUserId != currentUserId && conversation.ToUserId != conversationId)
+                if(conversation.FromUserId != currentUserId && conversation.ToUserId != currentUserId)
                 {
                     return Unauthorized("Nemate pravo pristupa");
                 }
@@ -458,7 +458,7 @@ namespace API.Controllers
                     return Ok();
                 }
                 var conversation = chatMessages.First().Conversation;
-                if(conversation.ToUserId != currentUserId)
+                if(conversation.ToUserId != currentUserId && conversation.FromUserId != currentUserId)
                 {
                     return Unauthorized("Nemate pravo pristupa");
                 }
@@ -486,13 +486,14 @@ namespace API.Controllers
                 var currentUserId = HttpContext.User.GetUserId();
                 if (currentUserId == null)
                     return Unauthorized("Nemate pravo pristupa");
-                var userJobOffers = await _dbContext.Conversations.Where(r => r.ToUserId == currentUserId).Include(e => e.FromUser).ThenInclude(r => r.Company).Include(r => r.UserJobPost).OrderByDescending(r => r.CreatedAt).ToListAsync();
+                //WE TAKE ONLY Conversations that are created based on user job post; Other conversations are if user apply to company post which are show in user applications
+                var userJobOffers = await _dbContext.Conversations.Where(r => r.ToUserId == currentUserId && r.UserJobPostId != null).Include(e => e.FromUser).ThenInclude(r => r.Company).Include(r => r.UserJobPost).OrderByDescending(r => r.CreatedAt).ToListAsync();
                 var userJobOffersTableData = new List<UserJobOffersTableData>();
                 foreach (var jobOffer in userJobOffers)
                 {
                     var tableData = new UserJobOffersTableData()
                     {
-                        JobPosition = jobOffer.UserJobPost?.Position,
+                        JobPosition = jobOffer.CompanyJobPostId != null && jobOffer.CompanyJobPostId != null ? jobOffer.CompanyJobPost?.Position : jobOffer.UserJobPost?.Position,
                         CreatedAt = jobOffer.CreatedAt,
                         CompanyName = jobOffer.FromUser?.Company?.CompanyName,
                         UserJobPostId = jobOffer.UserJobPostId.HasValue ? jobOffer.UserJobPostId.Value : 0,
