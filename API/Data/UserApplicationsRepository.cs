@@ -46,7 +46,7 @@ namespace API.Data
                 var applicationConversation = new UserApplicationConversationDto()
                 {
                     UserApplication = application,
-                    ConversationId = conversations.FirstOrDefault(c => c.CompanyJobPostId == application.CompanyJobPostId).Id
+                    ConversationId = conversations.FirstOrDefault(c => c.CompanyJobPostId == application.CompanyJobPostId)?.Id
                 };
                 userApplicationsConversation.Add(applicationConversation);
             }

@@ -380,7 +380,9 @@ namespace API.Controllers
                 AIMatchingEducationLevel = userApplication.AIMatchingEducationLevel,
                 AIMatchingExperience = userApplication.AIMatchingExperience,
                 AIMatchingResult = userApplication.AIMatchingResult,
-                AIMatchingSkills = userApplication.AIMatchingSkills
+                AIMatchingSkills = userApplication.AIMatchingSkills,
+                AIAnalysisStatus = userApplication.AIAnalysisStatus,
+                AIFeatureUnlocked = userApplication.AIFeatureUnlocked
             };
         }
     }

@@ -39,6 +39,8 @@ namespace API.DTOs
         public double? AIMatchingSkills { get; set; }
         public double? AIMatchingEducationLevel { get; set; }
         public string AIMatchingDescription { get; set; }
+        public string AIAnalysisStatus { get; set; }
+        public bool AIFeatureUnlocked { get; set; }
 
         public List<UserEducationDto> Educations { get; set; }
         public List<UserPreviousCompaniesDto> PreviousCompanies { get; set; }

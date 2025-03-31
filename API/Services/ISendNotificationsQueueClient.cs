@@ -21,9 +21,8 @@ namespace API.Services
     public class NewApplicantPredictionQueueMessage
     {
         public int CompanyJobPostId { get; set; }
-        public List<int> UserApplicationIds { get; set; }
-        public int UserId { get; set; }
-        public double ReservedCredits { get; set; }
+        public int UserApplicationId { get; set; }
+        public string Position { get; set; }
     }
     public interface ISendNotificationsQueueClient
     {

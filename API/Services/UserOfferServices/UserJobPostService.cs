@@ -140,16 +140,18 @@ namespace API.Services.UserOfferServices
                 _logger.LogInformation($"[SUCCESS] CV uploaded for UserId: {submittingUser.Id}, JobPostId: {userApplication.CompanyJobPostId}");
 
                 var entity = userApplication.ToEntity();
+                entity.AIFeatureUnlocked = companyJobPost.PricingPlan.Name == "Premium" ? true : false; //unlocked feature is only in premium ad
                 var newItem = await userJobPostRepository.CreateUserApplicationAsync(entity);
                 
                 _logger.LogInformation($"[SUCCESS] Application created successfully for UserId: {submittingUser.Id}, JobPostId: {companyJobPost.Id}, ApplicationId: {newItem.Id}");
 
-                if (companyJobPost.PricingPlan.Name == "Premium")
+                if (companyJobPost.PricingPlan.Name == "Premium" || companyJobPost.PricingPlan.Name == "Plus")
                 {
                     var applicantPredictionMessage = new NewApplicantPredictionQueueMessage()
                     {
                         CompanyJobPostId = companyJobPost.Id,
-                        UserApplicationIds = new List<int> { newItem.Id },
+                        UserApplicationId = newItem.Id,
+                        Position = companyJobPost.Position
                     };
                     try
                     {

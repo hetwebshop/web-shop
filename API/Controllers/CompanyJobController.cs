@@ -38,6 +38,7 @@ namespace API.Controllers
         private readonly ILogger<CompanyJobController> _logger;
         private readonly IConfiguration _configuration;
         private readonly int CompanyAdActiveDays;
+        private double AIAnalysisPricePerCandidate;
 
         public CompanyJobController(ICompanyJobPostService jobPostService, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IUserApplicationsRepository userApplicationsRepository, DataContext dbContext, IBlobStorageService blobStorageService, ISendNotificationsQueueClient sendNotificationsQueueClient, ILogger<CompanyJobController> logger, IConfiguration configuration)
         {
@@ -51,6 +52,7 @@ namespace API.Controllers
             _logger = logger;
             _configuration = configuration;
             CompanyAdActiveDays = int.Parse(configuration.GetSection("CompanyActiveAdDays").Value);
+            AIAnalysisPricePerCandidate = double.Parse(configuration.GetSection("AIAnalysisPricePerCandidate").Value);
         }
 
 
@@ -192,55 +194,36 @@ namespace API.Controllers
                 var userId = HttpContext.User.GetUserId();
                 var user = await _uow.UserRepository.GetUserByIdAsync(userId);
                 if (user == null || user.CompanyId == null)
-                    return Unauthorized("You do not belong to the current company.");
+                    return Unauthorized("Nemate pravo pristupa.");
 
                 var companyId = user.CompanyId;
                 var companyJobPost = await _jobPostRepository.GetCompanyJobPostByIdAsync(jobId);
                 if (companyJobPost == null)
                     return NotFound();
                 if (companyJobPost.User.CompanyId != companyId)
-                    return Unauthorized("Not belong to current company");
+                    return Unauthorized("Nemate pravo pristupa.");
 
-                //if (companyJobPost.AiAnalysisHasError == true || (companyJobPost.AiAnalysisHasError == false || companyJobPost.AiAnalysisHasError) && companyJobPost.AiAnalysisProgress > 0 && companyJobPost.AiAnalysisProgress < 100)
-                //    return BadRequest("Analysis is running or has error");
+                if (companyJobPost.PricingPlan.Name != "Plus")
+                    return Unauthorized("Odabrani paket oglasa nema mogućnost pokretanja AI analize.");
 
-                var userApplicationsForJobPost = await _userApplicationsRepository.GetApplicationsForSpecificCompanyJobPost(jobId);
-                var applicationsThatAreNotProcessedByAi = userApplicationsForJobPost.Where(r => r.AIMatchingResult == null).Select(r => r.Id).ToList();
-                
+                var userApplications = await _userApplicationsRepository.GetApplicationsForSpecificCompanyJobPost(jobId);
+                //We take only items that are already calculated with no error
+                var userApplicationsWithAIAnalysis = userApplications.Where(r => r.AIAnalysisStatus == "Success");
 
-                if (applicationsThatAreNotProcessedByAi != null && applicationsThatAreNotProcessedByAi.Any())
+                if (userApplicationsWithAIAnalysis != null && userApplicationsWithAIAnalysis.Any())
                 {
-                    var totalAIAnalysisPrice = Math.Round(applicationsThatAreNotProcessedByAi.Count() * 0.1, 1);
+                    var totalAIAnalysisPrice = Math.Round(userApplicationsWithAIAnalysis.Count() * AIAnalysisPricePerCandidate, 1);
                     var userCredits = user.Credits;
                     if (userCredits < totalAIAnalysisPrice)
                         return BadRequest("Nemate dovoljno kredita za izvršavanje AI analize. Molimo Vas da dopunite kredite, te nakon toga pokrenete AI analizu.");
 
-                    //companyJobPost.IsAiAnalysisIncluded = true;
-                    var applicantPredictionMessage = new NewApplicantPredictionQueueMessage()
+                    //go through all applications, doesn't matter if it is success or not
+                    foreach(var item in userApplications)
                     {
-                        CompanyJobPostId = companyJobPost.Id,
-                        UserApplicationIds = applicationsThatAreNotProcessedByAi,
-                        UserId = user.Id,
-                        ReservedCredits = totalAIAnalysisPrice
-                    };
-
-                    try
-                    {
-                        await _sendNotificationsQueueClient.SendNewApplicantPredictionMessageAsync(applicantPredictionMessage);
-                        _logger.LogInformation("Applicant prediction event sent successfully");
+                        item.AIFeatureUnlocked = true;
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError($"Failed to send new applicant prediction message: {ex.Message}");
-                        return StatusCode(500, "There was an error while processing the applicant prediction message.");
-                    }
-
-                    companyJobPost.AiAnalysisReservedCredits = totalAIAnalysisPrice;
 
                     user.Credits -= totalAIAnalysisPrice;
-                    //companyJobPost.AiAnalysisProgress = 0.1;
-                    companyJobPost.AiAnalysisStartedOn = DateTime.UtcNow;
-                    companyJobPost.AiAnalysisStatus = Entities.CompanyJobPost.AiAnalysisStatus.Running;
 
                     var userTransaction = new UserTransaction()
                     {
@@ -268,88 +251,88 @@ namespace API.Controllers
             }
         }
 
-        [HttpGet("aianalysisstatuspolling/{jobId}")]
-        public async Task<IActionResult> AIAnalysisForAllCandidatesStatusPolling(int jobId)
-        {
-            try
-            {
-                var userId = HttpContext.User.GetUserId();
-                var user = await _uow.UserRepository.GetUserByIdAsync(userId);
-                if (user == null || user.CompanyId == null)
-                    return Unauthorized("You do not belong to the current company.");
+        //[HttpGet("aianalysisstatuspolling/{jobId}")]
+        //public async Task<IActionResult> AIAnalysisForAllCandidatesStatusPolling(int jobId)
+        //{
+        //    try
+        //    {
+        //        var userId = HttpContext.User.GetUserId();
+        //        var user = await _uow.UserRepository.GetUserByIdAsync(userId);
+        //        if (user == null || user.CompanyId == null)
+        //            return Unauthorized("You do not belong to the current company.");
 
-                var companyJobPost = await _jobPostRepository.GetCompanyJobPostByIdAsync(jobId);
-                if (companyJobPost == null)
-                    return NotFound();
+        //        var companyJobPost = await _jobPostRepository.GetCompanyJobPostByIdAsync(jobId);
+        //        if (companyJobPost == null)
+        //            return NotFound();
 
-                var companyId = user.CompanyId;
-                if (companyJobPost.User == null || companyJobPost.User.CompanyId != companyId)
-                    return Unauthorized("Not belong to current company");
+        //        var companyId = user.CompanyId;
+        //        if (companyJobPost.User == null || companyJobPost.User.CompanyId != companyId)
+        //            return Unauthorized("Not belong to current company");
 
-                var aiAnalysisStartedOn = companyJobPost.AiAnalysisStartedOn;
-                var now = DateTime.UtcNow;
+        //        var aiAnalysisStartedOn = companyJobPost.AiAnalysisStartedOn;
+        //        var now = DateTime.UtcNow;
 
-                if (aiAnalysisStartedOn.HasValue && aiAnalysisStartedOn.Value.AddMinutes(15) < now
-                    && companyJobPost.AiAnalysisStatus == Entities.CompanyJobPost.AiAnalysisStatus.Running)
-                {
-                    //Use transaction with isolation here to ensure that there is no race condition(2 users from different machines pings this endpoint)
-                    using (var transaction = await _dbContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
-                    {
-                        try
-                        {
-                            companyJobPost.AiAnalysisError = "Desila se greška prilikom izvršavanja AI analize. Unutar 15 minuta analiza se nije uspješno izvršila.";
-                            companyJobPost.AiAnalysisHasError = true;
-                            companyJobPost.AiAnalysisEndedOn = DateTime.UtcNow;
-                            companyJobPost.AiAnalysisStatus = Entities.CompanyJobPost.AiAnalysisStatus.Completed;
+        //        if (aiAnalysisStartedOn.HasValue && aiAnalysisStartedOn.Value.AddMinutes(15) < now
+        //            && companyJobPost.AiAnalysisStatus == Entities.CompanyJobPost.AiAnalysisStatus.Running)
+        //        {
+        //            //Use transaction with isolation here to ensure that there is no race condition(2 users from different machines pings this endpoint)
+        //            using (var transaction = await _dbContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
+        //            {
+        //                try
+        //                {
+        //                    companyJobPost.AiAnalysisError = "Desila se greška prilikom izvršavanja AI analize. Unutar 15 minuta analiza se nije uspješno izvršila.";
+        //                    companyJobPost.AiAnalysisHasError = true;
+        //                    companyJobPost.AiAnalysisEndedOn = DateTime.UtcNow;
+        //                    companyJobPost.AiAnalysisStatus = Entities.CompanyJobPost.AiAnalysisStatus.Completed;
 
 
-                            var userTransaction = new UserTransaction()
-                            {
-                                UserId = user.Id,
-                                CreatedAt = DateTime.UtcNow,
-                                ChFullName = user.FirstName + " " + user.LastName,
-                                IsProcessed = false,
-                                TransactionType = TransactionType.RefundAiCredits,
-                                IsAddingCredits = true,
-                                OrderInfo = OrderInfoMessages.RefundAiCreditsMessage
-                            };
+        //                    var userTransaction = new UserTransaction()
+        //                    {
+        //                        UserId = user.Id,
+        //                        CreatedAt = DateTime.UtcNow,
+        //                        ChFullName = user.FirstName + " " + user.LastName,
+        //                        IsProcessed = false,
+        //                        TransactionType = TransactionType.RefundAiCredits,
+        //                        IsAddingCredits = true,
+        //                        OrderInfo = OrderInfoMessages.RefundAiCreditsMessage
+        //                    };
 
-                            //Ensure credits are only refunded once
-                            if (companyJobPost.AiAnalysisReservedCredits.HasValue)
-                            {
-                                user.Credits += companyJobPost.AiAnalysisReservedCredits.Value;
-                                userTransaction.Amount = companyJobPost.AiAnalysisReservedCredits.Value;
+        //                    //Ensure credits are only refunded once
+        //                    if (companyJobPost.AiAnalysisReservedCredits.HasValue)
+        //                    {
+        //                        user.Credits += companyJobPost.AiAnalysisReservedCredits.Value;
+        //                        userTransaction.Amount = companyJobPost.AiAnalysisReservedCredits.Value;
 
-                                companyJobPost.AiAnalysisReservedCredits = null;
-                            }
+        //                        companyJobPost.AiAnalysisReservedCredits = null;
+        //                    }
 
-                            await _dbContext.UserTransactions.AddAsync(userTransaction);
+        //                    await _dbContext.UserTransactions.AddAsync(userTransaction);
 
-                            await _dbContext.SaveChangesAsync();
-                            await transaction.CommitAsync(); //Commit transaction only after all operations succeed
-                        }
-                        catch (Exception ex)
-                        {
-                            await transaction.RollbackAsync(); //Rollback transaction if anything fails
-                            return StatusCode(500, "An error occurred while processing AI analysis status.");
-                        }
-                    }
-                }
+        //                    await _dbContext.SaveChangesAsync();
+        //                    await transaction.CommitAsync(); //Commit transaction only after all operations succeed
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    await transaction.RollbackAsync(); //Rollback transaction if anything fails
+        //                    return StatusCode(500, "An error occurred while processing AI analysis status.");
+        //                }
+        //            }
+        //        }
 
-                var res = new AIAnalysisPollingResponse()
-                {
-                    Error = companyJobPost.AiAnalysisError,
-                    HasError = companyJobPost.AiAnalysisHasError ?? false,
-                    Status = companyJobPost.AiAnalysisStatus.HasValue ? companyJobPost.AiAnalysisStatus.Value : AiAnalysisStatus.Completed,
-                    UserCredits = user.Credits
-                };
-                return Ok(res);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "An error occurred while fetching AI analysis status.");
-            }
-        }
+        //        var res = new AIAnalysisPollingResponse()
+        //        {
+        //            Error = companyJobPost.AiAnalysisError,
+        //            HasError = companyJobPost.AiAnalysisHasError ?? false,
+        //            Status = companyJobPost.AiAnalysisStatus.HasValue ? companyJobPost.AiAnalysisStatus.Value : AiAnalysisStatus.Completed,
+        //            UserCredits = user.Credits
+        //        };
+        //        return Ok(res);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, "An error occurred while fetching AI analysis status.");
+        //    }
+        //}
 
 
         [HttpGet("company-job-candidates/{jobId}")]
@@ -408,6 +391,8 @@ namespace API.Controllers
                     AIMatchingDescription = application.AIMatchingDescription,
                     AIMatchingEducationLevel = application.AIMatchingEducationLevel,
                     AIMatchingExperience = application.AIMatchingExperience,
+                    AIAnalysisStatus = application.AIAnalysisStatus,
+                    AIFeatureUnlocked = application.AIFeatureUnlocked,
                     ConversationId = conversations.FirstOrDefault(r => r.ToUserId == application.SubmittingUserId)?.Id,
                     DidUserApplyOnPreviousCompanyJobPosts = getApplicantsForAllCompanyJobPosts.Contains(application.SubmittingUserId)
                 };

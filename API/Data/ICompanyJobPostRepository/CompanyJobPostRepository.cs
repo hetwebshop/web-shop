@@ -158,12 +158,7 @@ namespace API.Data.ICompanyJobPostRepository
                         throw new Exception("Korisnik nema dovoljno kredita za kreiranje odabranog oglasa. Molimo vas da dopunite kredite ili odaberete drugi paket oglasa.");
 
                     var now = DateTime.UtcNow;
-                    if (pricingPlan.Name == "Premium")
-                    {
-                        //newCompanyJobPost.IsAiAnalysisIncluded = true;
-                        newCompanyJobPost.AiAnalysisStatus = AiAnalysisStatus.Completed;
-                        //newCompanyJobPost.AiAnalysisProgress = 100.00;
-                    }
+
                     newCompanyJobPost.PricingPlanId = pricingPlan.Id;
                     newCompanyJobPost.AdStartDate = now;
                     newCompanyJobPost.AdEndDate = now.AddDays(pricingPlan.AdActiveDays);

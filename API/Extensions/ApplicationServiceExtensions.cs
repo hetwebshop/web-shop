@@ -73,6 +73,8 @@ namespace API.Extensions
 
             services.AddHttpClient<RecaptchaService>();
 
+            services.AddSingleton<EncryptionHelper>();
+
             services.AddIdentity<User, Role>(opt => { 
                 opt.Password.RequireNonAlphanumeric = true;
                 opt.Password.RequiredLength = 8;
