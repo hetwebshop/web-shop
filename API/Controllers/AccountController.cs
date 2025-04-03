@@ -178,11 +178,12 @@ namespace API.Controllers
 
             // Slanje verifikacionog emaila (ovdje koristite svoju email uslugu)
             string messageBody = $@"
-            <p style='color: #66023C;'>Hvala vam što ste se registrirali na našu platformu. Molimo vas da potvrdite vašu email adresu kako biste aktivirali svoj račun.</p>
-            <p style='text-align: center;'>
-                <a href='{verificationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Kliknite ovdje</a>
-            </p>";
-            string subject = "Verifikujte svoju email adresu";
+            <p style='color: black;'>Hvala vam što ste se registrirali na našu platformu. Molimo vas da potvrdite vašu email adresu kako biste aktivirali svoj račun.</p>
+            <p style='text-align: start;'>
+                <a href='{verificationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Potvrdi email adresu</a>
+            </p>
+            <p>Ako dugme ne radi, kopirajte ovaj link u pretraživač:<br>{verificationUrl}</p>";
+            string subject = "Potvrdite svoj račun na platformi Poslovnioglasi";
             string emailHtml = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, configuration);
 
             try
@@ -220,13 +221,50 @@ namespace API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> TestEmailTemplate()
         {
-            string subject = "Verifikujte svoju email adresu";
             string verificationUrl = "http://localhost:3000/";
+            string subject = "🎉 Čestitamo! Osvojili ste besplatnu objavu oglasa!";
+
             string messageBody = $@"
-            <p style='color: #66023C;'>Hvala vam što ste se registrirali na našu platformu. Molimo vas da potvrdite vašu email adresu kako biste aktivirali svoj račun.</p>
-            <p style='text-align: center;'>
-                <a href='{verificationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Kliknite ovdje</a>
-            </p>";
+    <p>Poštovani,</p>
+
+    <p>Hvala što ste se prijavili za rani pristup na platformi Poslovnioglasi! 🚀<br>
+    Uz to, čestitamo! 🎁 Kao jedna od prvih 30 kompanija, osvojili ste besplatnu objavu oglasa!</p>
+
+    <p>
+        🔜 Platforma kreće za samo nekoliko dana! 🔜
+    </p>
+
+    <p>Čim bude dostupna, dobit ćete obavještenje i moći ćete odmah da objavite svoj prvi oglas i zaprimite prve aplikacije od kvalifikovanih kandidata – brzo, jednostavno i efikasno!</p>
+
+    <p>Šta dalje?</p>
+    <ul>
+        <li>✅ Očekujte našu poruku čim platforma bude aktivna.</li>
+        <li>✅ U međuvremenu, pratite nas na Facebook stranici <a href='https://www.facebook.com/profile.php?id=61573110207228' target='_blank'>poslovnioglasi.ba</a>, Instagram stranici <a href='https://www.instagram.com/poslovnioglasi_ba/?next=%2F' target='_blank'>@poslovnioglasi_ba</a> i na našem web sajtu <a href='https://poslovnioglasi.ba' target='_blank'>poslovnioglasi.ba</a> za ekskluzivne novosti.</li>
+    </ul>
+    <p style='font-weight: bold;'>Radujemo se što ste dio ove revolucije u zapošljavanju! 🎯</p>
+    ";
+
+
+            string messageBody2 = $@"
+    <p>Pozdrav dragi korisniče,</p>
+
+    <p>Hvala što ste se prijavili za rani pristup na platformi Poslovnioglasi! 🚀<br>
+    Uz to, čestitamo! 🎁 Kao jedan od prvih 100 korisnika, osvojili ste besplatnu objavu oglasa!</p>
+
+    <p>
+        🔜 Platforma kreće za samo nekoliko dana! 🔜
+    </p>
+
+    <p>Čim bude dostupna, dobit ćete obavještenje i moći ćete odmah da objavite oglas ili aplicirate na poslove – brzo, jednostavno i efikasno!</p>
+
+    <p>Šta dalje?</p>
+    <ul>
+        <li>✅ Očekujte našu poruku čim platforma bude aktivna.</li>
+        <li>✅ U međuvremenu, pratite nas na Facebook stranici <a href='https://www.facebook.com/profile.php?id=61573110207228' target='_blank'>poslovnioglasi.ba</a>, Instagram stranici <a href='https://www.instagram.com/poslovnioglasi_ba/?next=%2F' target='_blank'>@poslovnioglasi_ba</a> i na našem web sajtu <a href='https://poslovnioglasi.ba' target='_blank'>poslovnioglasi.ba</a> za ekskluzivne novosti.</li>
+    </ul>
+    <p style='font-weight: bold;'>Radujemo se što ste dio ove revolucije u zapošljavanju! 🎯</p>
+    ";
+
             string emailHtml = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, configuration);
 
             // Send the email
@@ -352,10 +390,10 @@ namespace API.Controllers
             try
             {
                 string messageBody = $@"
-                <p style='color: #66023C;'>Dragi <strong>{user.Company.CompanyName}</strong>,</p>
-                <p style='color: #66023C;'>Hvala što ste se registrovali na našoj platformi! Vaš korisnički račun je uspješno kreiran, međutim, još uvijek čeka odobrenje od strane administratora. Nakon verifikacije, moći ćete pristupiti svim funkcijama i resursima.</p>
-                <p style='color: #66023C;'>Vaš korisnički račun će biti aktiviran čim administrator izvrši verifikaciju.</p>
-                <p style='color: #66023C;'>Zahvaljujemo na strpljenju, i radujemo se što ćete postati dio naše zajednice!</p>";
+                <p style='color: black;'>Dragi <strong>{user.Company.CompanyName}</strong>,</p>
+                <p style='color: black;'>Hvala što ste se registrovali na našoj platformi! Vaš korisnički račun je uspješno kreiran, međutim, još uvijek čeka odobrenje od strane administratora. Nakon verifikacije, moći ćete pristupiti svim funkcijama i resursima.</p>
+                <p style='color: black;'>Vaš korisnički račun će biti aktiviran čim administrator izvrši verifikaciju.</p>
+                <p style='color: black;'>Zahvaljujemo na strpljenju, i radujemo se što ćete postati dio naše zajednice!</p>";
 
                 string subject = "Registracija uspješna - Čekate Verifikaciju";
                 string emailHtml = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, configuration);
