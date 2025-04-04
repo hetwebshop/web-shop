@@ -51,6 +51,7 @@ namespace API.Data
         public DbSet<ChatMessage> ChatMessages { get; set; }
         public DbSet<CandidateComment> CandidateComments { get; set; }
         public DbSet<UserTransaction> UserTransactions { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         public DbSet<Notification> Notifications { get; set; }
 
@@ -268,6 +269,11 @@ namespace API.Data
 
         private void RegisterUserRolesTables(ModelBuilder builder)
         {
+            builder.Entity<RefreshToken>()
+            .HasIndex(rt => new { rt.UserId, rt.DeviceId })
+            .IsUnique(); // Ensures a user can have only one refresh token per device
+
+
             builder.Entity<User>()
                 .HasOne(u => u.JobCategory)
                 .WithMany()

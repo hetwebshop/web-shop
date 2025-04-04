@@ -483,11 +483,24 @@ namespace API.Controllers
             var refreshToken = _tokenService.CreateRefreshToken();
 
             user.LastActive = DateTime.UtcNow;
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // SAME VALUE IS IN SetTokenInsideCookie
             await _userManager.UpdateAsync(user);
 
             _tokenService.SetTokenInsideCookie(token, refreshToken, HttpContext);
+
+            loginDto.IPAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            var refreshTokenObj = new RefreshToken()
+            {
+                CreatedAt = DateTime.UtcNow,
+                UserId = user.Id,
+                Token = refreshToken,
+                ExpiryDate = DateTime.UtcNow.AddDays(7),
+                IPAddress = loginDto.IPAddress,
+                UserAgent = loginDto.UserAgent,
+                DeviceId = loginDto.DeviceId
+            };
+            await _dbContext.RefreshTokens.AddAsync(refreshTokenObj);
+            await _dbContext.SaveChangesAsync();
 
             var dto = ConvertUserToUserDto(user);
 

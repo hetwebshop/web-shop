@@ -66,9 +66,7 @@ namespace API.Controllers
         private readonly ILogger<ConversationController> _logger;
         private readonly int CompanyAdActiveDays;
 
-        private readonly EncryptionHelper _encryptionHelper;
-
-        public ConversationController(IUserJobPostService jobPostService, IUnitOfWork uow, IBlobStorageService blobStorageService, IUserJobPostRepository userJobPostRepository, DataContext dbContext, IEmailService emailService, IConfiguration configuration, IUserApplicationsRepository userApplicationsRepository, ILogger<ConversationController> logger, EncryptionHelper encryptionHelper)
+        public ConversationController(IUserJobPostService jobPostService, IUnitOfWork uow, IBlobStorageService blobStorageService, IUserJobPostRepository userJobPostRepository, DataContext dbContext, IEmailService emailService, IConfiguration configuration, IUserApplicationsRepository userApplicationsRepository, ILogger<ConversationController> logger)
         {
             _jobPostService = jobPostService;
             _uow = uow;
@@ -81,7 +79,6 @@ namespace API.Controllers
             this.userApplicationsRepository = userApplicationsRepository;
             _logger = logger;
             CompanyAdActiveDays = int.Parse(configuration.GetSection("CompanyActiveAdDays").Value);
-            _encryptionHelper = encryptionHelper;
         }
 
         [HttpPost("contactuser/{userAdId}")]
@@ -119,7 +116,7 @@ namespace API.Controllers
                 ConversationId = conversation.Id,
                 CreatedAt = now,
                 FromUserId = userId,
-                Message = _encryptionHelper.Encrypt(request.Message),
+                Message = request.Message,
             };
 
             await _dbContext.ChatMessages.AddAsync(chatMessage);
@@ -184,7 +181,7 @@ namespace API.Controllers
                         ConversationId = conversation.Id,
                         CreatedAt = now,
                         FromUserId = userId,
-                        Message = _encryptionHelper.Encrypt(request.Message),
+                        Message = request.Message,
                     };
 
                     await _dbContext.ChatMessages.AddAsync(chatMessage);
@@ -269,7 +266,7 @@ namespace API.Controllers
                 CompanyJobPostId = item.CompanyJobPostId,
                 UserJobPostId = item.UserJobPostId,
                 IsUnread = item.MessagesToCurrentUser.Count(r => !r.IsRead) > 0,
-                LastMessage = _encryptionHelper.Decrypt(item.messages.OrderByDescending(r => r.CreatedAt).FirstOrDefault()?.Message),
+                LastMessage = item.messages.OrderByDescending(r => r.CreatedAt).FirstOrDefault()?.Message,
                 LastMessageDate = item.messages.OrderByDescending(r => r.CreatedAt).FirstOrDefault()?.CreatedAt,
                 Position = item.Position
             }).ToList();
@@ -334,7 +331,7 @@ namespace API.Controllers
                 CompanyJobPostId = item.CompanyJobPostId,
                 UserJobPostId = item.UserJobPostId,
                 IsUnread = item.MessagesToCurrentUser.Count(r => !r.IsRead) > 0,
-                LastMessage = _encryptionHelper.Decrypt(item.messages.OrderByDescending(r => r.CreatedAt).FirstOrDefault()?.Message),
+                LastMessage = item.messages.OrderByDescending(r => r.CreatedAt).FirstOrDefault()?.Message,
                 LastMessageDate = item.messages.OrderByDescending(r => r.CreatedAt).FirstOrDefault()?.CreatedAt,
                 Position = item.Position
             }).ToList();
@@ -369,7 +366,7 @@ namespace API.Controllers
                 {
                     Id = m.Id,
                     FromUserId = m.FromUserId,
-                    Message = _encryptionHelper.Decrypt(m.Message),
+                    Message = m.Message,
                     CreatedAt = m.CreatedAt,
                     ConversationId = m.ConversationId
                 })
@@ -427,7 +424,7 @@ namespace API.Controllers
                 var chatMessage = new ChatMessage()
                 {
                     ConversationId = conversationId,
-                    Message = _encryptionHelper.Encrypt(req.Message),
+                    Message = req.Message,
                     CreatedAt = DateTime.UtcNow,
                     FromUserId = currentUserId,
                     IsRead = false
