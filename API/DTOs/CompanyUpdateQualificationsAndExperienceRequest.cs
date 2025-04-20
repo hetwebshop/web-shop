@@ -6,5 +6,6 @@
         public string Certifications { get; set; }
         public int? EducationLevelId { get; set; }
         public int? RequiredExperience { get; set; }
+        public string Languages { get; set; }
     }
 }

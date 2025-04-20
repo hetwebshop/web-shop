@@ -75,6 +75,7 @@ namespace API.Data.ICompanyJobPostRepository
                 var keyword = adsParameters.searchKeyword.ToLower();
                 companyJobPosts = companyJobPosts.Where(u =>
                     (!string.IsNullOrEmpty(u.Position) && u.Position.ToLower().Contains(keyword)) ||
+                    (!string.IsNullOrEmpty(u.CompanyName) && u.CompanyName.ToLower().Contains(keyword)) ||
                     (!string.IsNullOrEmpty(u.JobDescription) && u.JobDescription.ToLower().Contains(keyword)) ||
                     (!string.IsNullOrEmpty(u.AdName) && u.AdName.ToLower().Contains(keyword))
                 );
@@ -277,6 +278,7 @@ namespace API.Data.ICompanyJobPostRepository
                 existingCompanyJobPost.RequiredExperience = updatedCompanyJobPost.RequiredExperience;
                 existingCompanyJobPost.EducationLevelId = updatedCompanyJobPost.EducationLevelId;
                 existingCompanyJobPost.Certifications = updatedCompanyJobPost.Certifications;
+                existingCompanyJobPost.Languages = updatedCompanyJobPost.Languages;
 
                 await DataContext.SaveChangesAsync();
             }

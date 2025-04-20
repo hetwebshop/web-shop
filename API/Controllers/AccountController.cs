@@ -11,6 +11,7 @@ using AutoMapper;
 using Ganss.Xss;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -48,7 +49,8 @@ namespace API.Controllers
         private readonly string Environment;
         private readonly RecaptchaService _recaptchaService;
         private readonly ILogger<AccountController> _logger;
-        private DateTime EarlyAccessEndDate;
+        private readonly bool addFreeCreditsEnabled;
+        private readonly string BackendUrl;
 
         public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration,
             IUnitOfWork uow, IMapper mapper, ITokenService tokenService, IEmailService emailService, IBlobStorageService blobStorageService, DataContext dbContext, RecaptchaService recaptchaService, ILogger<AccountController> logger)
@@ -69,16 +71,8 @@ namespace API.Controllers
             SupportPhone = configuration.GetSection("SupportPhoneNumber").Value;
             Environment = configuration.GetSection("Environment").Value;
             _recaptchaService = recaptchaService;
-            var earlyAccessEndDateString = configuration.GetSection("EarlyAccessEndDate").Value;
-            if (DateTime.TryParse(earlyAccessEndDateString, out var parsedDate))
-            {
-                EarlyAccessEndDate = parsedDate;
-            }
-            else
-            {
-                _logger.LogError($"Invalid EarlyAccessEndDate value: {earlyAccessEndDateString}. Using default value.");
-                EarlyAccessEndDate = DateTime.MinValue;
-            }
+            addFreeCreditsEnabled = bool.Parse(configuration.GetSection("AddFreeCreditsEnabled").Value);
+            BackendUrl = configuration.GetSection("BackendUrl").Value;
         }
 
         private bool IsUserAdult(DateTime dateOfBirth)
@@ -151,9 +145,9 @@ namespace API.Controllers
 
             user.IsApproved = true;
             user.TermsAccepted = registerDto.TermsAccepted;
-            //user.EmailConfirmed = true;
+            user.EmailConfirmed = true;
 
-            if(DateTime.Now <= EarlyAccessEndDate)
+            if(addFreeCreditsEnabled)
                 user.Credits = 30;
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
@@ -335,10 +329,11 @@ namespace API.Controllers
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
             
-            user.IsApproved = false;
+            user.IsApproved = true;
+            user.EmailConfirmed = true;
 
             user.TermsAccepted = registerDto.TermsAccepted;
-            if (DateTime.Now <= EarlyAccessEndDate)
+            if (addFreeCreditsEnabled)
                 user.Credits = 270;
             if (registerDto.Photo != null)
             {
@@ -417,7 +412,27 @@ namespace API.Controllers
                 });
 
                 //Notify admin
-                _emailService.SendEmailAsync(configuration.GetSection("AdminRecipientEmailAddress").Value, "Registracija kompanije - novi zahtjev", $"Dobili ste novi zahtjev za registracijom od kompanije: {registerDto.Email}, {registerDto.CompanyName}");
+                string approvalUrl = $"{BackendUrl}/account/approvecompany/{user.Id}";
+                string emailBody = $@"
+                <p>Dobili ste novi zahtjev za registraciju od kompanije:</p>
+                <ul>
+                    <li>Email: {registerDto.Email}</li>
+                    <li>Adresa: {registerDto.Address}</li>
+                    <li>Naziv kompanije: {registerDto.CompanyName}</li>
+                    <li>Telefon: {registerDto.PhoneNumber}</li>
+                </ul>
+                <p>
+                    <a href='{approvalUrl}' style='
+                        display: inline-block;
+                        padding: 10px 20px;
+                        background-color: #66023C;
+                        color: #ffffff;
+                        text-decoration: none;
+                        border-radius: 5px;
+                        font-weight: bold;
+                    '>Odobri korisnika</a>
+                </p>";
+                _emailService.SendEmailWithTemplateAsync(configuration.GetSection("AdminRecipientEmailAddress").Value, "Registracija kompanije - novi zahtjev", emailBody);
             }
             catch (Exception ex)
             {
@@ -433,6 +448,21 @@ namespace API.Controllers
                 Email = user.Email,
                 CompanyAddress = user.Company.Address,
             };
+        }
+
+        [HttpGet("approvecompany/{id}")]
+        [EnableCors("PublicCors")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ApproveCompany(int id)
+        {
+            var user = _dbContext.Users.FirstOrDefault(r => r.Id == id);
+            if(user != null)
+            {
+                user.IsApproved = true;
+                user.EmailConfirmed = true;
+                await _userManager.UpdateAsync(user);
+            }
+            return Ok();
         }
 
         [HttpGet("me")]
@@ -499,6 +529,9 @@ namespace API.Controllers
                 UserAgent = loginDto.UserAgent,
                 DeviceId = loginDto.DeviceId
             };
+            var existingToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(r => r.UserId == user.Id && r.DeviceId == loginDto.DeviceId);
+            if (existingToken != null)
+                _dbContext.RefreshTokens.Remove(existingToken);
             await _dbContext.RefreshTokens.AddAsync(refreshTokenObj);
             await _dbContext.SaveChangesAsync();
 
@@ -874,6 +907,7 @@ namespace API.Controllers
             user.YearsOfExperience = req.YearsOfExperience;
             user.EducationLevelId = req.EducationLevelId;
             user.EmploymentStatusId = req.EmploymentStatusId;
+            user.Languages = req.Languages;
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded) return BadRequest("Desila se greška prilikom ažuriranja korisnika.");
@@ -1261,6 +1295,7 @@ namespace API.Controllers
                 EducationLevelId = user.EducationLevel?.Id,
                 Coverletter = user.Coverletter,
                 Role = user.UserRoles.First().Role.Name,
+                Languages = user.Languages,
                 UserPreviousCompanies = user.UserPreviousCompanies?.Select(userPreviousCompany => new UserPreviousCompaniesDto()
                 {
                     CompanyName = userPreviousCompany.CompanyName,

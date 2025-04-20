@@ -4,6 +4,7 @@ using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250404101642_AddUserApplicationLanguages")]
+    partial class AddUserApplicationLanguages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -144,9 +146,6 @@ namespace API.Migrations
 
                     b.Property<DateTime?>("MeetingDateTime")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("MeetingPlace")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OnlineMeetingLink")
                         .HasColumnType("nvarchar(max)");

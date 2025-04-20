@@ -22,7 +22,6 @@ namespace API.Services
     {
         public int CompanyJobPostId { get; set; }
         public int UserApplicationId { get; set; }
-        public string Position { get; set; }
     }
     public interface ISendNotificationsQueueClient
     {

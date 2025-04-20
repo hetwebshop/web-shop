@@ -51,6 +51,8 @@ namespace API.Entities.JobPost
 
         public int? YearsOfExperience { get; set; }
 
+        public string Languages { get; set; }
+
         public int? EmploymentStatusId { get; set; }
         public EmploymentStatus? EmploymentStatus { get; set; }
 

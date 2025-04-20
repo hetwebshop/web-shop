@@ -42,6 +42,9 @@ namespace API.DTOs
         public string AIAnalysisStatus { get; set; }
         public bool AIFeatureUnlocked { get; set; }
 
+        public string Languages { get; set; }
+        public string MeetingPlace { get; set; }
+
         public List<UserEducationDto> Educations { get; set; }
         public List<UserPreviousCompaniesDto> PreviousCompanies { get; set; }
     }

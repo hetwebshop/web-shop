@@ -70,7 +70,9 @@ namespace API.Controllers
                     Id = application.UserApplication.Id,
                     IsCompanyAdExpired = application.UserApplication.CompanyJobPost.AdEndDate < DateTime.UtcNow ? true : false,
                     CompanyAdEndDate = application.UserApplication.CompanyJobPost.AdEndDate,
-                    ConversationId = application.ConversationId
+                    ConversationId = application.ConversationId,
+                    OnlineMeetingLink = application.UserApplication.OnlineMeetingLink,
+                    MeetingPlace = application.UserApplication.MeetingPlace
                 };
                 userApplicationsTableData.Add(tableData);
             }
@@ -147,6 +149,14 @@ namespace API.Controllers
                 return Forbid("Nemate pravo pristupa");
             req.UserApplicationId = applicationId;
             req.MeetingDateTimeDateType = req.MeetingDateTime;
+            if(req.ApplicationStatus != ApplicationStatus.MeetingScheduled)
+            {
+                req.MeetingDateTime = null;
+                req.MeetingDateTimeDateType = null;
+                req.MeetingPlace = null;
+                req.OnlineMeetingLink = null;
+                req.IsOnlineMeeting = false;
+            }
             var updatedApplication = await userApplicationsRepository.UpdateUserApplicationStatusAsync(req);
             var jobPostNotificationMessage = new NotificationEventMessage
             {
@@ -350,6 +360,7 @@ namespace API.Controllers
                 Position = userApplication.CompanyJobPost?.Position,
                 MeetingDateTime = userApplication.MeetingDateTime,
                 Biography = userApplication.Biography,
+                MeetingPlace = userApplication.MeetingPlace,
                 PreviousCompanies = userApplication.PreviousCompanies?.Select(userPreviousCompany => new UserPreviousCompaniesDto
                 {
                     CompanyName = userPreviousCompany.CompanyName,

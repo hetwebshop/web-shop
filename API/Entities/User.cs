@@ -63,5 +63,6 @@ namespace API.Entities
         //public DateTime RefreshTokenExpiryTime { get; set; }
 
         public string Coverletter { get; set; }
+        public string Languages { get; set; }
     }
 }

@@ -29,5 +29,8 @@ namespace API.DTOs
         public int? ConversationId { get; set; }
         public bool DidUserApplyOnPreviousCompanyJobPosts { get; set; }
         public bool AIFeatureUnlocked { get; set; }
+        public string OnlineMeetingLink { get; set; }
+        public string Feedback { get; set; }
+        public string MeetingPlace { get; set; }
     }
 }

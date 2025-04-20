@@ -48,5 +48,6 @@ namespace API.DTOs
         public string CompanyName { get; set; }
         public IFormFile? Logo { get; set; }
         public double CurrentUserCredits { get; set; }
+        public string Languages { get; set; }
     }
 }

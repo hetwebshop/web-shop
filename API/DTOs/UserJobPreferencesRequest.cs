@@ -11,5 +11,6 @@
         public int? YearsOfExperience { get; set; }
         public int? EducationLevelId { get; set; }
         public int? EmploymentStatusId { get; set; }
+        public string Languages { get; set; }
     }
 }

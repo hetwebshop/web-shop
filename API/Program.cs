@@ -30,6 +30,14 @@ builder.Services.AddSwaggerGen(c =>
 var allowedOrigins = builder.Configuration.GetSection("AllowedCorsOrigins").Get<string[]>();
 builder.Services.AddCors(options =>
 {
+    options.AddPolicy("PublicCors", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+
     options.AddPolicy("CorsPolicy", policy =>
     {
         policy.WithOrigins(allowedOrigins)

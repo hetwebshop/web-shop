@@ -150,8 +150,7 @@ namespace API.Services.UserOfferServices
                     var applicantPredictionMessage = new NewApplicantPredictionQueueMessage()
                     {
                         CompanyJobPostId = companyJobPost.Id,
-                        UserApplicationId = newItem.Id,
-                        Position = companyJobPost.Position
+                        UserApplicationId = newItem.Id
                     };
                     try
                     {

@@ -58,6 +58,8 @@ namespace API.Entities.Applications
         public string AIAnaylsisError { get; set; }
 
         public bool AIFeatureUnlocked { get; set; }
+        public string Languages { get; set; }
+        public string MeetingPlace { get; set; }
     }
 
 }

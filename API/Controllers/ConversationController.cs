@@ -223,17 +223,10 @@ namespace API.Controllers
             var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
             if (!user.IsCompany)
                 return Unauthorized("Nemate pravo pristupa");
-            // Optimize the query to only select necessary columns
-            var userConversations = await _dbContext.Conversations
-                .Include(r => r.FromUser)
-                .ThenInclude(r => r.Company)
-                .Include(r => r.ToUser)
-                .Include(r => r.CompanyJobPost)
-                .Include(r => r.UserJobPost)
+            
+            // Query base
+            var query = _dbContext.Conversations
                 .Where(r => r.FromUserId == currentUserId || r.ToUserId == currentUserId)
-                .OrderByDescending(r => r.CreatedAt)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
                 .Select(conversation => new
                 {
                     conversation.Id,
@@ -242,33 +235,46 @@ namespace API.Controllers
                     conversation.CreatedAt,
                     conversation.CompanyJobPostId,
                     conversation.UserJobPostId,
-                    conversation.ToUser.FirstName,
-                    conversation.ToUser.LastName,
-                    MessagesToCurrentUser = conversation.Messages.Where(r => r.FromUserId != currentUserId),
-                    messages = conversation.Messages,
-                    Position = conversation.UserJobPostId != null ? conversation.UserJobPost.Position :
-                       conversation.CompanyJobPostId != null ? conversation.CompanyJobPost.Position : null
-                })
+                    ToUserFirstName = conversation.ToUser.FirstName,
+                    ToUserLastName = conversation.ToUser.LastName,
+                    Messages = conversation.Messages,
+                    MessagesToCurrentUser = conversation.Messages.Where(m => m.FromUserId != currentUserId),
+                    LatestMessageDate = conversation.Messages
+                        .OrderByDescending(m => m.CreatedAt)
+                        .Select(m => m.CreatedAt)
+                        .FirstOrDefault(),
+                    LastMessage = conversation.Messages
+                        .OrderByDescending(m => m.CreatedAt)
+                        .Select(m => m.Message)
+                        .FirstOrDefault(),
+                    UserJobPostPosition = conversation.UserJobPost.Position,
+                    CompanyJobPostPosition = conversation.CompanyJobPost.Position
+                });
+
+            // Get total count for pagination
+            var totalConversationsCount = await query.CountAsync();
+
+            // Apply sorting and paging
+            var conversationsPaged = await query
+                .OrderByDescending(c => c.LatestMessageDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            // Get the total count (this might still be necessary for pagination)
-            var totalConversationsCount = await _dbContext.Conversations
-                .Where(r => r.FromUserId == currentUserId || r.ToUserId == currentUserId)
-                .CountAsync();
-
-            var conversationsDto = userConversations.Select(item => new ConversationDto
+            // Project to DTO
+            var conversationsDto = conversationsPaged.Select(c => new ConversationDto
             {
-                Id = item.Id,
-                FromUserId = item.FromUserId,
-                ToUserId = item.ToUserId,
-                CreatedAt = item.CreatedAt,
-                UserFullName = item.FirstName + " " + item.LastName,
-                CompanyJobPostId = item.CompanyJobPostId,
-                UserJobPostId = item.UserJobPostId,
-                IsUnread = item.MessagesToCurrentUser.Count(r => !r.IsRead) > 0,
-                LastMessage = item.messages.OrderByDescending(r => r.CreatedAt).FirstOrDefault()?.Message,
-                LastMessageDate = item.messages.OrderByDescending(r => r.CreatedAt).FirstOrDefault()?.CreatedAt,
-                Position = item.Position
+                Id = c.Id,
+                FromUserId = c.FromUserId,
+                ToUserId = c.ToUserId,
+                CreatedAt = c.CreatedAt,
+                UserFullName = $"{c.ToUserFirstName} {c.ToUserLastName}",
+                CompanyJobPostId = c.CompanyJobPostId,
+                UserJobPostId = c.UserJobPostId,
+                IsUnread = c.MessagesToCurrentUser.Any(m => !m.IsRead),
+                LastMessage = c.LastMessage,
+                LastMessageDate = c.LatestMessageDate,
+                Position = c.UserJobPostId != null ? c.UserJobPostPosition : c.CompanyJobPostPosition
             }).ToList();
 
             return Ok(new
@@ -288,16 +294,9 @@ namespace API.Controllers
             var user = await _uow.UserRepository.GetUserByIdAsync(currentUserId);
             if (user.IsCompany)
                 return Unauthorized("Nemate pravo pristupa");
-            // Optimize the query to only select necessary columns
-            var userConversations = await _dbContext.Conversations
-                .Include(r => r.FromUser)
-                .ThenInclude(r => r.Company)
-                .Include(r => r.UserJobPost)
-                .Include(r => r.CompanyJobPost)
+            // Base query for conversations
+            var query = _dbContext.Conversations
                 .Where(r => r.FromUserId == currentUserId || r.ToUserId == currentUserId)
-                .OrderByDescending(r => r.CreatedAt)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
                 .Select(conversation => new
                 {
                     conversation.Id,
@@ -306,34 +305,47 @@ namespace API.Controllers
                     conversation.CreatedAt,
                     conversation.CompanyJobPostId,
                     conversation.UserJobPostId,
-                    conversation.FromUser.Company.CompanyName,
-                    conversation.FromUser.Company.PhotoUrl,
-                    MessagesToCurrentUser = conversation.Messages.Where(r => r.FromUserId != currentUserId),
-                    messages = conversation.Messages,
-                    Position = conversation.UserJobPostId != null ? conversation.UserJobPost.Position :
-                       conversation.CompanyJobPostId != null ? conversation.CompanyJobPost.Position : null
-                })
+                    CompanyName = conversation.FromUser.Company.CompanyName,
+                    CompanyLogoUrl = conversation.FromUser.Company.PhotoUrl,
+                    Messages = conversation.Messages,
+                    MessagesToCurrentUser = conversation.Messages.Where(m => m.FromUserId != currentUserId),
+                    LatestMessageDate = conversation.Messages
+                        .OrderByDescending(m => m.CreatedAt)
+                        .Select(m => m.CreatedAt)
+                        .FirstOrDefault(),
+                    LastMessage = conversation.Messages
+                        .OrderByDescending(m => m.CreatedAt)
+                        .Select(m => m.Message)
+                        .FirstOrDefault(),
+                    UserJobPostPosition = conversation.UserJobPost.Position,
+                    CompanyJobPostPosition = conversation.CompanyJobPost.Position
+                });
+
+            // Total count for pagination
+            var totalConversationsCount = await query.CountAsync();
+
+            // Apply sorting and paging
+            var pagedConversations = await query
+                .OrderByDescending(c => c.LatestMessageDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            // Get the total count (this might still be necessary for pagination)
-            var totalConversationsCount = await _dbContext.Conversations
-                .Where(r => r.ToUserId == currentUserId)
-                .CountAsync();
-
-            var conversationsDto = userConversations.Select(item => new ConversationDto
+            // Map to DTO
+            var conversationsDto = pagedConversations.Select(c => new ConversationDto
             {
-                Id = item.Id,
-                FromUserId = item.FromUserId,
-                ToUserId = item.ToUserId,
-                CreatedAt = item.CreatedAt,
-                CompanyName = item.CompanyName,
-                CompanyLogoUrl = item.PhotoUrl,
-                CompanyJobPostId = item.CompanyJobPostId,
-                UserJobPostId = item.UserJobPostId,
-                IsUnread = item.MessagesToCurrentUser.Count(r => !r.IsRead) > 0,
-                LastMessage = item.messages.OrderByDescending(r => r.CreatedAt).FirstOrDefault()?.Message,
-                LastMessageDate = item.messages.OrderByDescending(r => r.CreatedAt).FirstOrDefault()?.CreatedAt,
-                Position = item.Position
+                Id = c.Id,
+                FromUserId = c.FromUserId,
+                ToUserId = c.ToUserId,
+                CreatedAt = c.CreatedAt,
+                CompanyName = c.CompanyName,
+                CompanyLogoUrl = c.CompanyLogoUrl,
+                CompanyJobPostId = c.CompanyJobPostId,
+                UserJobPostId = c.UserJobPostId,
+                IsUnread = c.MessagesToCurrentUser.Any(m => !m.IsRead),
+                LastMessage = c.LastMessage,
+                LastMessageDate = c.LatestMessageDate,
+                Position = c.UserJobPostId != null ? c.UserJobPostPosition : c.CompanyJobPostPosition
             }).ToList();
 
             return Ok(new

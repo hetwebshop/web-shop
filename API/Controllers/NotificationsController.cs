@@ -31,8 +31,10 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetNotifications([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetNotifications([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
+            if (page > 4)
+                return Ok();
             var userId = HttpContext.User.GetUserId().ToString();
             var notifications = await _dbContext.Notifications
                 .Where(n => n.UserId == userId)

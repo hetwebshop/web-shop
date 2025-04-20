@@ -90,6 +90,7 @@ namespace API.Data
             application.OnlineMeetingLink = req.OnlineMeetingLink;
             application.MeetingDateTime = req.MeetingDateTimeDateType;
             application.ApplicationStatusId = req.ApplicationStatus;
+            application.MeetingPlace = req.MeetingPlace;
 
             _context.UserApplications.Update(application);
             _context.SaveChanges();

@@ -56,6 +56,8 @@ namespace API.Entities.CompanyJobPost
         //public AiAnalysisStatus? AiAnalysisStatus { get; set; }
 
         public ICollection<UserApplication> UserApplications { get; set; }
+
+        public string Languages { get; set; }
     }
 
     //public enum AiAnalysisStatus

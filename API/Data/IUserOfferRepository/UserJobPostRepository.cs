@@ -79,13 +79,19 @@ namespace API.Data.IUserOfferRepository
                 var keyword = adsParameters.searchKeyword.ToLower();
                 userJobPosts = userJobPosts.Where(u =>
                     (!string.IsNullOrEmpty(u.Position) && u.Position.ToLower().Contains(keyword)) ||
-                    (!string.IsNullOrEmpty(u.Biography) && u.Biography.ToLower().Contains(keyword)) ||
+                    //(!string.IsNullOrEmpty(u.Biography) && u.Biography.ToLower().Contains(keyword)) ||
                     (!string.IsNullOrEmpty(u.ApplicantFirstName) && u.ApplicantFirstName.ToLower().Contains(keyword)) ||
                     (!string.IsNullOrEmpty(u.ApplicantLastName) && u.ApplicantLastName.ToLower().Contains(keyword)) ||
                     (!string.IsNullOrEmpty(u.ApplicantEmail) && u.ApplicantEmail.ToLower().Contains(keyword)) ||
                     (!string.IsNullOrEmpty(u.ApplicantPhoneNumber) && u.ApplicantPhoneNumber.ToLower().Contains(keyword)) || 
                     (!string.IsNullOrEmpty(u.AdTitle) && u.AdTitle.ToLower().Contains(keyword)) ||
-                    (!string.IsNullOrEmpty(u.AdAdditionalDescription) && u.AdAdditionalDescription.ToLower().Contains(keyword))
+                    (!string.IsNullOrEmpty(u.AdAdditionalDescription) && u.AdAdditionalDescription.ToLower().Contains(keyword)) ||
+                    (!string.IsNullOrEmpty(u.ApplicantFirstName) && !string.IsNullOrEmpty(u.ApplicantLastName) &&
+                        (
+                            (u.ApplicantFirstName + " " + u.ApplicantLastName).ToLower().Contains(keyword) ||
+                            (u.ApplicantLastName + " " + u.ApplicantFirstName).ToLower().Contains(keyword)
+                        )
+                    )
                 );
             }
 
@@ -377,6 +383,7 @@ namespace API.Data.IUserOfferRepository
                 existingUserJobPost.EmploymentStatusId = updateAdInfo.EmploymentStatusId;
                 existingUserJobPost.EmploymentTypeId = updateAdInfo.EmploymentTypeId;
                 existingUserJobPost.EducationLevelId = updateAdInfo.EducationLevelId;
+                existingUserJobPost.Languages = updateAdInfo.Languages;
                 //existingUserJobPost.Price = updateAdInfo.Pr
                 await DataContext.SaveChangesAsync();
                 //await DataContext.Entry(existingUserJobPost)

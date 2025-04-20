@@ -21,5 +21,7 @@ namespace API.DTOs
         public bool IsCompanyAdExpired { get; set; }
         public DateTime CompanyAdEndDate { get; set; }
         public int? ConversationId { get; set; }
+        public string OnlineMeetingLink { get; set; }
+        public string MeetingPlace { get; set; }
     }
 }

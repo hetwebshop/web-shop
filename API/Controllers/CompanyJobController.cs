@@ -393,6 +393,9 @@ namespace API.Controllers
                     AIMatchingExperience = application.AIMatchingExperience,
                     AIAnalysisStatus = application.AIAnalysisStatus,
                     AIFeatureUnlocked = application.AIFeatureUnlocked,
+                    OnlineMeetingLink = application.OnlineMeetingLink,
+                    Feedback = application.Feedback,
+                    MeetingPlace = application.MeetingPlace,
                     ConversationId = conversations.FirstOrDefault(r => r.ToUserId == application.SubmittingUserId)?.Id,
                     DidUserApplyOnPreviousCompanyJobPosts = getApplicantsForAllCompanyJobPosts.Contains(application.SubmittingUserId)
                 };
@@ -590,6 +593,7 @@ namespace API.Controllers
             companyJob.EducationLevelId = companyJobPostDto.EducationLevelId;
             companyJob.Certifications = companyJobPostDto.Certifications;
             companyJob.RequiredExperience = companyJobPostDto.RequiredExperience;
+            companyJob.Languages = companyJobPostDto.Languages;
             var updatedItem = await _jobPostService.UpdateQualificationsAndExpereinceAsync(companyJob);
             return Ok(updatedItem);
         }

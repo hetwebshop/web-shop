@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using jobify_azure_function;
+using Azure.Storage.Blobs;
 
 namespace jobify_notification_function
 {
@@ -98,13 +99,16 @@ namespace jobify_notification_function
                 await connection.OpenAsync();
 
                 // Get the job post by ID using Dapper
-                var query = "SELECT * FROM CompanyJobPosts WHERE Id = @JobPostId";
+                var query = "SELECT Id, JobCategoryId FROM CompanyJobPosts WHERE Id = @JobPostId";
                 var newItem = await connection.QueryFirstOrDefaultAsync<dynamic>(query, new { JobPostId = jobPostId });
-
+                var category = await connection.QueryFirstOrDefaultAsync<string>(
+                    "SELECT Name FROM JobCategories WHERE Id = @JobCategoryId",
+                    new { JobCategoryId = newItem.JobCategoryId }
+                );
                 if (newItem != null)
                 {
                     // Get users with similar interests
-                    var usersWithSimilarInterestQuery = "SELECT * FROM AspNetUsers WHERE JobCategoryId = @JobCategoryId";
+                    var usersWithSimilarInterestQuery = "SELECT Id, Email FROM AspNetUsers WHERE JobCategoryId = @JobCategoryId";
                     var usersWithSimilarInterest = await connection.QueryAsync<dynamic>(usersWithSimilarInterestQuery, new { JobCategoryId = newItem.JobCategoryId });
 
                     if (usersWithSimilarInterest.Any())
@@ -139,15 +143,17 @@ namespace jobify_notification_function
                                 {
                                     string adUrl = UIBaseUrl + $"company-ad-details/{newItem.Id}";
                                     string messageBody = $@"
-                                    <p style='color: #66023C;'>Poštovani <strong>{user.Email}</strong>,</p>
-                                    <p style='color: #66023C;'>Kreiran je novi oglas za posao u kategoriji: <strong>{newItem.JobCategory?.Name}</strong>.</p>
-                                    <p style='color: #66023C;'>Pogledajte detalje i prijavite se za ovu poslovnu priliku.</p>
-                                    <p style='text-align: center;'>
+                                    <p style='color: black;'>Poštovani <strong>{user.Email}</strong>,</p>
+                                    <p style='color: black;'>Kreiran je novi oglas za posao u kategoriji: <strong>{category}</strong>.</p>
+                                    <p style='color: black;'>Pogledajte detalje i prijavite se za ovu poslovnu priliku.</p>
+                                    <p style='text-align: start;'>
                                         <a href='{adUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Pogledajte Oglas</a>
-                                    </p>";
-                                    var subject = "Novi oglas koji bi vas mogao zanimati";
+                                    </p>
+<p style='color: black;'>Ako dugme nije klikabilno, možete otvoriti sljedeći URL: <a href='{adUrl}'>{adUrl}</a></p>
+";
+                                    var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate("", messageBody, _configuration);
 
-                                    var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, _configuration);
+                                    var subject = "Poslovnioglasi - Novi oglas koji bi vas mogao zanimati";
                                     await _emailService.SendEmailWithTemplateAsync(user.Email, subject, emailTemplate);
                                 }
                             }).ToList();
@@ -168,7 +174,7 @@ namespace jobify_notification_function
                 await connection.OpenAsync();
 
                 // Get the job post by ID
-                var query = "SELECT * FROM UserJobPosts WHERE Id = @JobPostId";
+                var query = "SELECT Id, JobCategoryId FROM UserJobPosts WHERE Id = @JobPostId";
                 var newItem = await connection.QueryFirstOrDefaultAsync<dynamic>(query, new { JobPostId = jobPostId });
 
                 if (newItem != null)
@@ -205,31 +211,43 @@ namespace jobify_notification_function
                         await connection.ExecuteAsync(insertNotificationQuery, notification);
                     }
 
-                    // Send email notifications
-                    var emailTasks = companiesNotifSettings
-                        .Where(setting => setting.NotificationType == 3)
-                        .Select(async companiesSetting =>
-                        {
-                            var user = companiesToNotify.FirstOrDefault(u => u.UserId == companiesSetting.UserId);
-                            if (user != null)
+                    var userIds = companiesToNotify.Select(c => (int)c.UserId).ToList();
+                    if (userIds.Any())
+                    {
+                        var companyUsers = await connection.QueryAsync<dynamic>(
+                            "SELECT Id, Email FROM AspNetUsers WHERE Id IN @UserIds",
+                            new { UserIds = userIds }
+                        );
+
+                        // Send email notifications
+                        var emailTasks = companiesNotifSettings
+                            .Where(setting => setting.NotificationType == 3)
+                            .Select(async companiesSetting =>
                             {
-                                string adUrl = UIBaseUrl + $"ad-details/{newItem.Id}";
-                                string messageBody = $@"
-                            <p style='color: #66023C;'>Poštovani <strong>{user.Email}</strong>,</p>
-                            <p style='color: #66023C;'>Kreiran je novi korisnički oglas za posao u kategoriji: <strong>{category}</strong>.</p>
-                            <p style='color: #66023C;'>Pogledajte detalje i kontaktirajte korisnika kako biste saznali više.</p>
-                            <p style='text-align: center;'>
+                                var user = companyUsers.FirstOrDefault(u => u.Id == companiesSetting.UserId);
+                                if (user != null)
+                                {
+                                    string adUrl = UIBaseUrl + $"ad-details/{newItem.Id}";
+                                    string messageBody = $@"
+                            <p style='color: black;'>Poštovani <strong>{user.Email}</strong>,</p>
+                            <p style='color: black;'>Kreiran je novi korisnički oglas za posao u kategoriji: <strong>{category}</strong>.</p>
+                            <p style='color: black;'>Pogledajte detalje i kontaktirajte korisnika kako biste saznali više.</p>
+                            <p style='text-align: start;'>
                                 <a href='{adUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Pogledajte Oglas</a>
-                            </p>";
-                                var subject = "Novi oglas koji bi vas mogao zanimati";
+                            </p>
+<p style='color: black;'>Ako dugme nije klikabilno, možete otvoriti sljedeći URL: <a href='{adUrl}'>{adUrl}</a></p>
+";
 
-                                var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, _configuration);
-                                await _emailService.SendEmailWithTemplateAsync(user.Email, subject, emailTemplate);
-                            }
-                        }).ToList();
+                                    var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate("", messageBody, _configuration);
 
-                    // Execute all email sending tasks asynchronously
-                    await Task.WhenAll(emailTasks);
+                                    var subject = "Poslovnioglasi - Novi oglas koji bi vas mogao zanimati";
+                                    await _emailService.SendEmailWithTemplateAsync(user.Email, subject, emailTemplate);
+                                }
+                            }).ToList();
+
+                        // Execute all email sending tasks asynchronously
+                        await Task.WhenAll(emailTasks);
+                    }
                 }
             }
         }
@@ -243,7 +261,7 @@ namespace jobify_notification_function
                 await connection.OpenAsync();
 
                 // Get the job post by ID
-                var query = "SELECT * FROM CompanyJobPosts WHERE Id = @JobPostId";
+                var query = "SELECT Id, EmailForReceivingApplications, CompanyName, Position, SubmittingUserId FROM CompanyJobPosts WHERE Id = @JobPostId";
                 var companyJobPost = await connection.QueryFirstOrDefaultAsync<dynamic>(query, new { JobPostId = jobPostId });
 
                 if (companyJobPost != null)
@@ -268,24 +286,44 @@ namespace jobify_notification_function
                             var companyName = companyJobPost.CompanyName;
                             var position = companyJobPost.Position;
 
+                            var cvFilePathQuery = "SELECT CvFilePath, CvFileName FROM UserApplications WHERE Id = @UserApplicationId";
+                            var userApplication = await connection.QueryFirstOrDefaultAsync<dynamic>(cvFilePathQuery, new { UserApplicationId = userApplicationId });
+                            if (userApplication == null)
+                                return;
                             string messageBody = $@"
-            <p style='color: #66023C;'>Dragi <strong>{companyName}</strong>,</p>
-            <p style='color: #66023C;'>Dobili ste novu prijavu za poziciju: <strong>{position}</strong>.</p>
-            <p style='color: #66023C;'>Pregledajte prijavu i poduzmite odgovarajuće korake.</p>
-            <p style='text-align: center;'>
-                <a href='{applicationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Pogledajte Prijavu</a>
-            </p>";
+    <p style='color: black;'>Dragi <strong>{companyName}</strong>,</p>
+    <p style='color: black;'>Dobili ste novu prijavu za poziciju: <strong>{position}</strong>.</p>
+";
+                            // Conditional message for CV attachment
+                            if (string.IsNullOrEmpty(userApplication.CvFilePath))
+                            {
+                                messageBody += @"
+                                    <p style='color: black;'>Korisnik nije priložio CV datoteku prilikom apliciranja na oglas.</p>";
+                            }
+                            else
+                            {
+                                messageBody += @"
+                                    <p style='color: black; font-weight: bold;'>CV datoteka se nalazi u prilogu.</p>
+                                    <p style='color: black; font-size: smaller; font-weight: bold;'>Molimo vas da obrišete CV datoteku najkasnije 90 dana nakon isteka vašeg oglasa, osim u situaciji ako ste u međuvremenu s aplikantom ostvarili radni odnos.</p>";
+                            }
 
-                            var subject = "Nova prijava na vaš oglas za posao";
-                            var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, _configuration);
+                            // Add the link to view the application details
+                            messageBody += $@"
+    <p style='color: black;'>Da biste pogledali sve detalje prijave, pritisnite na dugme ispod:</p>
+    <p style='text-align: start;'>
+        <a href='{applicationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Detalji Prijave</a>
+    </p>
+    <p style='color: black;'>Ako dugme nije klikabilno, možete otvoriti sljedeći URL: <a href='{applicationUrl}'>{applicationUrl}</a></p>";
+                            var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate("", messageBody, _configuration);
 
                             try
                             {
-                                await _emailService.SendEmailWithTemplateAsync(userEmail, subject, emailTemplate);
+                                var subject = "Poslovnioglasi - Nova prijava na vaš oglas za posao";
+                                await _emailService.SendEmailWithTemplateAsync(userEmail, subject, emailTemplate, userApplication.CvFilePath, userApplication.CvFileName);
                             }
                             catch (Exception ex)
                             {
-                                throw;
+                                _logger.LogError("Došlo je do greške prilikom slanja maila.", ex.Message);
                             }
                         }
 
@@ -318,7 +356,7 @@ namespace jobify_notification_function
             using (var connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
-                var userApplicationsQuery = "SELECT * FROM UserApplications WHERE Id IN @UserApplicationIds";
+                var userApplicationsQuery = "SELECT Id, Email, Feedback, ApplicationStatusId, MeetingDateTime, SubmittingUserId, CompanyJobPostId FROM UserApplications WHERE Id IN @UserApplicationIds";
                 var userApplications = await connection.QueryAsync<dynamic>(userApplicationsQuery, new
                 {
                     UserApplicationIds = userApplicationIds
@@ -326,7 +364,7 @@ namespace jobify_notification_function
                 if (userApplications != null && userApplications.Any())
                 {
                     // Get the job post by ID
-                    var query = "SELECT * FROM CompanyJobPosts WHERE Id = @JobPostId";
+                    var query = "SELECT Id, CompanyName, EmailForReceivingApplications, Position FROM CompanyJobPosts WHERE Id = @JobPostId";
                     var companyJobPost = await connection.QueryFirstOrDefaultAsync<dynamic>(query, new { JobPostId = userApplications.First().CompanyJobPostId });
 
                     if (companyJobPost != null)
@@ -352,24 +390,26 @@ namespace jobify_notification_function
                             }
 
                             string messageBody = $@"
-            <h4 style='color: black;'>Naslov: {title}</h4>
-            <p style='color: #66023C;'>Poruka: 
+            <h4 style='color: black; font-weight: normal;'>Naslov: {title}</h4>
+            <p style='color: black;'>Poruka: 
                 {messageToUser}</p>
-            <p style='color: #66023C;'>Email poslodavca: {companyEmail}</p>
-            <p style='text-align: center;'>
+            <p style='color: black;'>Email poslodavca: {companyEmail}</p>
+            <p style='text-align: start;'>
                 <a href='{applicationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Više detalja</a>
-            </p>";
+            </p>
+<p style='color: black;'>Ako dugme nije klikabilno, možete otvoriti sljedeći URL: <a href='{applicationUrl}'>{applicationUrl}</a></p>
+";
 
-                            var subject = $"POSLOVNIOGLASI – Odgovor na vašu prijavu za poziciju {companyJobPost.Position}";
-                            var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate(subject, messageBody, _configuration);
+                            var emailTemplate = EmailTemplateHelper.GenerateEmailTemplate("", messageBody, _configuration);
 
                             try
                             {
+                                var subject = $"Poslovnioglasi – Odgovor na vašu prijavu za poziciju {companyJobPost.Position}";
                                 await _emailService.SendEmailWithTemplateAsync(userEmail, subject, emailTemplate);
                             }
                             catch (Exception ex)
                             {
-                                throw;
+                                _logger.LogError("Došlo je do greške prilikom slanja maila.", ex.Message);
                             }
 
                             var notification = new

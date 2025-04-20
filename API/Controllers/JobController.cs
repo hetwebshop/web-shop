@@ -72,6 +72,12 @@ namespace API.Controllers
             var userId = HttpContext.User.GetUserId();
             if (userId == null)
                 return Unauthorized("Nemate pravo pristupa!");
+            //var user = _dbContext.Users.Include(r => r.Company).First(r => r.Id == userId);
+            //var companyName = "";
+            //if (user.IsCompany)
+            //{
+            //    adsParameters.CompanyName = user.Company?.CompanyName;
+            //}
             adsParameters.adStatus = JobPostStatus.Active;
             var jobPosts = await _jobPostService.GetJobPostsAsync(adsParameters);
             var pagedResponse = jobPosts.ToPagedResponse();
@@ -228,8 +234,10 @@ namespace API.Controllers
                 var sanitizer = new HtmlSanitizer();
                 string sanitizedBiography = sanitizer.Sanitize(userApplication.Biography);
                 string sanitizedCoverLetter = sanitizer.Sanitize(userApplication.CoverLetter);
+                string sanitizedLanguages = sanitizer.Sanitize(userApplication.Languages);
                 userApplication.Biography = sanitizedBiography;
                 userApplication.CoverLetter = sanitizedCoverLetter;
+                userApplication.Languages = sanitizedLanguages;
 
                 var newItem = await _jobPostService.CreateUserApplicationAsync(userApplication, user);
                 return Ok(newItem);

@@ -58,5 +58,7 @@ namespace API.DTOs
         public int? RefreshIntervalInDays { get; set; }
 
         public bool? CanCurrentUserApplyOnAd { get; set; } = true;
+
+        public string Languages { get; set; }
     }
 }
