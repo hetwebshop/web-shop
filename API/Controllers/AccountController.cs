@@ -141,11 +141,9 @@ namespace API.Controllers
 
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
-            //user.IsApproved = false;
-
-            user.IsApproved = true;
+            user.IsApproved = false;
             user.TermsAccepted = registerDto.TermsAccepted;
-            user.EmailConfirmed = true;
+            user.EmailConfirmed = false;
 
             if(addFreeCreditsEnabled)
                 user.Credits = 30;
@@ -329,8 +327,8 @@ namespace API.Controllers
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
             
-            user.IsApproved = true;
-            user.EmailConfirmed = true;
+            user.IsApproved = false;
+            user.EmailConfirmed = false;
 
             user.TermsAccepted = registerDto.TermsAccepted;
             if (addFreeCreditsEnabled)
