@@ -100,7 +100,7 @@ namespace API.Data.ICompanyJobPostRepository
 
         public async Task<PagedList<Company>> GetRegisteredCompaniesAsync(AdsPaginationParameters adsParameters)
         {
-            var registeredCompanies = DataContext.Companies.Include(r => r.City);
+            var registeredCompanies = DataContext.Companies.Where(r => !r.Email.Contains("@poslovnioglasi.ba")).Include(r => r.City);
 
             return await PagedList<Company>.ToPagedListAsync(registeredCompanies, adsParameters.PageNumber, adsParameters.PageSize);
         }
