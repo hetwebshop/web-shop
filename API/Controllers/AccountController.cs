@@ -273,24 +273,36 @@ namespace API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token)
         {
-            if (userId == null || token == null)
-                return BadRequest("Neispravan zahtjev");
+            try
+            {
+                _logger.LogInformation($"Starting confirm email, {userId}");
+                if (userId == null || token == null)
+                    return BadRequest("Neispravan zahtjev");
 
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                return BadRequest("Korisnik nije pronađen");
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                    return BadRequest("Korisnik nije pronađen");
 
-            var result = await _userManager.ConfirmEmailAsync(user, token);
-            if (!result.Succeeded)
-                return BadRequest("Potvrda emaila nije uspjela");
+                var result = await _userManager.ConfirmEmailAsync(user, token);
+                if (!result.Succeeded)
+                {
+                    _logger.LogError($"There was an issue while trying to confirm email: User: {userId}, Token: {token}");
+                    return BadRequest("Potvrda emaila nije uspjela");
+                }
 
-            // Nakon što je email potvrđen, možete aktivirati korisnički račun
-            user.IsApproved = true;
-            user.EmailConfirmed = true;
-            await _userManager.UpdateAsync(user);
+                // Nakon što je email potvrđen, možete aktivirati korisnički račun
+                user.IsApproved = true;
+                user.EmailConfirmed = true;
+                await _userManager.UpdateAsync(user);
 
-            // Preusmjeri na stranicu za potvrdu ili prijavu
-            return Ok();  // Ili na bilo koju drugu stranicu na koju želite preusmjeriti
+                // Preusmjeri na stranicu za potvrdu ili prijavu
+                return Ok();  // Ili na bilo koju drugu stranicu na koju želite preusmjeriti
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError($"There was an issue in confirm email: {ex.Message}");
+                return BadRequest("Došlo je do greške, pokušajte ponovo");
+            }
         }
 
 

@@ -293,7 +293,7 @@ namespace API.Data.IUserOfferRepository
 
         public async Task<List<JobCategory>> GetAllJobCategoriesAsync()
         {
-            var jobCategories = await DataContext.JobCategories.ToListAsync();
+            var jobCategories = await DataContext.JobCategories.OrderBy(r => r.Name).ToListAsync();
             return jobCategories;
         }
 

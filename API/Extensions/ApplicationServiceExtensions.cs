@@ -88,7 +88,7 @@ namespace API.Extensions
 
             services.Configure<DataProtectionTokenProviderOptions>(options =>
             {
-                options.TokenLifespan = TimeSpan.FromMinutes(15);
+                options.TokenLifespan = TimeSpan.FromDays(30);
             });
 
             services.AddAuthentication(options =>
