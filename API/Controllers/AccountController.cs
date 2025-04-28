@@ -49,7 +49,10 @@ namespace API.Controllers
         private readonly string Environment;
         private readonly RecaptchaService _recaptchaService;
         private readonly ILogger<AccountController> _logger;
-        private readonly bool addFreeCreditsEnabled;
+        private readonly bool addFreeUserCreditsEnabled;
+        private readonly bool addFreeCompanyCreditsEnabled;
+        private readonly int FreeUserCredits;
+        private readonly int FreeCompanyCredits;
         private readonly string BackendUrl;
 
         public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration,
@@ -71,7 +74,10 @@ namespace API.Controllers
             SupportPhone = configuration.GetSection("SupportPhoneNumber").Value;
             Environment = configuration.GetSection("Environment").Value;
             _recaptchaService = recaptchaService;
-            addFreeCreditsEnabled = bool.Parse(configuration.GetSection("AddFreeCreditsEnabled").Value);
+            addFreeUserCreditsEnabled = bool.Parse(configuration.GetSection("AddFreeUserCreditsEnabled").Value);
+            addFreeCompanyCreditsEnabled = bool.Parse(configuration.GetSection("AddFreeCompanyCreditsEnabled").Value);
+            FreeCompanyCredits = int.Parse(configuration.GetSection("FreeCompanyCredits").Value);
+            FreeUserCredits = int.Parse(configuration.GetSection("FreeUserCredits").Value);
             BackendUrl = configuration.GetSection("BackendUrl").Value;
         }
 
@@ -114,10 +120,6 @@ namespace API.Controllers
             {
                 return BadRequest("Morate prihvatiti uslove korištenja i politiku bezbjednosti.");
             }
-            if (await UserNameExist(registerDto.UserName))
-                return BadRequest("Registracija nije uspjela. Provjerite unesene podatke.");
-            if (await _userManager.Users.AnyAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper()))
-                return BadRequest("Registracija nije uspjela. Provjerite unesene podatke.");
             if (string.IsNullOrEmpty(registerDto.CaptchaToken))
             {
                 return BadRequest("Morate prihvatiti reCAPTCHA.");
@@ -130,7 +132,7 @@ namespace API.Controllers
                     return BadRequest("Neispravan reCAPTCHA odgovor.");
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError("Captcha is not available.");
                 return BadRequest($"reCaptcha nije dostupna. Molimo vas da kontaktirate podrsku na {SupportEmail} ili pozovite {SupportPhone}");
@@ -139,14 +141,60 @@ namespace API.Controllers
             if (!IsUserAdult(registerDto.DateOfBirth))
                 return BadRequest("Morate imati najmanje 18 godina da biste koristili aplikaciju.");
 
+            var existingUser = await _userManager.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper());
+            if (existingUser != null)
+            {
+                if (existingUser.EmailConfirmed)
+                {
+                    _logger.LogInformation("User already exists in database. Move user to login page: {Email}", existingUser.Email);
+                    // Korisnik već postoji i njegov email je potvrđen
+                    return BadRequest("Korisnik sa ovim emailom već postoji. Molimo vas da se prijavite na sistem. Ukoliko imate poteškoća, kontaktirajte nas na podrska@poslovnioglasi.ba.");
+                }
+
+                _logger.LogInformation("User already exists in database. We are sending new verification email to user: {Email}", existingUser.Email);
+
+                // Resend confirmation email
+                var newEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(existingUser);
+                var newVerificationUrl = $"{verificationEmailBaseAddress}confirm-email?userId=" + existingUser.Id + "&token=" + Uri.EscapeDataString(newEmailToken);
+
+                string userExistMessageBody = $@"
+    <p style='color: black;'>Već ste se registrovali. Molimo vas da potvrdite vašu email adresu klikom na link ispod.</p>
+    <p style='text-align: start;'>
+        <a href='{newVerificationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #66023C; color: #ffffff; text-decoration: none; border-radius: 5px;'>Potvrdi email adresu</a>
+    </p>
+    <p>Ako dugme ne radi, kopirajte ovaj link i otvorite ga u pretraživaču:<br>{newVerificationUrl}</p>";
+
+                string userExistSubject = "Potvrdite svoj račun na platformi Poslovnioglasi";
+                string userExistEmailHtml = EmailTemplateHelper.GenerateEmailTemplate(userExistSubject, userExistMessageBody, configuration);
+
+                try
+                {
+                    await _emailService.SendEmailWithTemplateAsync(existingUser.Email, userExistSubject, userExistEmailHtml);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to resend verification email to {Email}", existingUser.Email);
+                }
+
+                return new UserDto
+                {
+                    FirstName = existingUser.FirstName,
+                    LastName = existingUser.LastName,
+                    CityId = existingUser.CityId,
+                    UserName = existingUser.UserName,
+                    Email = existingUser.Email
+                };
+            }
+
+
             var user = _mapper.Map<User>(registerDto);
             user.LastActive = DateTime.UtcNow;
             user.IsApproved = false;
             user.TermsAccepted = registerDto.TermsAccepted;
             user.EmailConfirmed = false;
 
-            if(addFreeCreditsEnabled)
-                user.Credits = 30;
+            if(addFreeUserCreditsEnabled)
+                user.Credits = FreeUserCredits;
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
@@ -343,8 +391,8 @@ namespace API.Controllers
             user.EmailConfirmed = false;
 
             user.TermsAccepted = registerDto.TermsAccepted;
-            if (addFreeCreditsEnabled)
-                user.Credits = 270;
+            if (addFreeCompanyCreditsEnabled)
+                user.Credits = FreeCompanyCredits;
             if (registerDto.Photo != null)
             {
                 if (!FileHelper.IsValidImage(registerDto.Photo))
@@ -513,7 +561,10 @@ namespace API.Controllers
 
             if (!user.IsApproved)
             {
-                return BadRequest("Račun vaše kompanije čeka odobrenje od strane admina.");
+                if(user.IsCompany)
+                    return BadRequest("Račun vaše kompanije čeka odobrenje od strane admina.");
+                else
+                    return BadRequest("Molimo vas da potvrdite email koji ste koristili prilikom registracije profila.");
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
