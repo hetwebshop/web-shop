@@ -49,5 +49,7 @@ namespace API.DTOs
         public IFormFile? Logo { get; set; }
         public double CurrentUserCredits { get; set; }
         public string Languages { get; set; }
+        public bool ApplyViaExternalPlatform { get; set; }
+        public string ExternalPlatformApplicationUrl { get; set; }
     }
 }

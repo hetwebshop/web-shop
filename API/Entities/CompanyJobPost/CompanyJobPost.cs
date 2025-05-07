@@ -58,6 +58,9 @@ namespace API.Entities.CompanyJobPost
         public ICollection<UserApplication> UserApplications { get; set; }
 
         public string Languages { get; set; }
+
+        public bool ApplyViaExternalPlatform { get; set; }
+        public string ExternalPlatformApplicationUrl { get; set; }
     }
 
     //public enum AiAnalysisStatus

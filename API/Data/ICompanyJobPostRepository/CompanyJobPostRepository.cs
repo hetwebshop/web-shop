@@ -219,6 +219,8 @@ namespace API.Data.ICompanyJobPostRepository
                     existingCompanyJobPost.AdName = updatedCompanyJobPost.AdName;
                     existingCompanyJobPost.EmailForReceivingApplications = updatedCompanyJobPost.EmailForReceivingApplications;
                     existingCompanyJobPost.CompanyName = updatedCompanyJobPost.CompanyName;
+                    existingCompanyJobPost.ApplyViaExternalPlatform = updatedCompanyJobPost.ApplyViaExternalPlatform;
+                    existingCompanyJobPost.ExternalPlatformApplicationUrl = updatedCompanyJobPost.ExternalPlatformApplicationUrl;
 
                     await DataContext.SaveChangesAsync();
                 }

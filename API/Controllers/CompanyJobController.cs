@@ -551,6 +551,9 @@ namespace API.Controllers
             companyJob.EmailForReceivingApplications = companyJobPostDto.EmailForReceivingApplications;
             companyJob.Position = companyJobPostDto.Position;
             companyJob.CompanyName = companyJobPostDto.CompanyName;
+            companyJob.ApplyViaExternalPlatform = companyJobPostDto.ApplyViaExternalPlatform;
+            if(companyJob.ApplyViaExternalPlatform == true)
+                companyJob.ExternalPlatformApplicationUrl = companyJobPostDto.ExternalPlatformApplicationUrl;
             var updatedItem = await _jobPostService.UpdateCompanyJobPostAsync(companyJob);
             return Ok(updatedItem);
         }
