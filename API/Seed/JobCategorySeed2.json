@@ -174,5 +174,9 @@
   {
     "Id": 44,
     "Name": "Zdravstvo"
+  },
+  {
+    "Id": 45,
+    "Name": "Maloprodaja"
   }
 ]

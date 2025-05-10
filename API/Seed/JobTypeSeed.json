@@ -13,6 +13,10 @@
   },
   {
     "Id": 4,
+    "Name": "Rad na lokaciji"
+  },
+  {
+    "Id": 5,
     "Name": "Ostalo"
   }
 ]

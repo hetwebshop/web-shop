@@ -11,6 +11,8 @@ using API.Mappers;
 using API.PaginationEntities;
 using API.Services;
 using API.Services.CompanyJobPostServices;
+using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Ganss.Xss;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -20,7 +22,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace API.Controllers
@@ -39,6 +43,7 @@ namespace API.Controllers
         private readonly IConfiguration _configuration;
         private readonly int CompanyAdActiveDays;
         private double AIAnalysisPricePerCandidate;
+        private readonly string UIBaseUrl;
 
         public CompanyJobController(ICompanyJobPostService jobPostService, IUnitOfWork uow, ICompanyJobPostRepository companyJobPostRepository, IUserApplicationsRepository userApplicationsRepository, DataContext dbContext, IBlobStorageService blobStorageService, ISendNotificationsQueueClient sendNotificationsQueueClient, ILogger<CompanyJobController> logger, IConfiguration configuration)
         {
@@ -53,6 +58,7 @@ namespace API.Controllers
             _configuration = configuration;
             CompanyAdActiveDays = int.Parse(configuration.GetSection("CompanyActiveAdDays").Value);
             AIAnalysisPricePerCandidate = double.Parse(configuration.GetSection("AIAnalysisPricePerCandidate").Value);
+            UIBaseUrl = configuration.GetSection("UIBaseUrl").Value;
         }
 
 
@@ -402,6 +408,164 @@ namespace API.Controllers
                 candidatesTableData.Add(tableData);
             }
             return Ok(candidatesTableData);
+        }
+
+        [HttpPost("export-to-excel")]
+        public async Task<IActionResult> ExportToExcel([FromBody] ExportCandidatesToExcelRequest req)
+        {
+            var userId = HttpContext.User.GetUserId();
+            var userApplicationIds = req.UserApplicationIds;
+            var applications = await _dbContext.UserApplications
+                .Where(r => userApplicationIds.Contains(r.Id))
+                .Include(r => r.City)
+                .Include(a => a.User)
+                .Include(a => a.Educations)
+                .Include(a => a.PreviousCompanies)
+                .Include(a => a.CompanyJobPost)
+                .ToListAsync();
+
+            if (applications[0].CompanyJobPost == null)
+            {
+                return BadRequest("Došlo je do greške, pokušajte ponovo");
+            }
+
+            foreach(var app in applications)
+            {
+                if(app.CompanyJobPost.SubmittingUserId != userId)
+                {
+                    return Unauthorized("Nemate pravo pristupa!");
+                }
+            }
+
+            var position = applications[0].CompanyJobPost.Position;
+
+            string sheetName = string.IsNullOrWhiteSpace(position)
+                ? "Kandidati"
+            : position;
+
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add(sheetName);
+
+            int row = 1;
+
+            // Header
+            worksheet.Cell(row, 1).Value = "Pregledajte kandidata putem poslovnioglasi.ba";
+            worksheet.Cell(row, 2).Value = "CV file";
+            worksheet.Cell(row, 3).Value = "Ime i prezime";
+            worksheet.Cell(row, 4).Value = "Email";
+            worksheet.Cell(row, 5).Value = "Broj telefona";
+            worksheet.Cell(row, 6).Value = "Datum rođenja";
+            worksheet.Cell(row, 7).Value = "Spol";
+            worksheet.Cell(row, 8).Value = "Grad";
+            worksheet.Cell(row, 9).Value = "Datum prijave";
+            worksheet.Cell(row, 10).Value = "UTC - Datum i vrijeme sastanka";
+            worksheet.Cell(row, 11).Value = "Mjesto sastanka/Online sastanak";
+            worksheet.Cell(row, 12).Value = "Godine iskustva";
+            worksheet.Cell(row, 13).Value = "Ukupan rezultat AI analize";
+            worksheet.Cell(row, 14).Value = "AI analiza - vještine";
+            worksheet.Cell(row, 15).Value = "AI analiza - iskustvo";
+            worksheet.Cell(row, 16).Value = "AI analiza - obrazovanje";
+            worksheet.Cell(row, 17).Value = "AI analiza - obrazloženje";
+            worksheet.Cell(row, 18).Value = "Biografija";
+            worksheet.Cell(row, 19).Value = "Jezici";
+            worksheet.Cell(row, 20).Value = "Status";
+            worksheet.Cell(row, 21).Value = "Vaš odgovor";
+            worksheet.Cell(row, 21).Value = "Edukacije i prethodne kompanije";
+            var headerRow = worksheet.Row(row);
+            headerRow.Style.Font.Bold = true;
+            headerRow.Style.Fill.BackgroundColor = XLColor.LightYellow;
+
+            row++;
+
+            worksheet.Cell(row, 1).Value = $"Ukupan broj kandidata: {applications.Count}";
+            worksheet.Row(row).Style.Font.Italic = true;
+            row++;
+
+            foreach (var app in applications)
+            {
+                int startRow = row;
+
+                // Main application info
+                worksheet.Cell(row, 1).Value = $"poslovnioglasi.ba - kandidat {app.Id}";
+                worksheet.Cell(row, 1).SetHyperlink(new XLHyperlink($"{UIBaseUrl}company-settings/candidate-details/{app.Id}"));
+
+                worksheet.Cell(row, 2).Value = string.IsNullOrEmpty(app.CvFilePath) ? "Nije priložen" : "Pregledajte klikom ovdje";
+                worksheet.Cell(row, 2).SetHyperlink(new XLHyperlink($"{UIBaseUrl}company-settings/candidate-details/{app.Id}"));
+
+
+                worksheet.Cell(row, 3).Value = $"{app.FirstName} {app.LastName}";
+                worksheet.Cell(row, 4).Value = app.Email;
+                worksheet.Cell(row, 5).Value = app.PhoneNumber;
+                worksheet.Cell(row, 6).Value = app.DateOfBirth.ToString("dd.MM.yyyy");
+                worksheet.Cell(row, 7).Value = app.Gender == Gender.Male ? "Muškarac" : app.Gender == Gender.Female ? "Žena" : "Ostalo";
+                worksheet.Cell(row, 8).Value = app.City?.Name;
+                worksheet.Cell(row, 9).Value = app.CreatedAt.ToString("dd.MM.yyyy");
+                worksheet.Cell(row, 10).Value = app.MeetingDateTime?.ToString("dd.MM.yyyy HH:mm");
+                worksheet.Cell(row, 11).Value = app.IsOnlineMeeting == true ? app.OnlineMeetingLink : app.MeetingPlace;
+                worksheet.Cell(row, 12).Value = app.YearsOfExperience;
+                worksheet.Cell(row, 13).Value = app.AIMatchingResult;
+                worksheet.Cell(row, 14).Value = app.AIMatchingSkills;
+                worksheet.Cell(row, 15).Value = app.AIMatchingExperience;
+                worksheet.Cell(row, 16).Value = app.AIMatchingEducationLevel;
+                worksheet.Cell(row, 17).Value = app.AIMatchingDescription;
+                worksheet.Cell(row, 18).Value = RemoveHtmlTags(app.Biography);
+                worksheet.Cell(row, 19).Value = app.Languages;
+                worksheet.Cell(row, 20).Value = app.ApplicationStatusId == ApplicationStatus.MeetingScheduled ? "Zakazan sastanak" : app.ApplicationStatusId == ApplicationStatus.Rejected ? "Odbijen" : app.ApplicationStatusId == ApplicationStatus.WaitingForResponse ? "Čeka se na odgovor" : "Zaposlen";
+                worksheet.Cell(row, 21).Value = app.Feedback;
+
+                row++;
+
+                // Edukacije
+                foreach (var edu in app.Educations)
+                {
+                    worksheet.Cell(row, 22).Value = "Edukacija";
+                    string endYear = edu.EducationEndYear.HasValue
+                        ? edu.EducationEndYear.Value.ToString()
+                        : "Korisnik još uvijek pohađa edukaciju";
+
+                    worksheet.Cell(row, 23).Value =
+                        $"{edu.InstitutionName}, {edu.Degree}, {edu.FieldOfStudy}, {edu.EducationStartYear} - {endYear}";
+
+                    worksheet.Row(row).Style.Alignment.Indent = 1;
+                    row++;
+                }
+
+                // Prethodne kompanije
+                foreach (var job in app.PreviousCompanies)
+                {
+                    worksheet.Cell(row, 22).Value = "Prethodna kompanija";
+                    string endYear = job.EndYear.HasValue
+                        ? job.EndYear.Value.ToString()
+                        : "Korisnik još uvijek radi za kompaniju";
+
+                    worksheet.Cell(row, 23).Value =
+                        $"{job.CompanyName}, {job.Position}, {job.StartYear} - {endYear}";
+
+                    worksheet.Row(row).Style.Alignment.Indent = 1;
+                    row++;
+                }
+
+                // Collapse grupisanje
+                if (row - 1 > startRow)
+                {
+                    worksheet.Rows(startRow + 1, row - 1).Group();
+                }
+
+                // Prazan red između aplikacija
+                row++;
+            }
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Seek(0, SeekOrigin.Begin);
+
+            var fileName = $"Kandidati_{position}_{DateTime.UtcNow:yyyyMMdd}.xlsx";
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        public static string RemoveHtmlTags(string input)
+        {
+            return Regex.Replace(input, "<.*?>", string.Empty); // Uklanja sve HTML tagove
         }
 
         [HttpPost("create")]
