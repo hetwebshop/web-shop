@@ -64,5 +64,7 @@ namespace API.Entities
 
         public string Coverletter { get; set; }
         public string Languages { get; set; }
+
+        public bool IsAdmin { get; set; } = false;
     }
 }
