@@ -411,6 +411,17 @@ namespace API.Controllers
             return Ok(candidatesTableData);
         }
 
+        private string SanitizeSheetName(string name)
+        {
+            var invalidChars = new[] { ':', '\\', '/', '?', '*', '[', ']' };
+            name = name.Trim();
+            foreach (var c in invalidChars)
+            {
+                name = name.Replace(c, '-');
+            }
+            return name.Length > 31 ? name.Substring(0, 31) : name;
+        }
+
         [HttpPost("export-to-excel")]
         public async Task<IActionResult> ExportToExcel([FromBody] ExportCandidatesToExcelRequest req)
         {
@@ -441,8 +452,8 @@ namespace API.Controllers
             var position = applications[0].CompanyJobPost.Position;
 
             string sheetName = string.IsNullOrWhiteSpace(position)
-                ? "Kandidati"
-            : position;
+            ? "Kandidati"
+            : SanitizeSheetName(position);
 
             using var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add(sheetName);
