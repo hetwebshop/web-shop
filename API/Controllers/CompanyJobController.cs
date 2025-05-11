@@ -26,6 +26,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using TimeZoneConverter;
 
 namespace API.Controllers
 {
@@ -458,7 +459,7 @@ namespace API.Controllers
             worksheet.Cell(row, 7).Value = "Spol";
             worksheet.Cell(row, 8).Value = "Grad";
             worksheet.Cell(row, 9).Value = "Datum prijave";
-            worksheet.Cell(row, 10).Value = "UTC - Datum i vrijeme sastanka";
+            worksheet.Cell(row, 10).Value = "Datum i vrijeme sastanka";
             worksheet.Cell(row, 11).Value = "Mjesto sastanka/Online sastanak";
             worksheet.Cell(row, 12).Value = "Godine iskustva";
             worksheet.Cell(row, 13).Value = "Ukupan rezultat AI analize";
@@ -481,6 +482,8 @@ namespace API.Controllers
             worksheet.Row(row).Style.Font.Italic = true;
             row++;
 
+            var timeZone = TZConvert.GetTimeZoneInfo(req.Timezone);
+
             foreach (var app in applications)
             {
                 int startRow = row;
@@ -499,8 +502,14 @@ namespace API.Controllers
                 worksheet.Cell(row, 6).Value = app.DateOfBirth.ToString("dd.MM.yyyy");
                 worksheet.Cell(row, 7).Value = app.Gender == Gender.Male ? "Muškarac" : app.Gender == Gender.Female ? "Žena" : "Ostalo";
                 worksheet.Cell(row, 8).Value = app.City?.Name;
-                worksheet.Cell(row, 9).Value = app.CreatedAt.ToString("dd.MM.yyyy");
-                worksheet.Cell(row, 10).Value = app.MeetingDateTime?.ToString("dd.MM.yyyy HH:mm");
+
+                var localCreatedAt = TimeZoneInfo.ConvertTimeFromUtc(app.CreatedAt, timeZone);
+                var localMeetingDateTime = app.MeetingDateTime.HasValue
+                    ? TimeZoneInfo.ConvertTimeFromUtc(app.MeetingDateTime.Value, timeZone)
+                    : (DateTime?)null;
+
+                worksheet.Cell(row, 9).Value = localCreatedAt.ToString("dd.MM.yyyy HH:mm");
+                worksheet.Cell(row, 10).Value = localMeetingDateTime?.ToString("dd.MM.yyyy HH:mm");
                 worksheet.Cell(row, 11).Value = app.IsOnlineMeeting == true ? app.OnlineMeetingLink : app.MeetingPlace;
                 worksheet.Cell(row, 12).Value = app.YearsOfExperience;
                 worksheet.Cell(row, 13).Value = app.AIMatchingResult;
