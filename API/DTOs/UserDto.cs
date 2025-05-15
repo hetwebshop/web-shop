@@ -11,7 +11,7 @@ namespace API.DTOs
         public string UserName { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public int CityId { get; set; }
+        public int? CityId { get; set; }
         public string City { get; set; }
         public string ZipCode { get; set; }
         public string PhotoUrl { get; set; }
@@ -24,7 +24,7 @@ namespace API.DTOs
         public string Role { get; set; }
 
         public double Credits { get; set; }
-        public Gender Gender { get; set; }
+        public Gender? Gender { get; set; }
 
         public string PhoneNumber { get; set; }
         public int? JobCategoryId { get; set; }
@@ -36,7 +36,7 @@ namespace API.DTOs
         public IFormFile CvFile { get; set; }
         public string CvFilePath { get; set; }
         public string CvFileName { get; set; }
-        public DateTime DateOfBirth { get; set; }
+        public DateTime? DateOfBirth { get; set; }
         public List<UserEducationDto> UserEducations { get; set; }
 
         public string EmploymentType { get; set; }

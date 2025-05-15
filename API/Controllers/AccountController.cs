@@ -138,8 +138,8 @@ namespace API.Controllers
                 return BadRequest($"reCaptcha nije dostupna. Molimo vas da kontaktirate podrsku na {SupportEmail} ili pozovite {SupportPhone}");
             }
 
-            if (!IsUserAdult(registerDto.DateOfBirth))
-                return BadRequest("Morate imati najmanje 18 godina da biste koristili aplikaciju.");
+            //if (!IsUserAdult(registerDto.DateOfBirth))
+            //    return BadRequest("Morate imati najmanje 18 godina da biste koristili aplikaciju.");
 
             var existingUser = await _userManager.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper());
             if (existingUser != null)
