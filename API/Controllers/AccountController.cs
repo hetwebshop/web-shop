@@ -602,6 +602,22 @@ namespace API.Controllers
             return Ok(dto);
         }
 
+        [HttpPost("check-email")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CheckIfEmailExists([FromBody] string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return BadRequest("Email je obavezno polje.");
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user != null && !user.IsCompany)
+            {
+                return Ok(new { exists = true });
+            }
+
+            return Ok(new { exists = false });
+        }
+
         [HttpPost("google-login")]
         [AllowAnonymous]
         public async Task<ActionResult<UserDto>> GoogleLogin(GoogleLoginDto dto)
@@ -616,11 +632,27 @@ namespace API.Controllers
             }
             catch
             {
-                return BadRequest("Invalid Google token.");
+                _logger.LogWarning("Nije ispravan google token.");
+                return BadRequest("Nije ispravan google token.");
+            }
+
+            // Proveri da li je Google potvrdio email
+            if (payload.EmailVerified != true)
+            {
+                _logger.LogWarning("Google email nije verifikovan za {Email}", payload.Email);
+                return BadRequest("Google email nije verifikovan.");
             }
 
             var user = await FetchUserWithIncludesAsync(null, payload.Email);
-
+            if (user != null)
+            {
+                // Provera da li je korisnik odobren i aktivan
+                if (!user.IsApproved)
+                {
+                    _logger.LogWarning("Korisnik {Email} pokušao se prijaviti, ali račun nije aktivan ili je blokiran.", payload.Email);
+                    return Unauthorized("Vaš račun nije aktivan ili je blokiran.");
+                }
+            }
             if (user == null)
             {
                 user = new User
@@ -629,6 +661,7 @@ namespace API.Controllers
                     UserName = payload.Email,
                     FirstName = payload.GivenName,
                     LastName = payload.FamilyName,
+                    TermsAccepted = true,
                     EmailConfirmed = true,
                     IsApproved = true,
                 };
