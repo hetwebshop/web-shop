@@ -648,10 +648,15 @@ namespace API.Controllers
             var user = await FetchUserWithIncludesAsync(null, payload.Email);
             if (user != null)
             {
+                if(user.IsCompany)
+                {
+                    _logger.LogWarning("Kompanije se ne mogu prijaviti koristeći Google login.", payload.Email);
+                    return Unauthorized("Kompanije se ne mogu prijaviti koristeći Google login.");
+                }
                 // Provera da li je korisnik odobren i aktivan
                 if (!user.IsApproved)
                 {
-                    _logger.LogWarning("Korisnik {Email} pokušao se prijaviti, ali račun nije aktivan ili je blokiran.", payload.Email);
+                    _logger.LogWarning($"Korisnik {payload.Email} pokušao se prijaviti, ali račun nije aktivan ili je blokiran.");
                     return Unauthorized("Vaš račun nije aktivan ili je blokiran.");
                 }
             }
