@@ -9,6 +9,7 @@ using API.Mappers;
 using API.Services;
 using AutoMapper;
 using Ganss.Xss;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
@@ -138,8 +139,8 @@ namespace API.Controllers
                 return BadRequest($"reCaptcha nije dostupna. Molimo vas da kontaktirate podrsku na {SupportEmail} ili pozovite {SupportPhone}");
             }
 
-            if (!IsUserAdult(registerDto.DateOfBirth))
-                return BadRequest("Morate imati najmanje 18 godina da biste koristili aplikaciju.");
+            //if (!IsUserAdult(registerDto.DateOfBirth))
+            //    return BadRequest("Morate imati najmanje 18 godina da biste koristili aplikaciju.");
 
             var existingUser = await _userManager.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == registerDto.Email.ToUpper());
             if (existingUser != null)
@@ -195,6 +196,8 @@ namespace API.Controllers
 
             if(addFreeUserCreditsEnabled)
                 user.Credits = FreeUserCredits;
+
+            user.Coverletter = "<p><strong>Poštovani,</strong></p><p>Ovim putem želim izraziti interesovanje za zaposlenje u Vašoj kompaniji, na osnovu oglasa objavljenog na platformi <em>Poslovnioglasi</em>.</p><p>Odlikuju me odgovornost, motivisanost i spremnost na učenje, kao i želja za radom u dinamičnom okruženju. Vjerujem da se kroz svoj doprinos mogu ispuniti očekivanja i ciljevi radnog mjesta.</p><p>Bila bi mi čast učestvovati u razgovoru za posao, gdje bi se mogle razmotriti mogućnosti saradnje i detaljnije predstaviti kvalifikacije.</p><p><strong>Lijep pozdrav</strong></p>";
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
@@ -599,6 +602,123 @@ namespace API.Controllers
             var dto = ConvertUserToUserDto(user);
 
             return Ok(dto);
+        }
+
+        [HttpPost("check-email")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CheckIfEmailExists([FromBody] string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return BadRequest("Email je obavezno polje.");
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user != null && !user.IsCompany)
+            {
+                return Ok(new { exists = true });
+            }
+
+            return Ok(new { exists = false });
+        }
+
+        [HttpPost("google-login")]
+        [AllowAnonymous]
+        public async Task<ActionResult<UserDto>> GoogleLogin(GoogleLoginDto dto)
+        {
+            GoogleJsonWebSignature.Payload payload;
+            try
+            {
+                payload = await GoogleJsonWebSignature.ValidateAsync(dto.IdToken, new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { configuration["Authentication:Google:ClientId"] } // Same as in frontend
+                });
+            }
+            catch
+            {
+                _logger.LogWarning("Nije ispravan google token.");
+                return BadRequest("Nije ispravan google token.");
+            }
+
+            // Proveri da li je Google potvrdio email
+            if (payload.EmailVerified != true)
+            {
+                _logger.LogWarning("Google email nije verifikovan za {Email}", payload.Email);
+                return BadRequest("Google email nije verifikovan.");
+            }
+
+            var user = await FetchUserWithIncludesAsync(null, payload.Email);
+            if (user != null)
+            {
+                if(user.IsCompany)
+                {
+                    _logger.LogWarning("Kompanije se ne mogu prijaviti koristeći Google login.", payload.Email);
+                    return Unauthorized("Kompanije se ne mogu prijaviti koristeći Google login.");
+                }
+                // Provera da li je korisnik odobren i aktivan
+                if (!user.IsApproved)
+                {
+                    _logger.LogWarning($"Korisnik {payload.Email} pokušao se prijaviti, ali račun nije aktivan ili je blokiran.");
+                    return Unauthorized("Vaš račun nije aktivan ili je blokiran.");
+                }
+            }
+            if (user == null)
+            {
+                user = new User
+                {
+                    Email = payload.Email,
+                    UserName = payload.Email,
+                    FirstName = payload.GivenName,
+                    LastName = payload.FamilyName,
+                    TermsAccepted = true,
+                    EmailConfirmed = true,
+                    IsApproved = true,
+                };
+
+                if (addFreeUserCreditsEnabled)
+                    user.Credits = FreeUserCredits;
+
+                user.Coverletter = "<p><strong>Poštovani,</strong></p><p>Ovim putem želim izraziti interesovanje za zaposlenje u Vašoj kompaniji, na osnovu oglasa objavljenog na platformi <em>Poslovnioglasi</em>.</p><p>Odlikuju me odgovornost, motivisanost i spremnost na učenje, kao i želja za radom u dinamičnom okruženju. Vjerujem da se kroz svoj doprinos mogu ispuniti očekivanja i ciljevi radnog mjesta.</p><p>Bila bi mi čast učestvovati u razgovoru za posao, gdje bi se mogle razmotriti mogućnosti saradnje i detaljnije predstaviti kvalifikacije.</p><p><strong>Lijep pozdrav</strong></p>";
+
+                var result = await _userManager.CreateAsync(user);
+                if (!result.Succeeded)
+                {
+                    _logger.LogError("Dogodila se greška prilikom kreiranja korisnika putem Googla.");
+                    return BadRequest("Dogodila se greška prilikom kreiranja korisnika putem Googla.");
+                }
+
+                var roleResult = await _userManager.AddToRoleAsync(user, RoleType.User.ToString());
+                if (!roleResult.Succeeded)
+                {
+                    _logger.LogWarning("Greška pri dodavanju korisničke uloge: {Errors}", roleResult.Errors.ToStringError());
+                    return BadRequest(roleResult.Errors.ToStringError());
+                }
+            }
+
+            var token = await _tokenService.CreateToken(user);
+            var refreshToken = _tokenService.CreateRefreshToken();
+            _tokenService.SetTokenInsideCookie(token, refreshToken, HttpContext);
+
+            user.LastActive = DateTime.UtcNow;
+            await _userManager.UpdateAsync(user);
+
+            var refreshTokenObj = new RefreshToken
+            {
+                CreatedAt = DateTime.UtcNow,
+                UserId = user.Id,
+                Token = refreshToken,
+                ExpiryDate = DateTime.UtcNow.AddDays(7),
+                IPAddress = dto.IPAddress,
+                UserAgent = dto.UserAgent,
+                DeviceId = dto.DeviceId
+            };
+
+            var existingToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(r => r.UserId == user.Id && r.DeviceId == dto.DeviceId);
+            if (existingToken != null)
+                _dbContext.RefreshTokens.Remove(existingToken);
+            await _dbContext.RefreshTokens.AddAsync(refreshTokenObj);
+            await _dbContext.SaveChangesAsync();
+
+            var userDto = ConvertUserToUserDto(user);
+            return Ok(userDto);
         }
 
         //[HttpPost("login")]
@@ -1319,67 +1439,75 @@ namespace API.Controllers
 
         private UserDto ConvertUserToUserDto(User user)
         {
-            var dto = new UserDto
+            try
             {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                CityId = user.CityId,
-                City = user.City?.Name,
-                ZipCode = user.City?.PostalCode,
-                UserName = user.UserName,
-                PhotoUrl = user.PhotoUrl,
-                Email = user.Email,
-                CompanyAddress = user.Company?.Address,
-                CompanyId = user.Company?.Id,
-                CompanyName = user.Company?.CompanyName,
-                CompanyPhone = user.Company?.PhoneNumber,
-                AboutCompany = user.Company?.AboutUs,
-                Credits = user.Credits,
-                PhoneNumber = user.PhoneNumber,
-                YearsOfExperience = user.YearsOfExperience,
-                Gender = user.Gender,
-                DateOfBirth = user.DateOfBirth,
-                Biography = user.Biography,
-                JobCategoryId = user.JobCategoryId,
-                JobTypeId = user.JobTypeId,
-                JobCategory = user.JobCategory?.Name,
-                JobType = user.JobType?.Name,
-                CvFilePath = user.CvFilePath, // Assuming this is the correct field
-                CvFileName = user.CvFileName,
-                Position = user.Position,
-                EmploymentType = user.EmploymentType?.Name,
-                EmploymentTypeId = user.EmploymentType?.Id,
-                EmploymentStatusId = user.EmploymentStatusId,
-                EmploymentStatus = user.EmploymentStatus?.Name,
-                EducationLevel = user.EducationLevel?.Name,
-                EducationLevelId = user.EducationLevel?.Id,
-                Coverletter = user.Coverletter,
-                Role = user.UserRoles.First().Role.Name,
-                Languages = user.Languages,
-                UserPreviousCompanies = user.UserPreviousCompanies?.Select(userPreviousCompany => new UserPreviousCompaniesDto()
+                var dto = new UserDto
                 {
-                    CompanyName = userPreviousCompany.CompanyName,
-                    Position = userPreviousCompany.Position,
-                    Description = userPreviousCompany.Description,
-                    StartYear = userPreviousCompany.StartYear,
-                    EndYear = userPreviousCompany.EndYear,
-                    UserCompanyId = userPreviousCompany.Id
-                }).ToList() ?? new List<UserPreviousCompaniesDto>(),
-                UserEducations = user.UserEducations?.Select(userEducation => new UserEducationDto
-                {
-                    University = userEducation.University,
-                    UserId = userEducation.UserId,
-                    EducationEndYear = userEducation.EducationEndYear,
-                    EducationStartYear = userEducation.EducationStartYear,
-                    Degree = userEducation.Degree,
-                    FieldOfStudy = userEducation.FieldOfStudy,
-                    UserEducationId = userEducation.Id,
-                    InstitutionName = userEducation.InstitutionName // Fixed this field assignment
-                }).ToList() ?? new List<UserEducationDto>() // In case user.UserEducations is null, return an empty list
-            };
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    CityId = user.CityId,
+                    City = user.City?.Name,
+                    ZipCode = user.City?.PostalCode,
+                    UserName = user.UserName,
+                    PhotoUrl = user.PhotoUrl,
+                    Email = user.Email,
+                    CompanyAddress = user.Company?.Address,
+                    CompanyId = user.Company?.Id,
+                    CompanyName = user.Company?.CompanyName,
+                    CompanyPhone = user.Company?.PhoneNumber,
+                    AboutCompany = user.Company?.AboutUs,
+                    Credits = user.Credits,
+                    PhoneNumber = user.PhoneNumber,
+                    YearsOfExperience = user.YearsOfExperience,
+                    Gender = user.Gender,
+                    DateOfBirth = user.DateOfBirth,
+                    Biography = user.Biography,
+                    JobCategoryId = user.JobCategoryId,
+                    JobTypeId = user.JobTypeId,
+                    JobCategory = user.JobCategory?.Name,
+                    JobType = user.JobType?.Name,
+                    CvFilePath = user.CvFilePath, // Assuming this is the correct field
+                    CvFileName = user.CvFileName,
+                    Position = user.Position,
+                    EmploymentType = user.EmploymentType?.Name,
+                    EmploymentTypeId = user.EmploymentType?.Id,
+                    EmploymentStatusId = user.EmploymentStatusId,
+                    EmploymentStatus = user.EmploymentStatus?.Name,
+                    EducationLevel = user.EducationLevel?.Name,
+                    EducationLevelId = user.EducationLevel?.Id,
+                    Coverletter = user.Coverletter,
+                    Role = user.UserRoles.First().Role.Name,
+                    Languages = user.Languages,
+                    UserPreviousCompanies = user.UserPreviousCompanies?.Select(userPreviousCompany => new UserPreviousCompaniesDto()
+                    {
+                        CompanyName = userPreviousCompany.CompanyName,
+                        Position = userPreviousCompany.Position,
+                        Description = userPreviousCompany.Description,
+                        StartYear = userPreviousCompany.StartYear,
+                        EndYear = userPreviousCompany.EndYear,
+                        UserCompanyId = userPreviousCompany.Id
+                    }).ToList() ?? new List<UserPreviousCompaniesDto>(),
+                    UserEducations = user.UserEducations?.Select(userEducation => new UserEducationDto
+                    {
+                        University = userEducation.University,
+                        UserId = userEducation.UserId,
+                        EducationEndYear = userEducation.EducationEndYear,
+                        EducationStartYear = userEducation.EducationStartYear,
+                        Degree = userEducation.Degree,
+                        FieldOfStudy = userEducation.FieldOfStudy,
+                        UserEducationId = userEducation.Id,
+                        InstitutionName = userEducation.InstitutionName // Fixed this field assignment
+                    }).ToList() ?? new List<UserEducationDto>() // In case user.UserEducations is null, return an empty list
+                };
 
-            return dto;
+                return dto;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError($"Desila se greška prilikom mapiranja user u userDto: {ex.Message}");
+                throw;
+            }
         }
 
         private UserDto ConvertCompanyUserToUserDto(User user)

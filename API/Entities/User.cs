@@ -10,13 +10,13 @@ namespace API.Entities
 {
     public class User : IdentityUser<int>
     {
-        public DateTime DateOfBirth { get; set; }
-        public Gender Gender { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public Gender? Gender { get; set; }
         public DateTime LastActive { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string PhotoUrl { get; set; }
-        public int CityId { get; set; }
+        public int? CityId { get; set; }
         public City City { get; set; }
         public int? JobTypeId { get; set; }
         public JobType JobType { get; set; }
@@ -36,10 +36,10 @@ namespace API.Entities
         public bool TermsAccepted { get; set; }
 
         public int? EducationLevelId { get; set; }
-        public EducationLevel? EducationLevel { get; set; }
+        public EducationLevel EducationLevel { get; set; }
 
         public int? EmploymentTypeId { get; set; }
-        public EmploymentType? EmploymentType { get; set; }
+        public EmploymentType EmploymentType { get; set; }
 
         public int? YearsOfExperience { get; set; }
 
@@ -51,7 +51,7 @@ namespace API.Entities
 
 
         public int? EmploymentStatusId { get; set; }
-        public EmploymentStatus? EmploymentStatus { get; set; }
+        public EmploymentStatus EmploymentStatus { get; set; }
 
         public ICollection<CompanyJobPost.CompanyJobPost> CompanyJobPosts { get; set; }
 
