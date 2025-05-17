@@ -197,6 +197,8 @@ namespace API.Controllers
             if(addFreeUserCreditsEnabled)
                 user.Credits = FreeUserCredits;
 
+            user.Coverletter = "<p><strong>Poštovani,</strong></p><p>Ovim putem želim izraziti interesovanje za zaposlenje u Vašoj kompaniji, na osnovu oglasa objavljenog na platformi <em>Poslovnioglasi</em>.</p><p>Odlikuju me odgovornost, motivisanost i spremnost na učenje, kao i želja za radom u dinamičnom okruženju. Vjerujem da se kroz svoj doprinos mogu ispuniti očekivanja i ciljevi radnog mjesta.</p><p>Bila bi mi čast učestvovati u razgovoru za posao, gdje bi se mogle razmotriti mogućnosti saradnje i detaljnije predstaviti kvalifikacije.</p><p><strong>Lijep pozdrav</strong></p>";
+
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded) return BadRequest(result.Errors.ToStringError());
             if (!result.Succeeded)
@@ -668,6 +670,8 @@ namespace API.Controllers
 
                 if (addFreeUserCreditsEnabled)
                     user.Credits = FreeUserCredits;
+
+                user.Coverletter = "<p><strong>Poštovani,</strong></p><p>Ovim putem želim izraziti interesovanje za zaposlenje u Vašoj kompaniji, na osnovu oglasa objavljenog na platformi <em>Poslovnioglasi</em>.</p><p>Odlikuju me odgovornost, motivisanost i spremnost na učenje, kao i želja za radom u dinamičnom okruženju. Vjerujem da se kroz svoj doprinos mogu ispuniti očekivanja i ciljevi radnog mjesta.</p><p>Bila bi mi čast učestvovati u razgovoru za posao, gdje bi se mogle razmotriti mogućnosti saradnje i detaljnije predstaviti kvalifikacije.</p><p><strong>Lijep pozdrav</strong></p>";
 
                 var result = await _userManager.CreateAsync(user);
                 if (!result.Succeeded)
